@@ -256,7 +256,7 @@
                 <div>Player</div>
                 <div>Shame %</div>
                 <div>Games</div>
-                <div>Hours</div>
+                <div>Played</div>
             </div>
             
             {% for entry in leaderboard %}
@@ -275,7 +275,7 @@
                     {{ entry.shame_score }}%
                 </div>
                 <div class="stat">{{ entry.total_games }}</div>
-                <div class="stat">{{ entry.total_hours }}</div>
+                <div class="stat">{{ entry.played_count }}</div>
             </div>
             {% endfor %}
         </div>
