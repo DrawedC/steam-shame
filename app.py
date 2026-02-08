@@ -161,7 +161,7 @@ def analyze_library(games):
         pick = random.choice(unplayed)
         suggest = {"name": pick.get("name","Unknown"), "appid": pick.get("appid")}
 
-    return {
+    result = {
         "total_games": total,
         "played_count": len(raw_played), "abandoned_count": len(raw_abandoned),
         "never_played_count": len(raw_unplayed),
@@ -173,6 +173,8 @@ def analyze_library(games):
         "shame_score": shame, "verdict": verdict, "backlog_days": backlog_days,
         "suggest": suggest,
     }
+    result["descriptor"] = detect_descriptor(result)
+    return result
 
 # ============== Genre ==============
 GENRE_CATEGORIES = {
@@ -205,21 +207,63 @@ def classify_game_genres(store_data):
             if n.lower() in lower_labels: cats.add(k); break
     return list(cats)
 
+def detect_descriptor(stats):
+    """Primary identity based on play habits."""
+    played_pct = (stats["played_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
+    abandoned_pct = (stats["abandoned_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
+    unplayed_pct = (stats["never_played_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
+
+    if played_pct > 50:
+        return {"type": "player", "emoji": "🎮", "title": "The Player",
+                "description": "You actually play your games. A rare breed."}
+    elif abandoned_pct > played_pct and abandoned_pct > unplayed_pct:
+        return {"type": "sampler", "emoji": "🧪", "title": "The Sampler",
+                "description": "You try everything but commit to nothing."}
+    else:
+        return {"type": "collector", "emoji": "🏛️", "title": "The Collector",
+                "description": "You buy games like they're going out of style. They're not."}
+
+
 def detect_badges(stats, store_details, games):
     badges = []
-    if stats["total_games"] > 200 and stats["shame_score"] > 35:
-        badges.append({"name":"Humble Bundle Victim","emoji":"📦","description":"200+ games, most untouched."})
-    ea = sum(1 for d in store_details.values() if "early access" in [g.get("description","").lower() for g in d.get("genres",[])])
-    if ea >= 5: badges.append({"name":"Early Access Addict","emoji":"🚧","description":f"{ea} Early Access games."})
-    tm = sum(g.get("playtime_forever",0) for g in games)
+
+    # No unplayed games — pristine
+    if stats["never_played_count"] == 0:
+        badges.append({"name": "Pristine Library", "emoji": "✨",
+                       "description": "Zero unplayed games. You're either disciplined or just got here."})
+
+    # 100+ unplayed
+    if stats["never_played_count"] >= 100:
+        badges.append({"name": "Humble Bundle Victim", "emoji": "📦",
+                       "description": f"{stats['never_played_count']} unplayed games. Those bundles got you good."})
+
+    # 30+ abandoned
+    if stats["abandoned_count"] >= 30:
+        badges.append({"name": "Acquired Tastes", "emoji": "🍷",
+                       "description": f"{stats['abandoned_count']} games abandoned under an hour. Very particular."})
+
+    # One-trick pony
+    tm = sum(g.get("playtime_forever", 0) for g in games)
     if tm > 0:
-        tg = max(games, key=lambda g: g.get("playtime_forever",0))
-        tp = (tg["playtime_forever"]/tm)*100
-        if tp > 50: badges.append({"name":"One-Trick Pony","emoji":"🐴","description":f"{tp:.0f}% of time in {tg.get('name','one game')}."})
-    if stats["total_games"] >= 500: badges.append({"name":"Game Collector","emoji":"🏛️","description":f"{stats['total_games']} games."})
-    qa = len([g for g in games if 0 < g.get("playtime_forever",0) < 30])
-    if qa >= 20: badges.append({"name":"Speedrun Abandoner","emoji":"⏱️","description":f"{qa} games under 30 min."})
-    if stats["total_games"] < 50 and stats["shame_score"] < 20: badges.append({"name":"Disciplined Buyer","emoji":"🎯","description":"Small library, actually played."})
+        tg = max(games, key=lambda g: g.get("playtime_forever", 0))
+        tp = (tg["playtime_forever"] / tm) * 100
+        if tp > 50:
+            badges.append({"name": "One-Trick Pony", "emoji": "🐴",
+                           "description": f"{tp:.0f}% of your time in {tg.get('name', 'one game')}."})
+
+    # Early access addict
+    ea = sum(1 for d in store_details.values()
+             if "early access" in [g.get("description", "").lower() for g in d.get("genres", [])])
+    if ea >= 5:
+        badges.append({"name": "Early Access Addict", "emoji": "🚧",
+                       "description": f"{ea} Early Access games. You love paying to beta test."})
+
+    # Speed abandoner
+    qa = len([g for g in games if 0 < g.get("playtime_forever", 0) < 10])
+    if qa >= 15:
+        badges.append({"name": "10-Minute Rule", "emoji": "⏱️",
+                       "description": f"{qa} games with under 10 minutes. Harsh critic."})
+
     return badges[:6]
 
 # ============== Routes ==============
@@ -374,8 +418,16 @@ def api_personality(steam_id):
 
         stats = analyze_library(games)
         badges = detect_badges(stats, sd, games)
+
+        # Mismatch badge for Gamer DNA
+        mismatch_badge = None
+        if mismatch and um:
+            mismatch_badge = {"emoji": "🤔", "title": f"Thinks They Like {um['label']}",
+                              "description": f"Your unplayed library is full of {um['emoji']} {um['label']} games, but that's not what you actually play."}
+
         return jsonify({"radar":radar,"genre_games":genre_games,"overall_majority":om,
-            "played_majority":pm,"unplayed_majority":um,"show_unplayed_mismatch":mismatch,"badges":badges})
+            "played_majority":pm,"unplayed_majority":um,"show_unplayed_mismatch":mismatch,
+            "mismatch_badge":mismatch_badge,"badges":badges})
     except Exception as e: return jsonify({"error":str(e)}), 500
 
 @app.route("/api/friends/<steam_id>")
