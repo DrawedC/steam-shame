@@ -27,7 +27,7 @@
         .big-stat-label{font-size:.9rem;color:#666;margin-top:.5rem;font-weight:500}
         .pie-wrap{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;margin-bottom:2rem}.pie-chart-box{width:300px;height:300px;flex-shrink:0}
         .pie-legend{display:flex;flex-direction:column;gap:.75rem}
-        .pie-legend-item{display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:#ccc;cursor:pointer;padding:.5rem .75rem;border-radius:8px;transition:background .15s}.pie-legend-item:hover,.pie-legend-item.active{background:rgba(255,255,255,.08)}
+        .pie-legend-item{display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:#ccc;cursor:pointer;padding:.5rem .75rem;border-radius:8px;transition:all .2s;border:1px solid transparent}.pie-legend-item:hover{background:rgba(255,255,255,.08);transform:scale(1.03);border-color:rgba(255,255,255,.15)}.pie-legend-item.active{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
         .pie-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}.pie-legend-pct{color:#888;font-size:.85rem;margin-left:auto;font-weight:600;padding-left:1rem}
         .game-card{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;max-height:400px;overflow-y:auto}
         .game-card::-webkit-scrollbar{width:6px}.game-card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
@@ -48,13 +48,14 @@
         .suggest-btn{display:inline-block;padding:.6rem 1.5rem;background:#00a8ff;color:#fff;border-radius:50px;text-decoration:none;font-weight:600;font-size:.9rem;transition:transform .2s}.suggest-btn:hover{transform:translateY(-2px)}
         .suggest-reroll{display:inline-block;margin-left:1rem;padding:.6rem 1.5rem;background:rgba(255,255,255,.08);color:#ccc;border-radius:50px;border:none;font-size:.9rem;cursor:pointer;font-family:inherit}.suggest-reroll:hover{background:rgba(255,255,255,.12);color:#fff}
         .radar-toggles{display:flex;justify-content:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
-        .radar-toggle{padding:.6rem 1.5rem;border-radius:50px;font-size:.9rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .2s;font-family:inherit;background:rgba(255,255,255,.06);color:#888}
-        .radar-toggle.active{color:#fff}
+        .radar-toggle{padding:.75rem 1.75rem;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .25s;font-family:inherit;background:rgba(255,255,255,.06);color:#888}
+        .radar-toggle:hover{background:rgba(255,255,255,.12);transform:scale(1.05);color:#ccc}
+        .radar-toggle.active{color:#fff;transform:scale(1.05)}
         .radar-toggle[data-layer="owned"].active{background:rgba(0,168,255,.2);border-color:#00a8ff;color:#00a8ff}
         .radar-toggle[data-layer="played"].active{background:rgba(0,210,106,.2);border-color:#00d26a;color:#00d26a}
         .radar-toggle[data-layer="unplayed"].active{background:rgba(255,51,102,.2);border-color:#ff3366;color:#ff3366}
         .radar-canvas-wrap{display:flex;justify-content:center;margin-bottom:1rem}
-        .dna-summary{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;align-items:center}
+        .dna-summary{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;align-items:center;justify-content:center}
         .dna-chip{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:12px;font-size:.9rem;font-weight:600}
         .dna-chip.owned{background:rgba(0,168,255,.15);color:#00a8ff}.dna-chip.played{background:rgba(0,210,106,.15);color:#00d26a}.dna-chip.unplayed{background:rgba(255,51,102,.15);color:#ff3366}
         .mismatch-card{background:linear-gradient(135deg,rgba(255,51,102,.12),rgba(255,51,102,.03));border:1px solid rgba(255,51,102,.25);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
@@ -94,13 +95,14 @@
 <section class="hero">
     <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-subtitle">Steam Shame Report</div></div></div>
     <div class="shame-score-display"><div class="shame-number">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
+    <div style="margin-top:1.5rem;opacity:0;animation:fadeInUp .6s ease .3s forwards"><span style="font-size:1.1rem;color:#ff3366;font-weight:700">{{ (stats.never_played_count/stats.total_games*100)|round(1) }}%</span><span style="color:#666;font-size:1rem"> of games never played</span></div>
     <p class="roast">{% if stats.shame_score >= 50 %}You own {{ stats.total_games }} games and have played {{ stats.played_count }}. That's a graveyard.{% elif stats.shame_score >= 35 %}Steam sales broke you. {{ stats.never_played_count }} games collecting dust.{% elif stats.shame_score >= 20 %}Not terrible, but {{ stats.never_played_count }} unplayed games is too many.{% else %}You actually play your games. Impressive.{% endif %}</p>
     <div class="scroll-hint">Scroll for the full damage report<span>&#8595;</span></div>
 </section>
 
 <!-- Shame Pile -->
 <section class="stats-section"><div class="section-inner">
-    <div class="section-header"><h2 class="section-title">The Shame Pile</h2><p class="section-subtitle">Where your library really stands</p></div>
+    <div class="section-header"><h2 class="section-title">The Shame Pile</h2><p class="section-subtitle">{{ stats.total_games }} games in your library</p></div>
     <div class="big-stats">
         <div class="big-stat"><div class="big-stat-number green">{{ stats.played_count }}</div><div class="big-stat-label">Played (61+ min)</div></div>
         <div class="big-stat"><div class="big-stat-number orange">{{ stats.abandoned_count }}</div><div class="big-stat-label">Abandoned (1-60 min)</div></div>
@@ -128,8 +130,8 @@
 </div></section>
 
 <!-- Gamer DNA -->
-<section class="stats-section" id="personality-section"><div class="section-inner">
-    <div class="section-header"><h2 class="section-title">&#x1F9EC; Gamer DNA</h2><p class="section-subtitle">What your library says about you</p></div>
+<section class="stats-section" id="personality-section" style="padding-top:3rem"><div class="section-inner">
+    <div class="section-header" style="margin-bottom:1.5rem"><h2 class="section-title">&#x1F9EC; Gamer DNA</h2><p class="section-subtitle">What your library says about you</p></div>
     <div id="personality-loading" class="loading-state"><div class="spinner"></div><p>Profiling your gaming habits...</p></div>
     <div id="personality-content" style="display:none"></div>
 </div></section>
@@ -229,8 +231,8 @@ fetch('/api/personality/'+steamId).then(r=>r.json()).then(data=>{
     // Mismatch callout
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
         h+='<div class="mismatch-card"><div class="mismatch-title">&#x1F6A8; You think you like '+data.unplayed_majority.label+', but you don\'t</div><div class="mismatch-sub">Your unplayed library is mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+', but you actually play '+data.played_majority.emoji+' '+data.played_majority.label+'</div></div>'}
-    h+='<div class="radar-canvas-wrap"><canvas id="radar-canvas" width="500" height="500" style="max-width:500px"></canvas></div>';
-    h+='<p style="text-align:center;color:#555;font-size:.8rem;margin-top:.5rem">Click a genre on the chart to see games</p>';
+    h+='<div class="radar-canvas-wrap"><canvas id="radar-canvas" width="600" height="600" style="max-width:600px"></canvas></div>';
+    h+='<p style="text-align:center;color:#888;font-size:.9rem;margin-top:1rem;font-weight:500">&#x1F446; Click any genre on the chart to see games in that category</p>';
     if(data.badges&&data.badges.length){h+='<h3 style="color:#888;font-size:1rem;margin:2rem 0 1rem;font-weight:500">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
         data.badges.forEach(b=>{h+='<div class="badge-card"><div class="badge-emoji">'+b.emoji+'</div><div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.description+'</div></div></div>'});h+='</div>'}
     showContent('personality',h);
@@ -243,8 +245,10 @@ fetch('/api/personality/'+steamId).then(r=>r.json()).then(data=>{
             {label:'Library',data:r.owned,backgroundColor:C.owned.bg,borderColor:C.owned.br,borderWidth:2,pointRadius:4,pointBackgroundColor:C.owned.br},
             {label:'Played',data:r.played,backgroundColor:F.played.bg,borderColor:F.played.br,borderWidth:1,pointRadius:2,pointBackgroundColor:F.played.br},
             {label:'Unplayed',data:r.unplayed,backgroundColor:F.unplayed.bg,borderColor:F.unplayed.br,borderWidth:1,pointRadius:2,pointBackgroundColor:F.unplayed.br}]},
-        options:{responsive:true,maintainAspectRatio:true,scales:{r:{grid:{color:'rgba(255,255,255,0.08)'},angleLines:{color:'rgba(255,255,255,0.08)'},pointLabels:{color:'#ccc',font:{size:11}},ticks:{display:false},suggestedMin:0}},
-            plugins:{legend:{display:false}},
+        options:{responsive:true,maintainAspectRatio:true,scales:{r:{grid:{color:'rgba(255,255,255,0.08)'},angleLines:{color:'rgba(255,255,255,0.08)'},pointLabels:{color:'#ccc',font:{size:13,weight:'500'},padding:15},ticks:{display:false},suggestedMin:0}},
+            plugins:{legend:{display:false},tooltip:{enabled:true,backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#ccc',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,padding:12,displayColors:true}},
+            interaction:{mode:'nearest',intersect:false},
+            onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default'},
             onClick:(e,els)=>{const pts=radarChart.getElementsAtEventForMode(e,'nearest',{intersect:false},true);
                 if(pts.length){const idx=pts[0].index,gk=r.labels[idx].key,layer=activeRadar;
                     const games=(personalityData.genre_games[gk]||{})[layer]||[];
