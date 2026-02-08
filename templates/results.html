@@ -299,6 +299,62 @@
             .badge-grid { grid-template-columns: 1fr; }
             .genre-bar-label { width: 100px; }
         }
+        
+        /* Modal / Popup */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75); z-index: 1000;
+            align-items: center; justify-content: center; padding: 1.5rem;
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #151518; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 2rem; max-width: 500px; width: 100%;
+            max-height: 70vh; display: flex; flex-direction: column;
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.25rem; flex-shrink: 0;
+        }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+        .modal-count { font-size: 0.85rem; color: #666; font-weight: 400; }
+        .modal-close {
+            background: rgba(255,255,255,0.1); border: none; color: #999;
+            width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s; flex-shrink: 0;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        .modal-list {
+            overflow-y: auto; flex: 1; margin: 0 -0.5rem; padding: 0 0.5rem;
+        }
+        .modal-list::-webkit-scrollbar { width: 6px; }
+        .modal-list::-webkit-scrollbar-track { background: transparent; }
+        .modal-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        .modal-game {
+            padding: 0.65rem 0.75rem; border-radius: 8px; color: #ccc; font-size: 0.9rem;
+            transition: background 0.15s;
+        }
+        .modal-game:hover { background: rgba(255,255,255,0.05); }
+        .modal-game-sub { font-size: 0.75rem; color: #555; margin-top: 0.15rem; }
+        
+        /* Clickable indicators */
+        .clickable { cursor: pointer; position: relative; }
+        .clickable::after {
+            content: 'tap to see games'; position: absolute; bottom: -18px; left: 50%;
+            transform: translateX(-50%); font-size: 0.65rem; color: #555;
+            white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+        }
+        .clickable:hover::after { opacity: 1; }
+        .tier-segment.clickable:hover { filter: brightness(1.2); }
+        .genre-bar-fill.clickable:hover { filter: brightness(1.15); }
+        .type-card.clickable:hover { border-color: rgba(255,255,255,0.25); }
     </style>
 </head>
 <body>
@@ -567,8 +623,60 @@
         </div>
     </section>
     
+    <!-- Modal Popup -->
+    <div class="modal-overlay" id="game-modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title"></div>
+                <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+            </div>
+            <div class="modal-list" id="modal-list"></div>
+        </div>
+    </div>
+    
     <script>
         const steamId = "{{ steam_id }}";
+        
+        // ======== MODAL HELPERS ========
+        function openModal(title, emoji, games, subtitle) {
+            const modal = document.getElementById('game-modal');
+            const titleEl = document.getElementById('modal-title');
+            const listEl = document.getElementById('modal-list');
+            
+            titleEl.innerHTML = `${emoji} ${title} <span class="modal-count">(${games.length})</span>`;
+            
+            let html = '';
+            games.forEach(g => {
+                if (typeof g === 'string') {
+                    html += `<div class="modal-game">${g}</div>`;
+                } else {
+                    html += `<div class="modal-game">${g.name}`;
+                    if (g.reviews !== undefined) {
+                        html += `<div class="modal-game-sub">${g.reviews.toLocaleString()} reviews</div>`;
+                    }
+                    html += '</div>';
+                }
+            });
+            
+            if (games.length === 0) {
+                html = '<div class="modal-game" style="color:#555;">No games found in this category</div>';
+            }
+            
+            listEl.innerHTML = html;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('game-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        
+        // Store data for popups
+        let indieData = null;
+        let personalityData = null;
         
         // ======== HELPER ========
         function showError(sectionId, msg) {
@@ -643,6 +751,8 @@
             .then(data => {
                 if (data.error) { showError('indie', data.error); return; }
                 
+                indieData = data;
+                
                 const t = data.tiers;
                 const total = data.total_classified || 1;
                 const pcts = {
@@ -650,6 +760,13 @@
                     indie: ((t.indie / total) * 100).toFixed(1),
                     mid_tier: ((t.mid_tier / total) * 100).toFixed(1),
                     mainstream: ((t.mainstream / total) * 100).toFixed(1)
+                };
+                
+                const tierMeta = {
+                    hidden_gem: { emoji: '&#x1F48E;', label: 'Hidden Gems', color: '#a855f7' },
+                    indie: { emoji: '&#x1F3A8;', label: 'Indie', color: '#22c55e' },
+                    mid_tier: { emoji: '&#x1F4CA;', label: 'Mid-Tier', color: '#3b82f6' },
+                    mainstream: { emoji: '&#x1F3E2;', label: 'Mainstream', color: '#f59e0b' }
                 };
                 
                 let html = `
@@ -660,24 +777,41 @@
                     </div>
                     
                     <div class="tier-bar-container">
-                        <div class="tier-bar">
-                            ${t.hidden_gem > 0 ? `<div class="tier-segment" style="flex: ${t.hidden_gem}; background: #a855f7;"><span>&#x1F48E; ${pcts.hidden_gem}%</span></div>` : ''}
-                            ${t.indie > 0 ? `<div class="tier-segment" style="flex: ${t.indie}; background: #22c55e;"><span>&#x1F3A8; ${pcts.indie}%</span></div>` : ''}
-                            ${t.mid_tier > 0 ? `<div class="tier-segment" style="flex: ${t.mid_tier}; background: #3b82f6;"><span>&#x1F4CA; ${pcts.mid_tier}%</span></div>` : ''}
-                            ${t.mainstream > 0 ? `<div class="tier-segment" style="flex: ${t.mainstream}; background: #f59e0b;"><span>&#x1F3E2; ${pcts.mainstream}%</span></div>` : ''}
-                        </div>
+                        <div class="tier-bar">`;
+                
+                ['hidden_gem', 'indie', 'mid_tier', 'mainstream'].forEach(tier => {
+                    if (t[tier] > 0) {
+                        const m = tierMeta[tier];
+                        html += `<div class="tier-segment clickable" style="flex: ${t[tier]}; background: ${m.color};" onclick="openIndieTier('${tier}')" title="Click to see ${m.label} games"><span>${m.emoji} ${pcts[tier]}%</span></div>`;
+                    }
+                });
+                
+                html += `</div>
                         <div class="tier-legend">
-                            <div class="tier-legend-item"><div class="tier-dot" style="background:#a855f7;"></div> Hidden Gem (&lt;500 reviews): ${t.hidden_gem}</div>
-                            <div class="tier-legend-item"><div class="tier-dot" style="background:#22c55e;"></div> Indie (&lt;1K): ${t.indie}</div>
-                            <div class="tier-legend-item"><div class="tier-dot" style="background:#3b82f6;"></div> Mid-Tier (&lt;10K): ${t.mid_tier}</div>
-                            <div class="tier-legend-item"><div class="tier-dot" style="background:#f59e0b;"></div> Mainstream (10K+): ${t.mainstream}</div>
+                            <div class="tier-legend-item clickable" onclick="openIndieTier('hidden_gem')" title="Click to see games"><div class="tier-dot" style="background:#a855f7;"></div> Hidden Gem (&lt;500 reviews): ${t.hidden_gem}</div>
+                            <div class="tier-legend-item clickable" onclick="openIndieTier('indie')" title="Click to see games"><div class="tier-dot" style="background:#22c55e;"></div> Indie (&lt;1K): ${t.indie}</div>
+                            <div class="tier-legend-item clickable" onclick="openIndieTier('mid_tier')" title="Click to see games"><div class="tier-dot" style="background:#3b82f6;"></div> Mid-Tier (&lt;10K): ${t.mid_tier}</div>
+                            <div class="tier-legend-item clickable" onclick="openIndieTier('mainstream')" title="Click to see games"><div class="tier-dot" style="background:#f59e0b;"></div> Mainstream (10K+): ${t.mainstream}</div>
                         </div>
                     </div>
-                    <p style="text-align:center; color:#555; font-size:0.8rem; margin-top:1rem;">Based on ${data.total_classified} of ${data.total_games} games sampled</p>`;
+                    <p style="text-align:center; color:#555; font-size:0.8rem; margin-top:1rem;">Based on ${data.total_classified} of ${data.total_games} games sampled &middot; Click a tier to see games</p>`;
                 
                 showContent('indie', html);
             })
             .catch(() => showError('indie', 'Failed to load indie analysis'));
+        
+        function openIndieTier(tier) {
+            if (!indieData) return;
+            const meta = {
+                hidden_gem: { emoji: '💎', label: 'Hidden Gems (<500 reviews)' },
+                indie: { emoji: '🎨', label: 'Indie (<1K reviews)' },
+                mid_tier: { emoji: '📊', label: 'Mid-Tier (<10K reviews)' },
+                mainstream: { emoji: '🏢', label: 'Mainstream (10K+ reviews)' }
+            };
+            const m = meta[tier];
+            const games = (indieData.examples[tier] || []).sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+            openModal(m.label, m.emoji, games);
+        }
         
         // ======== PERSONALITY ========
         fetch(`/api/personality/${steamId}`)
@@ -685,12 +819,14 @@
             .then(data => {
                 if (data.error) { showError('personality', data.error); return; }
                 
+                personalityData = data;
+                
                 let html = '<div class="personality-grid">';
                 
                 // Primary type (what you play)
                 if (data.primary_type) {
                     html += `
-                        <div class="type-card">
+                        <div class="type-card clickable" onclick="openGenreGames('played', '${data.primary_type.key}')" title="Click to see games">
                             <div class="type-emoji">${data.primary_type.emoji}</div>
                             <div class="type-label">${data.primary_type.label}</div>
                             <div class="type-sublabel">What you actually play</div>
@@ -700,7 +836,7 @@
                 // Purchase type (what you buy)
                 if (data.purchase_type) {
                     html += `
-                        <div class="type-card">
+                        <div class="type-card clickable" onclick="openGenreGames('purchased', '${data.purchase_type.key}')" title="Click to see games">
                             <div class="type-emoji">${data.purchase_type.emoji}</div>
                             <div class="type-label">${data.purchase_type.label}</div>
                             <div class="type-sublabel">What you buy</div>
@@ -710,7 +846,7 @@
                 // "You think you like" type
                 if (data.think_you_like) {
                     html += `
-                        <div class="type-card think-you-like">
+                        <div class="type-card think-you-like clickable" onclick="openGenreGames('purchased', '${data.think_you_like.key}')" title="Click to see games">
                             <div class="type-emoji">${data.think_you_like.emoji}</div>
                             <div class="type-label">${data.think_you_like.label}</div>
                             <div class="type-sublabel">You think you like this<br><span style="color:#ff3366;font-size:0.75rem;">${data.think_you_like.count} bought, never played</span></div>
@@ -723,13 +859,13 @@
                 if (data.genre_breakdown_played && data.genre_breakdown_played.length > 0) {
                     const maxCount = data.genre_breakdown_played[0].count;
                     const colors = ['#ff3366', '#ff6b35', '#f7c94b', '#00d26a', '#00a8ff', '#a855f7'];
-                    html += '<h3 class="subsection-label" style="margin-top:2rem;">&#x1F3AE; What you play</h3><div class="genre-bars">';
+                    html += '<h3 class="subsection-label" style="margin-top:2rem;">&#x1F3AE; What you play <span style="font-size:0.75rem;color:#555;">(click bars to see games)</span></h3><div class="genre-bars">';
                     data.genre_breakdown_played.forEach((g, i) => {
                         const pct = Math.max(8, (g.count / maxCount) * 100);
                         html += `
-                            <div class="genre-bar-row">
+                            <div class="genre-bar-row clickable" onclick="openGenreGames('played', '${g.key}')" title="Click to see ${g.label} games" style="cursor:pointer;">
                                 <div class="genre-bar-label">${g.emoji} ${g.label}</div>
-                                <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${pct}%;background:${colors[i % colors.length]};">${g.count}</div></div>
+                                <div class="genre-bar-track"><div class="genre-bar-fill clickable" style="width:${pct}%;background:${colors[i % colors.length]};">${g.count}</div></div>
                             </div>`;
                     });
                     html += '</div>';
@@ -739,13 +875,13 @@
                 if (data.genre_breakdown_purchased && data.genre_breakdown_purchased.length > 0) {
                     const maxCount = data.genre_breakdown_purchased[0].count;
                     const colors = ['#a855f7', '#3b82f6', '#22c55e', '#f59e0b', '#ff3366', '#00a8ff'];
-                    html += '<h3 class="subsection-label" style="margin-top:2rem;">&#x1F6D2; What you buy</h3><div class="genre-bars">';
+                    html += '<h3 class="subsection-label" style="margin-top:2rem;">&#x1F6D2; What you buy <span style="font-size:0.75rem;color:#555;">(click bars to see games)</span></h3><div class="genre-bars">';
                     data.genre_breakdown_purchased.forEach((g, i) => {
                         const pct = Math.max(8, (g.count / maxCount) * 100);
                         html += `
-                            <div class="genre-bar-row">
+                            <div class="genre-bar-row clickable" onclick="openGenreGames('purchased', '${g.key}')" title="Click to see ${g.label} games" style="cursor:pointer;">
                                 <div class="genre-bar-label">${g.emoji} ${g.label}</div>
-                                <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${pct}%;background:${colors[i % colors.length]};">${g.count}</div></div>
+                                <div class="genre-bar-track"><div class="genre-bar-fill clickable" style="width:${pct}%;background:${colors[i % colors.length]};">${g.count}</div></div>
                             </div>`;
                     });
                     html += '</div>';
@@ -774,6 +910,15 @@
                 showContent('personality', html);
             })
             .catch(() => showError('personality', 'Failed to load personality data'));
+        
+        function openGenreGames(source, genreKey) {
+            if (!personalityData) return;
+            const list = source === 'played' ? personalityData.genre_breakdown_played : personalityData.genre_breakdown_purchased;
+            const genre = list.find(g => g.key === genreKey);
+            if (!genre) return;
+            const label = source === 'played' ? `${genre.label} (played)` : `${genre.label} (purchased)`;
+            openModal(label, genre.emoji, genre.games || []);
+        }
         
         // ======== FRIENDS LEADERBOARD ========
         fetch(`/api/friends/${steamId}`)
