@@ -6,568 +6,298 @@
     <title>{{ player_name }}'s Steam Shame</title>
     <meta property="og:title" content="{{ player_name }}'s Steam Shame: {{ stats.shame_score }}%">
     <meta property="og:description" content="I own {{ stats.total_games }} games and have never touched {{ stats.never_played_count }} of them.">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0a0c; min-height: 100vh; color: #e5e5e5; overflow-x: hidden; }
-
-        /* Hero */
-        .hero {
-            min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 2rem; position: relative;
-            background: radial-gradient(ellipse at 50% 0%, rgba(120,0,255,0.15) 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 50%, rgba(255,50,100,0.1) 0%, transparent 40%),
-                        radial-gradient(ellipse at 20% 80%, rgba(0,150,255,0.1) 0%, transparent 40%), #0a0a0c;
-        }
-        .hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); opacity:0.03; pointer-events:none; }
-        .player-header { display:flex; align-items:center; gap:1rem; margin-bottom:3rem; opacity:0; animation:fadeInUp .6s ease forwards; }
-        .avatar { width:72px; height:72px; border-radius:50%; border:3px solid rgba(255,255,255,0.2); }
-        .player-name { font-size:1.5rem; font-weight:600; color:#fff; }
-        .player-subtitle { color:#666; font-size:0.9rem; margin-top:0.25rem; }
-        .shame-score-display { opacity:0; animation:fadeInUp .6s ease .2s forwards; }
-        .shame-number { font-size:clamp(8rem,25vw,14rem); font-weight:900; line-height:1; background:linear-gradient(135deg,#ff3366 0%,#ff6b35 50%,#f7c94b 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; position:relative; }
-        .shame-number::after { content:'%'; font-size:0.4em; position:absolute; top:0.5em; }
-        .shame-label { font-size:1.5rem; font-weight:600; color:#666; text-transform:uppercase; letter-spacing:0.3em; margin-top:1rem; }
-        .roast { max-width:500px; margin:2rem auto 0; font-size:1.25rem; color:#999; line-height:1.6; opacity:0; animation:fadeInUp .6s ease .4s forwards; }
-        .scroll-hint { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); color:#444; font-size:0.85rem; opacity:0; animation:fadeInUp .6s ease .8s forwards, bounce 2s ease-in-out 1.5s infinite; }
-        .scroll-hint span { display:block; margin-top:0.5rem; font-size:1.5rem; }
-
-        /* Sections */
-        .stats-section { padding:6rem 2rem; position:relative; }
-        .stats-section:nth-child(odd) { background:linear-gradient(180deg,#0d0d10 0%,#0a0a0c 100%); }
-        .section-inner { max-width:900px; margin:0 auto; }
-        .section-header { margin-bottom:3rem; }
-        .section-title { font-size:3rem; font-weight:800; color:#fff; margin-bottom:0.5rem; }
-        .section-subtitle { font-size:1.1rem; color:#666; }
-
-        /* Big Stats */
-        .big-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:2rem; margin-bottom:4rem; }
-        .big-stat { background:linear-gradient(145deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:2.5rem; text-align:center; transition:transform .3s ease; }
-        .big-stat:hover { transform:translateY(-4px); border-color:rgba(255,255,255,0.15); }
-        .big-stat-number { font-size:4rem; font-weight:800; color:#fff; line-height:1; }
-        .big-stat-number.highlight-red { color:#ff3366; }
-        .big-stat-number.highlight-green { color:#00d26a; }
-        .big-stat-label { font-size:1rem; color:#666; margin-top:0.75rem; font-weight:500; }
-        .big-stat-roast { font-size:0.85rem; color:#ff3366; margin-top:1rem; font-style:italic; }
-
-        /* Pie Chart */
-        .pie-container { display:flex; align-items:center; gap:3rem; flex-wrap:wrap; justify-content:center; margin-bottom:2rem; }
-        .pie-chart-wrap { position:relative; width:220px; height:220px; flex-shrink:0; }
-        .pie-chart-wrap svg { width:100%; height:100%; transform:rotate(-90deg); }
-        .pie-legend { display:flex; flex-direction:column; gap:0.75rem; }
-        .pie-legend-item { display:flex; align-items:center; gap:0.75rem; font-size:0.95rem; color:#ccc; cursor:pointer; padding:0.5rem 0.75rem; border-radius:8px; transition:background .15s; }
-        .pie-legend-item:hover { background:rgba(255,255,255,0.05); }
-        .pie-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
-        .pie-legend-pct { color:#888; font-size:0.85rem; margin-left:auto; font-weight:600; }
-
-        /* Game Cards */
-        .game-card { background:linear-gradient(145deg,rgba(255,255,255,0.03) 0%,rgba(255,255,255,0.01) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden; margin-bottom:1.5rem; }
-        .game-row { display:flex; align-items:center; padding:1rem 1.5rem; border-bottom:1px solid rgba(255,255,255,0.04); transition:background .2s; }
-        .game-row:last-child { border-bottom:none; }
-        .game-row:hover { background:rgba(255,255,255,0.03); }
-        .game-rank { width:40px; font-size:1.25rem; font-weight:700; color:#444; }
-        .game-name { flex:1; font-weight:500; color:#e5e5e5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-right:1rem; }
-        .game-hours { font-size:0.95rem; color:#666; font-weight:600; white-space:nowrap; }
-
-        /* Value Cards */
-        .value-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem; }
-        .value-card { background:linear-gradient(145deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:2rem; text-align:center; }
-        .value-amount { font-size:2.5rem; font-weight:900; line-height:1; }
-        .value-amount.green { color:#00d26a; }
-        .value-amount.red { color:#ff3366; }
-        .value-label { color:#888; margin-top:0.5rem; font-size:0.9rem; }
-        .value-note { color:#555; font-size:0.75rem; margin-top:0.5rem; font-style:italic; }
-        .accuracy-btn { display:inline-block; margin-top:1rem; padding:8px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#ccc; font-size:0.8rem; cursor:pointer; transition:all .2s; }
-        .accuracy-btn:hover { background:rgba(255,255,255,0.12); color:#fff; }
-        .accuracy-btn:disabled { opacity:0.5; cursor:not-allowed; }
-
-        /* Roast Cards */
-        .roast-card { background:linear-gradient(135deg,rgba(255,51,102,0.1) 0%,rgba(255,107,53,0.05) 100%); border:1px solid rgba(255,51,102,0.2); border-radius:20px; padding:2.5rem; margin:3rem 0; text-align:center; }
-        .roast-card .roast-emoji { font-size:3rem; margin-bottom:1rem; }
-        .roast-card .roast-text { font-size:1.4rem; font-weight:600; color:#fff; line-height:1.5; }
-        .roast-card .roast-subtext { font-size:1rem; color:#888; margin-top:1rem; }
-
-        /* Genre Breakdown */
-        .genre-section { margin-bottom:2.5rem; }
-        .genre-section-title { font-size:1.1rem; font-weight:600; color:#fff; margin-bottom:0.25rem; }
-        .genre-section-sub { font-size:0.85rem; color:#666; margin-bottom:1rem; }
-        .genre-majority { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:0.6rem 1.2rem; margin-bottom:1.25rem; font-weight:600; color:#fff; }
-        .genre-bars { margin:0; }
-        .genre-bar-row { display:flex; align-items:center; gap:1rem; margin-bottom:0.6rem; cursor:pointer; padding:0.2rem 0; border-radius:6px; transition:background .15s; }
-        .genre-bar-row:hover { background:rgba(255,255,255,0.03); }
-        .genre-bar-label { width:120px; font-size:0.85rem; color:#ccc; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-        .genre-bar-track { flex:1; height:28px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden; }
-        .genre-bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; padding-left:10px; font-size:0.75rem; font-weight:600; color:#fff; transition:width .6s ease; }
-        .genre-bar-pct { width:40px; text-align:right; font-size:0.8rem; color:#666; flex-shrink:0; }
-        .mismatch-card { background:linear-gradient(135deg,rgba(255,51,102,0.12) 0%,rgba(255,51,102,0.03) 100%); border:1px solid rgba(255,51,102,0.25); border-radius:16px; padding:1.5rem; margin-bottom:1.5rem; text-align:center; }
-        .mismatch-card .mismatch-title { font-size:1.1rem; font-weight:700; color:#ff3366; margin-bottom:0.25rem; }
-        .mismatch-card .mismatch-sub { font-size:0.9rem; color:#999; }
-
-        /* Badges */
-        .badge-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.25rem; }
-        .badge-card { background:linear-gradient(145deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:1.5rem; display:flex; align-items:flex-start; gap:1rem; transition:transform .2s; }
-        .badge-card:hover { transform:translateY(-2px); border-color:rgba(255,255,255,0.15); }
-        .badge-emoji { font-size:2rem; flex-shrink:0; }
-        .badge-name { font-weight:700; color:#fff; margin-bottom:0.25rem; }
-        .badge-desc { font-size:0.85rem; color:#888; line-height:1.4; }
-
-        /* Leaderboard */
-        .leaderboard { background:linear-gradient(145deg,rgba(255,255,255,0.03) 0%,rgba(255,255,255,0.01) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:20px; overflow:hidden; }
-        .leaderboard-row { display:grid; grid-template-columns:50px 1fr 70px 90px 90px; padding:1rem 1.5rem; align-items:center; border-bottom:1px solid rgba(255,255,255,0.04); transition:background .2s; }
-        .leaderboard-row:hover { background:rgba(255,255,255,0.03); }
-        .leaderboard-row:last-child { border-bottom:none; }
-        .leaderboard-row.is-user { background:rgba(0,168,255,0.1); border-left:3px solid #00a8ff; }
-        .lb-rank { font-weight:700; font-size:1.1rem; color:#666; }
-        .lb-rank.rank-1 { color:#f7c94b; } .lb-rank.rank-2 { color:#c0c0c0; } .lb-rank.rank-3 { color:#cd7f32; }
-        .lb-player { display:flex; align-items:center; gap:0.75rem; min-width:0; }
-        .lb-avatar { width:32px; height:32px; border-radius:50%; flex-shrink:0; }
-        .lb-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#e5e5e5; font-weight:500; }
-        .lb-name a { color:inherit; text-decoration:none; } .lb-name a:hover { color:#00a8ff; }
-        .lb-you { color:#00a8ff; font-size:0.8rem; margin-left:0.25rem; }
-        .lb-shame { font-weight:700; text-align:center; }
-        .lb-shame.low { color:#00d26a; } .lb-shame.med { color:#ff6b35; } .lb-shame.high { color:#ff3366; }
-        .lb-stat { color:#888; font-size:0.85rem; text-align:center; }
-
-        /* Loading / Share */
-        .loading-state { text-align:center; padding:3rem; color:#666; }
-        .spinner { width:40px; height:40px; border:3px solid rgba(255,255,255,0.1); border-top-color:#00a8ff; border-radius:50%; margin:0 auto 1rem; animation:spin 1s linear infinite; }
-        @keyframes spin { to { transform:rotate(360deg); } }
-        .share-section { text-align:center; padding:4rem 2rem; background:linear-gradient(180deg,#0a0a0c 0%,#0d0d10 100%); }
-        .share-title { font-size:2rem; font-weight:700; color:#fff; margin-bottom:0.5rem; }
-        .share-subtitle { color:#666; margin-bottom:2rem; }
-        .share-buttons { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
-        .share-btn { padding:1rem 2rem; border-radius:50px; font-size:1rem; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem; transition:transform .2s,box-shadow .2s; border:none; }
-        .share-btn:hover { transform:translateY(-2px); }
-        .share-btn.twitter { background:#1da1f2; color:#fff; } .share-btn.twitter:hover { box-shadow:0 8px 30px rgba(29,161,242,0.4); }
-        .share-btn.copy { background:rgba(255,255,255,0.1); color:#fff; } .share-btn.copy:hover { background:rgba(255,255,255,0.15); }
-        .back-link { position:fixed; top:1.5rem; left:1.5rem; color:#666; text-decoration:none; font-size:0.9rem; z-index:100; transition:color .2s; }
-        .back-link:hover { color:#fff; }
-        .subsection-label { color:#888; font-size:1rem; margin-bottom:1rem; font-weight:500; }
-
-        /* Modal */
-        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center; padding:1.5rem; backdrop-filter:blur(4px); }
-        .modal-overlay.active { display:flex; }
-        .modal-box { background:#151518; border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:2rem; max-width:500px; width:100%; max-height:70vh; display:flex; flex-direction:column; animation:modalIn .2s ease; }
-        @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; flex-shrink:0; }
-        .modal-title { font-size:1.25rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem; }
-        .modal-count { font-size:0.85rem; color:#666; font-weight:400; }
-        .modal-close { background:rgba(255,255,255,0.1); border:none; color:#999; width:36px; height:36px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s,color .2s; flex-shrink:0; }
-        .modal-close:hover { background:rgba(255,255,255,0.2); color:#fff; }
-        .modal-list { overflow-y:auto; flex:1; margin:0 -0.5rem; padding:0 0.5rem; }
-        .modal-list::-webkit-scrollbar { width:6px; } .modal-list::-webkit-scrollbar-track { background:transparent; } .modal-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
-        .modal-game { padding:0.65rem 0.75rem; border-radius:8px; color:#ccc; font-size:0.9rem; transition:background .15s; }
-        .modal-game:hover { background:rgba(255,255,255,0.05); }
-        .modal-game-sub { font-size:0.75rem; color:#555; margin-top:0.15rem; }
-
-        /* Animations */
-        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes bounce { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(-10px); } }
-
-        @media (max-width:700px) {
-            .big-stats { grid-template-columns:1fr; }
-            .section-title { font-size:2rem; }
-            .value-grid { grid-template-columns:1fr; }
-            .leaderboard-row { grid-template-columns:40px 1fr 60px 70px; }
-            .leaderboard-row .lb-stat:last-child { display:none; }
-            .pie-container { flex-direction:column; }
-            .genre-bar-label { width:90px; }
-            .badge-grid { grid-template-columns:1fr; }
-            .roast-card .roast-text { font-size:1.1rem; }
-        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#0a0a0c;min-height:100vh;color:#e5e5e5;overflow-x:hidden}
+        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;background:radial-gradient(ellipse at 50% 0%,rgba(120,0,255,.15) 0%,transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(255,50,100,.1) 0%,transparent 40%),radial-gradient(ellipse at 20% 80%,rgba(0,150,255,.1) 0%,transparent 40%),#0a0a0c}
+        .player-header{display:flex;align-items:center;gap:1rem;margin-bottom:3rem;opacity:0;animation:fadeInUp .6s ease forwards}
+        .avatar{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,.2)}
+        .player-name{font-size:1.5rem;font-weight:600;color:#fff}.player-subtitle{color:#666;font-size:.9rem;margin-top:.25rem}
+        .shame-score-display{opacity:0;animation:fadeInUp .6s ease .2s forwards}
+        .shame-number{font-size:clamp(8rem,25vw,14rem);font-weight:900;line-height:1;background:linear-gradient(135deg,#ff3366,#ff6b35 50%,#f7c94b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
+        .shame-number::after{content:'%';font-size:.4em;position:absolute;top:.5em}
+        .shame-label{font-size:1.5rem;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.3em;margin-top:1rem}
+        .roast{max-width:500px;margin:2rem auto 0;font-size:1.25rem;color:#999;line-height:1.6;opacity:0;animation:fadeInUp .6s ease .4s forwards}
+        .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);color:#444;font-size:.85rem;opacity:0;animation:fadeInUp .6s ease .8s forwards,bounce 2s ease-in-out 1.5s infinite}
+        .scroll-hint span{display:block;margin-top:.5rem;font-size:1.5rem}
+        .stats-section{padding:6rem 2rem;position:relative}
+        .stats-section:nth-child(odd){background:linear-gradient(180deg,#0d0d10,#0a0a0c)}
+        .section-inner{max-width:900px;margin:0 auto}.section-header{margin-bottom:3rem}
+        .section-title{font-size:3rem;font-weight:800;color:#fff;margin-bottom:.5rem}.section-subtitle{font-size:1.1rem;color:#666}
+        .big-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:3rem}
+        .big-stat{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:2rem;text-align:center;transition:transform .3s}
+        .big-stat:hover{transform:translateY(-4px)}.big-stat-number{font-size:3rem;font-weight:800;line-height:1}
+        .big-stat-number.green{color:#00d26a}.big-stat-number.red{color:#ff3366}.big-stat-number.orange{color:#ff6b35}
+        .big-stat-label{font-size:.9rem;color:#666;margin-top:.5rem;font-weight:500}
+        .pie-wrap{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;margin-bottom:2rem}
+        .pie-chart-box{width:300px;height:300px;flex-shrink:0}
+        .pie-legend{display:flex;flex-direction:column;gap:.75rem}
+        .pie-legend-item{display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:#ccc;cursor:pointer;padding:.5rem .75rem;border-radius:8px;transition:background .15s}
+        .pie-legend-item:hover,.pie-legend-item.active{background:rgba(255,255,255,.08)}
+        .pie-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+        .pie-legend-pct{color:#888;font-size:.85rem;margin-left:auto;font-weight:600;padding-left:1rem}
+        .pie-detail{display:none;margin-top:1.5rem}.pie-detail.active{display:block}
+        .pie-detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+        .pie-detail-title{font-size:1.1rem;font-weight:700;color:#fff}
+        .pie-detail-close{background:rgba(255,255,255,.1);border:none;color:#999;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+        .pie-detail-close:hover{background:rgba(255,255,255,.2);color:#fff}
+        .game-card{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;max-height:400px;overflow-y:auto}
+        .game-card::-webkit-scrollbar{width:6px}.game-card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+        .game-row{display:flex;align-items:center;padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;font-size:.9rem}
+        .game-row:last-child{border-bottom:none}.game-row:hover{background:rgba(255,255,255,.03)}
+        .game-name{flex:1;font-weight:500;color:#e5e5e5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:1rem}
+        .game-hours{font-size:.85rem;color:#666;font-weight:600;white-space:nowrap}
+        .show-all-btn{display:block;width:100%;padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#ccc;font-size:.85rem;cursor:pointer;text-align:center;margin-top:.75rem;font-family:inherit;transition:background .2s}
+        .show-all-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+        .value-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+        .value-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:2rem;text-align:center}
+        .value-amount{font-size:2.5rem;font-weight:900;line-height:1}.value-amount.green{color:#00d26a}.value-amount.red{color:#ff3366}
+        .value-label{color:#888;margin-top:.5rem;font-size:.9rem}.value-note{color:#555;font-size:.75rem;margin-top:.5rem;font-style:italic}
+        .accuracy-btn{display:inline-block;margin-top:.75rem;padding:8px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#ccc;font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .2s}
+        .accuracy-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+        .regret-card{background:linear-gradient(135deg,rgba(255,51,102,.08),rgba(255,51,102,.02));border:1px solid rgba(255,51,102,.15);border-radius:16px;padding:1.5rem;margin-bottom:2rem}
+        .regret-title{font-size:1rem;font-weight:600;color:#ff3366;margin-bottom:1rem}
+        .regret-item{display:flex;justify-content:space-between;padding:.4rem 0;font-size:.9rem}.regret-name{color:#ccc}.regret-price{color:#ff3366;font-weight:600}
+        .backlog-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
+        .backlog-big{font-size:2rem;font-weight:800;color:#ff6b35}.backlog-sub{color:#888;font-size:.9rem;margin-top:.25rem}
+        .radar-wrap{position:relative;margin-bottom:2rem}
+        .radar-canvas-wrap{display:flex;justify-content:center;margin-bottom:1rem}
+        .radar-toggles{display:flex;justify-content:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+        .radar-toggle{padding:.6rem 1.5rem;border-radius:50px;font-size:.9rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .2s;font-family:inherit;background:rgba(255,255,255,.06);color:#888}
+        .radar-toggle.active{color:#fff}
+        .radar-toggle[data-layer="owned"].active{background:rgba(0,168,255,.2);border-color:#00a8ff;color:#00a8ff}
+        .radar-toggle[data-layer="played"].active{background:rgba(0,210,106,.2);border-color:#00d26a;color:#00d26a}
+        .radar-toggle[data-layer="unplayed"].active{background:rgba(255,51,102,.2);border-color:#ff3366;color:#ff3366}
+        .mismatch-card{background:linear-gradient(135deg,rgba(255,51,102,.12),rgba(255,51,102,.03));border:1px solid rgba(255,51,102,.25);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
+        .mismatch-title{font-size:1.1rem;font-weight:700;color:#ff3366;margin-bottom:.25rem}.mismatch-sub{font-size:.9rem;color:#999}
+        .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:2rem}
+        .badge-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:transform .2s}
+        .badge-card:hover{transform:translateY(-2px)}.badge-emoji{font-size:2rem;flex-shrink:0}.badge-name{font-weight:700;color:#fff;margin-bottom:.25rem}.badge-desc{font-size:.85rem;color:#888;line-height:1.4}
+        .leaderboard{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:20px;overflow:hidden}
+        .leaderboard-row{display:grid;grid-template-columns:50px 1fr 70px 90px 90px;padding:1rem 1.5rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+        .leaderboard-row:hover{background:rgba(255,255,255,.03)}.leaderboard-row:last-child{border-bottom:none}
+        .leaderboard-row.is-user{background:rgba(0,168,255,.1);border-left:3px solid #00a8ff}
+        .lb-rank{font-weight:700;font-size:1.1rem;color:#666}.lb-rank.rank-1{color:#f7c94b}.lb-rank.rank-2{color:#c0c0c0}.lb-rank.rank-3{color:#cd7f32}
+        .lb-player{display:flex;align-items:center;gap:.75rem;min-width:0}.lb-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0}
+        .lb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e5e5e5;font-weight:500}.lb-name a{color:inherit;text-decoration:none}.lb-name a:hover{color:#00a8ff}
+        .lb-you{color:#00a8ff;font-size:.8rem;margin-left:.25rem}
+        .lb-shame{font-weight:700;text-align:center}.lb-shame.low{color:#00d26a}.lb-shame.med{color:#ff6b35}.lb-shame.high{color:#ff3366}
+        .lb-stat{color:#888;font-size:.85rem;text-align:center}
+        .roast-card{background:linear-gradient(135deg,rgba(255,51,102,.1),rgba(255,107,53,.05));border:1px solid rgba(255,51,102,.2);border-radius:20px;padding:2rem;margin:2rem 0;text-align:center}
+        .roast-card .roast-emoji{font-size:3rem;margin-bottom:.75rem}.roast-card .roast-text{font-size:1.3rem;font-weight:600;color:#fff;line-height:1.5}.roast-card .roast-subtext{font-size:.9rem;color:#888;margin-top:.5rem}
+        .loading-state{text-align:center;padding:3rem;color:#666}
+        .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#00a8ff;border-radius:50%;margin:0 auto 1rem;animation:spin 1s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .share-section{text-align:center;padding:4rem 2rem}.share-title{font-size:2rem;font-weight:700;color:#fff;margin-bottom:.5rem}.share-subtitle{color:#666;margin-bottom:2rem}
+        .share-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+        .share-btn{padding:1rem 2rem;border-radius:50px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:transform .2s;border:none}
+        .share-btn:hover{transform:translateY(-2px)}.share-btn.twitter{background:#1da1f2;color:#fff}.share-btn.copy{background:rgba(255,255,255,.1);color:#fff}
+        .back-link{position:fixed;top:1.5rem;left:1.5rem;color:#666;text-decoration:none;font-size:.9rem;z-index:100}.back-link:hover{color:#fff}
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}
+        .modal-overlay.active{display:flex}
+        .modal-box{background:#151518;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem;max-width:500px;width:100%;max-height:70vh;display:flex;flex-direction:column;animation:modalIn .2s ease}
+        @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}.modal-title{font-size:1.25rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:.5rem}
+        .modal-count{font-size:.85rem;color:#666;font-weight:400}
+        .modal-close{background:rgba(255,255,255,.1);border:none;color:#999;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .modal-close:hover{background:rgba(255,255,255,.2);color:#fff}
+        .modal-list{overflow-y:auto;flex:1}.modal-list::-webkit-scrollbar{width:6px}.modal-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+        .modal-game{padding:.65rem .75rem;border-radius:8px;color:#ccc;font-size:.9rem;transition:background .15s}.modal-game:hover{background:rgba(255,255,255,.05)}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+        @media(max-width:700px){.big-stats{grid-template-columns:1fr}.section-title{font-size:2rem}.value-grid{grid-template-columns:1fr}.leaderboard-row{grid-template-columns:40px 1fr 60px 70px}.leaderboard-row .lb-stat:last-child{display:none}.pie-wrap{flex-direction:column}.badge-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">&#8592; Check another</a>
+<a href="/" class="back-link">&#8592; Check another</a>
+<section class="hero">
+    <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-subtitle">Steam Shame Report</div></div></div>
+    <div class="shame-score-display"><div class="shame-number">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
+    <p class="roast">{% if stats.shame_score >= 50 %}You own {{ stats.total_games }} games and have played {{ stats.played_count }}. That's not a library, that's a graveyard.{% elif stats.shame_score >= 35 %}Steam sales broke you. {{ stats.never_played_count }} games collecting digital dust.{% elif stats.shame_score >= 20 %}Not terrible, but {{ stats.never_played_count }} unplayed games is still too many.{% else %}You actually play your games. Impressive.{% endif %}</p>
+    <div class="scroll-hint">Scroll for the full damage report<span>&#8595;</span></div>
+</section>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="player-header">
-            <img src="{{ avatar_url }}" alt="Avatar" class="avatar">
-            <div>
-                <div class="player-name">{{ player_name }}</div>
-                <div class="player-subtitle">Steam Shame Report</div>
-            </div>
-        </div>
-        <div class="shame-score-display">
-            <div class="shame-number">{{ stats.shame_score }}</div>
-            <div class="shame-label">Shame Score</div>
-        </div>
-        <p class="roast">
-            {% if stats.shame_score >= 50 %}
-                You own {{ stats.total_games }} games and have played {{ stats.played_count }} of them. That's not a library, that's a graveyard.
-            {% elif stats.shame_score >= 35 %}
-                Steam sales broke you. {{ stats.never_played_count }} games collecting digital dust.
-            {% elif stats.shame_score >= 20 %}
-                Not terrible, but {{ stats.never_played_count }} unplayed games is still too many. You know you're never opening those.
-            {% else %}
-                You actually play your games. Either impressive restraint or a new account.
-            {% endif %}
-        </p>
-        <div class="scroll-hint">Scroll for the full damage report<span>&#8595;</span></div>
-    </section>
-
-    <!-- The Numbers -->
-    <section class="stats-section">
-        <div class="section-inner">
-            <div class="section-header">
-                <h2 class="section-title">The Numbers</h2>
-                <p class="section-subtitle">A breakdown of your questionable decisions</p>
-            </div>
-            <div class="big-stats">
-                <div class="big-stat">
-                    <div class="big-stat-number">{{ stats.total_games }}</div>
-                    <div class="big-stat-label">Games Owned</div>
-                    {% if stats.total_games > 500 %}<div class="big-stat-roast">You could open a store</div>
-                    {% elif stats.total_games > 200 %}<div class="big-stat-roast">Humble Bundle victim</div>
-                    {% elif stats.total_games > 100 %}<div class="big-stat-roast">Steam sale enthusiast</div>{% endif %}
-                </div>
-                <div class="big-stat">
-                    <div class="big-stat-number highlight-red">{{ stats.never_played_count }}</div>
-                    <div class="big-stat-label">Never Played</div>
-                    {% if stats.never_played_count > 100 %}<div class="big-stat-roast">What are you even doing</div>
-                    {% elif stats.never_played_count > 50 %}<div class="big-stat-roast">That's a lot of "I'll play it later"</div>
-                    {% elif stats.never_played_count > 20 %}<div class="big-stat-roast">The backlog grows</div>{% endif %}
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- The Shame Pile: Pie Chart + Value + Highlights -->
-    <section class="stats-section" id="shame-section">
-        <div class="section-inner">
-            <div class="section-header">
-                <h2 class="section-title">The Shame Pile</h2>
-                <p class="section-subtitle">Where your library really stands</p>
-            </div>
-
-            <!-- Pie chart -->
-            <div class="pie-container">
-                <div class="pie-chart-wrap">
-                    <svg viewBox="0 0 100 100">
-                        {% set played_pct = (stats.played_count / stats.total_games * 100) if stats.total_games > 0 else 0 %}
-                        {% set barely_pct = (stats.barely_played_count / stats.total_games * 100) if stats.total_games > 0 else 0 %}
-                        {% set never_pct = (stats.never_played_count / stats.total_games * 100) if stats.total_games > 0 else 0 %}
-                        {% set r = 15.915 %}
-                        <circle cx="50" cy="50" r="{{ r }}" fill="none" stroke="#00d26a" stroke-width="30"
-                            stroke-dasharray="{{ played_pct }} {{ 100 - played_pct }}" stroke-dashoffset="0"
-                            style="cursor:pointer" onclick="openPieSegment('played')" />
-                        <circle cx="50" cy="50" r="{{ r }}" fill="none" stroke="#ff6b35" stroke-width="30"
-                            stroke-dasharray="{{ barely_pct }} {{ 100 - barely_pct }}" stroke-dashoffset="{{ -played_pct }}"
-                            style="cursor:pointer" onclick="openPieSegment('barely')" />
-                        <circle cx="50" cy="50" r="{{ r }}" fill="none" stroke="#ff3366" stroke-width="30"
-                            stroke-dasharray="{{ never_pct }} {{ 100 - never_pct }}" stroke-dashoffset="{{ -(played_pct + barely_pct) }}"
-                            style="cursor:pointer" onclick="openPieSegment('never')" />
-                    </svg>
-                </div>
-                <div class="pie-legend">
-                    <div class="pie-legend-item" onclick="openPieSegment('played')">
-                        <div class="pie-dot" style="background:#00d26a;"></div>
-                        Played (60+ min)
-                        <span class="pie-legend-pct">{{ stats.played_count }} ({{ (stats.played_count / stats.total_games * 100)|round(1) }}%)</span>
-                    </div>
-                    <div class="pie-legend-item" onclick="openPieSegment('barely')">
-                        <div class="pie-dot" style="background:#ff6b35;"></div>
-                        Barely Touched (5-60 min)
-                        <span class="pie-legend-pct">{{ stats.barely_played_count }} ({{ (stats.barely_played_count / stats.total_games * 100)|round(1) }}%)</span>
-                    </div>
-                    <div class="pie-legend-item" onclick="openPieSegment('never')">
-                        <div class="pie-dot" style="background:#ff3366;"></div>
-                        Never Played
-                        <span class="pie-legend-pct">{{ stats.never_played_count }} ({{ (stats.never_played_count / stats.total_games * 100)|round(1) }}%)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Value section (async) -->
-            <div id="value-loading" class="loading-state">
-                <div class="spinner"></div>
-                <p>Calculating your library value...</p>
-            </div>
-            <div id="value-content" style="display:none;"></div>
-            <div id="value-error" style="display:none; text-align:center; color:#666; padding:2rem;"></div>
-
-            <!-- Highlights -->
-            {% if stats.barely_played_sample %}
-            <h3 class="subsection-label" style="margin-top:2rem;">&#x1F62C; Barely touched &mdash; showing {{ stats.barely_played_sample|length }} of {{ stats.barely_played_count }}</h3>
-            <div class="game-card">
-                {% for game in stats.barely_played_sample %}
-                <div class="game-row">
-                    <div class="game-rank" style="color:#ff6b35;">&#x2717;</div>
-                    <div class="game-name">{{ game.name }}</div>
-                    <div class="game-hours">{{ game.playtime }}m</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if stats.never_played_sample %}
-            <h3 class="subsection-label">&#x1F5D1;&#xFE0F; Never launched &mdash; showing 10 of {{ stats.never_played_shameful_count }}</h3>
-            <div class="game-card">
-                {% for game in stats.never_played_sample %}
-                <div class="game-row">
-                    <div class="game-rank" style="color:#666;">&mdash;</div>
-                    <div class="game-name">{{ game.name }}</div>
-                    <div class="game-hours" style="color:#ff3366;">0m</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-    </section>
-
-    <!-- Gamer DNA (async) -->
-    <section class="stats-section" id="personality-section">
-        <div class="section-inner">
-            <div class="section-header">
-                <h2 class="section-title">&#x1F9EC; Gamer DNA</h2>
-                <p class="section-subtitle">What your library says about you</p>
-            </div>
-            <div id="personality-loading" class="loading-state">
-                <div class="spinner"></div>
-                <p>Profiling your gaming habits...</p>
-            </div>
-            <div id="personality-content" style="display:none;"></div>
-            <div id="personality-error" style="display:none; text-align:center; color:#666; padding:2rem;"></div>
-        </div>
-    </section>
-
-    <!-- Friends Leaderboard -->
-    <section class="stats-section" id="friends-section">
-        <div class="section-inner">
-            <div class="section-header">
-                <h2 class="section-title">Friends Leaderboard</h2>
-                <p class="section-subtitle">See who's the most wasteful in your circle</p>
-            </div>
-            <div id="friends-loading" class="loading-state"><div class="spinner"></div><p>Loading your friends' shame...</p></div>
-            <div id="friends-content" style="display:none;"></div>
-            <div id="friends-error" style="display:none; text-align:center; color:#666; padding:2rem;"></div>
-        </div>
-    </section>
-
-    <!-- Share -->
-    <section class="share-section">
-        <h2 class="share-title">Spread the shame</h2>
-        <p class="share-subtitle">Let your friends know how bad it is</p>
-        <div class="share-buttons">
-            <a href="https://twitter.com/intent/tweet?text=My%20Steam%20Shame%20Score%3A%20{{ stats.shame_score }}%25%20%F0%9F%98%AC%0A%0AI%20own%20{{ stats.total_games }}%20games%20and%20have%20never%20played%20{{ stats.never_played_count }}%20of%20them.%0A%0ACheck%20yours%3A&url={{ request.url }}" target="_blank" class="share-btn twitter">Share on X</a>
-            <button class="share-btn copy" onclick="copyLink()">&#x1F4CB; Copy Link</button>
-        </div>
-    </section>
-
-    <!-- Modal -->
-    <div class="modal-overlay" id="game-modal" onclick="if(event.target===this)closeModal()">
-        <div class="modal-box">
-            <div class="modal-header">
-                <div class="modal-title" id="modal-title"></div>
-                <button class="modal-close" onclick="closeModal()">&#x2715;</button>
-            </div>
-            <div class="modal-list" id="modal-list"></div>
+<section class="stats-section"><div class="section-inner">
+    <div class="section-header"><h2 class="section-title">The Shame Pile</h2><p class="section-subtitle">Where your library really stands</p></div>
+    <div class="big-stats">
+        <div class="big-stat"><div class="big-stat-number green">{{ stats.played_count }}</div><div class="big-stat-label">Played (61+ min)</div></div>
+        <div class="big-stat"><div class="big-stat-number orange">{{ stats.abandoned_count }}</div><div class="big-stat-label">Abandoned (1-60 min)</div></div>
+        <div class="big-stat"><div class="big-stat-number red">{{ stats.never_played_count }}</div><div class="big-stat-label">Never Played</div></div>
+    </div>
+    <div class="pie-wrap">
+        <div class="pie-chart-box"><canvas id="pie-canvas"></canvas></div>
+        <div class="pie-legend">
+            <div class="pie-legend-item" onclick="selectPie(0)"><div class="pie-dot" style="background:#00d26a"></div>Played (61+ min)<span class="pie-legend-pct">{{ stats.played_count }} ({{ (stats.played_count/stats.total_games*100)|round(1) }}%)</span></div>
+            <div class="pie-legend-item" onclick="selectPie(1)"><div class="pie-dot" style="background:#ff6b35"></div>Abandoned (1-60 min)<span class="pie-legend-pct">{{ stats.abandoned_count }} ({{ (stats.abandoned_count/stats.total_games*100)|round(1) }}%)</span></div>
+            <div class="pie-legend-item" onclick="selectPie(2)"><div class="pie-dot" style="background:#ff3366"></div>Never Played<span class="pie-legend-pct">{{ stats.never_played_count }} ({{ (stats.never_played_count/stats.total_games*100)|round(1) }}%)</span></div>
         </div>
     </div>
+    <div id="pie-detail" style="display:none"></div>
+    <div id="value-loading" class="loading-state"><div class="spinner"></div><p>Calculating library value...</p></div>
+    <div id="value-content" style="display:none"></div>
+    {% if stats.backlog_days > 0 %}<div class="backlog-card"><div class="backlog-big">{{ stats.backlog_days }} days</div><div class="backlog-sub">to clear your backlog at 1 hour/day (~10 hrs per game)</div>{% if stats.backlog_days > 365 %}<div style="color:#ff3366;font-size:.85rem;margin-top:.5rem;font-weight:600">That's {{ (stats.backlog_days/365)|round(1) }} years. Maybe stop buying.</div>{% endif %}</div>{% endif %}
+</div></section>
 
-    <script>
-        const steamId = "{{ steam_id }}";
-        let personalityData = null;
+<section class="stats-section" id="personality-section"><div class="section-inner">
+    <div class="section-header"><h2 class="section-title">&#x1F9EC; Gamer DNA</h2><p class="section-subtitle">What your library says about you</p></div>
+    <div id="personality-loading" class="loading-state"><div class="spinner"></div><p>Profiling your gaming habits...</p></div>
+    <div id="personality-content" style="display:none"></div>
+</div></section>
 
-        // Pie chart game lists from server
-        const pieData = {
-            played: {{ stats.played_count }},
-            barely: {{ stats.barely_played_count }},
-            never: {{ stats.never_played_count }},
-            // Sample names for popup (from Jinja)
-            barely_games: [{% for g in stats.barely_played_sample %}"{{ g.name|e }}"{% if not loop.last %},{% endif %}{% endfor %}],
-            never_games: [{% for g in stats.never_played_sample %}"{{ g.name|e }}"{% if not loop.last %},{% endif %}{% endfor %}]
-        };
+<section class="stats-section" id="friends-section"><div class="section-inner">
+    <div class="section-header"><h2 class="section-title">Friends Leaderboard</h2><p class="section-subtitle">See who's the most wasteful</p></div>
+    <div id="friends-loading" class="loading-state"><div class="spinner"></div><p>Loading friends...</p></div>
+    <div id="friends-content" style="display:none"></div>
+</div></section>
 
-        // ======== HELPERS ========
-        function showError(id, msg) {
-            document.getElementById(id + '-loading').style.display = 'none';
-            const el = document.getElementById(id + '-error');
-            el.innerHTML = `<p>${msg}</p>`;
-            el.style.display = 'block';
-        }
-        function showContent(id, html) {
-            document.getElementById(id + '-loading').style.display = 'none';
-            const el = document.getElementById(id + '-content');
-            el.innerHTML = html;
-            el.style.display = 'block';
-        }
-        function openModal(title, emoji, games) {
-            const modal = document.getElementById('game-modal');
-            document.getElementById('modal-title').innerHTML = `${emoji} ${title} <span class="modal-count">(${games.length})</span>`;
-            let html = '';
-            games.forEach(g => {
-                if (typeof g === 'string') { html += `<div class="modal-game">${g}</div>`; }
-                else {
-                    html += `<div class="modal-game">${g.name}`;
-                    let sub = [];
-                    if (g.playtime !== undefined) sub.push(g.playtime + 'm played');
-                    if (sub.length) html += `<div class="modal-game-sub">${sub.join(' &middot; ')}</div>`;
-                    html += '</div>';
-                }
-            });
-            if (!games.length) html = '<div class="modal-game" style="color:#555;">No games in this category</div>';
-            document.getElementById('modal-list').innerHTML = html;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeModal() { document.getElementById('game-modal').classList.remove('active'); document.body.style.overflow = ''; }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+<section class="share-section"><h2 class="share-title">Spread the shame</h2><p class="share-subtitle">Let your friends know</p>
+    <div class="share-buttons"><a href="https://twitter.com/intent/tweet?text=Steam%20Shame%3A%20{{ stats.shame_score }}%25%20{{ stats.total_games }}%20games%2C%20{{ stats.never_played_count }}%20never%20played&url={{ request.url }}" target="_blank" class="share-btn twitter">Share on X</a><button class="share-btn copy" onclick="copyLink()">&#x1F4CB; Copy Link</button></div>
+</section>
 
-        function openPieSegment(type) {
-            if (type === 'played') openModal('Played Games (60+ min)', '🟢', [`${pieData.played} games in this category. Full list requires a page reload with expanded data.`]);
-            else if (type === 'barely') openModal('Barely Touched (5-60 min)', '🟠', pieData.barely_games);
-            else if (type === 'never') openModal('Never Played', '🔴', pieData.never_games);
-        }
+<div class="modal-overlay" id="game-modal" onclick="if(event.target===this)closeModal()"><div class="modal-box">
+    <div class="modal-header"><div class="modal-title" id="modal-title"></div><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+    <div class="modal-list" id="modal-list"></div>
+</div></div>
 
-        // ======== VALUE ========
-        function loadValue(full) {
-            const url = full ? `/api/value/${steamId}?full=1` : `/api/value/${steamId}`;
-            document.getElementById('value-loading').style.display = 'block';
-            document.getElementById('value-content').style.display = 'none';
+<script>
+const steamId = "{{ steam_id }}";
+const segData = [
+    {label:'Played (61+ min)',color:'#00d26a',count:{{ stats.played_count }},total:{{ stats.played_total }},
+     games:[{% for g in stats.played_games %}{"name":"{{ g.name|replace('"','\\"')|replace("'","\\'") }}","pt":{{ g.playtime }}}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {label:'Abandoned (1-60 min)',color:'#ff6b35',count:{{ stats.abandoned_count }},total:{{ stats.abandoned_total }},
+     games:[{% for g in stats.abandoned_games %}{"name":"{{ g.name|replace('"','\\"')|replace("'","\\'") }}","pt":{{ g.playtime }}}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {label:'Never Played',color:'#ff3366',count:{{ stats.never_played_count }},total:{{ stats.unplayed_total }},
+     games:[{% for g in stats.unplayed_games %}{"name":"{{ g.name|replace('"','\\"')|replace("'","\\'") }}","pt":{{ g.playtime }}}{% if not loop.last %},{% endif %}{% endfor %}]}
+];
+let personalityData=null, radarChart=null, activeRadar='owned';
 
-            fetch(url).then(r => r.json()).then(data => {
-                if (data.error) { showError('value', data.error); return; }
-                const est = data.is_estimate ? '~' : '';
-                const note = data.is_estimate ? `<div class="value-note">Estimated from sample</div>` : `<div class="value-note">Full library scan</div>`;
-                let html = `<div class="value-grid">
-                    <div class="value-card">
-                        <div class="value-amount green">${est}$${data.library_value.toLocaleString()}</div>
-                        <div class="value-label">Estimated Library Value</div>
-                        ${note}
-                        ${data.is_estimate ? `<button class="accuracy-btn" onclick="loadValue(true)" id="btn-full-lib">&#x1F50D; Make it more accurate</button>` : ''}
-                    </div>
-                    <div class="value-card">
-                        <div class="value-amount red">${est}$${data.unplayed_value.toLocaleString()}</div>
-                        <div class="value-label">Unplayed Game Value</div>
-                        ${note}
-                        ${data.is_estimate ? `<button class="accuracy-btn" onclick="loadValue(true)" id="btn-full-unplayed">&#x1F50D; Make it more accurate</button>` : ''}
-                    </div>
-                </div>`;
-                showContent('value', html);
-            }).catch(() => showError('value', 'Failed to load value data'));
-        }
-        loadValue(false);
+// Helpers
+function showContent(id,h){document.getElementById(id+'-loading').style.display='none';const e=document.getElementById(id+'-content');e.innerHTML=h;e.style.display='block'}
+function openModal(t,g){document.getElementById('modal-title').innerHTML=t+' <span class="modal-count">('+g.length+')</span>';
+    let h='';g.forEach(x=>{if(typeof x==='string')h+='<div class="modal-game">'+x+'</div>';else{h+='<div class="modal-game">'+x.name;if(x.pt>0)h+=' <span style="color:#666;font-size:.8rem">'+x.pt+'m</span>';h+='</div>'}});
+    if(!g.length)h='<div class="modal-game" style="color:#555">No games</div>';
+    document.getElementById('modal-list').innerHTML=h;document.getElementById('game-modal').classList.add('active');document.body.style.overflow='hidden'}
+function closeModal(){document.getElementById('game-modal').classList.remove('active');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-        // ======== PERSONALITY ========
-        fetch(`/api/personality/${steamId}`).then(r => r.json()).then(data => {
-            if (data.error) { showError('personality', data.error); return; }
-            personalityData = data;
-            const colors = ['#ff3366','#ff6b35','#f7c94b','#00d26a','#00a8ff','#a855f7','#06b6d4','#ec4899'];
+// PIE CHART
+const pieCtx=document.getElementById('pie-canvas').getContext('2d');
+const pieChart=new Chart(pieCtx,{type:'doughnut',data:{labels:segData.map(s=>s.label),datasets:[{data:segData.map(s=>s.count),backgroundColor:segData.map(s=>s.color),borderColor:'#0a0a0c',borderWidth:3,hoverOffset:20}]},
+    options:{responsive:true,maintainAspectRatio:true,cutout:'40%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){const t=segData.reduce((a,s)=>a+s.count,0);return c.label+': '+c.raw+' ('+(c.raw/t*100).toFixed(1)+'%)'}}}},
+    onClick:function(e,els){if(els.length)selectPie(els[0].index)}}});
 
-            function renderBreakdown(items, source) {
-                if (!items || !items.length) return '';
-                const maxPct = items[0].pct;
-                let html = '<div class="genre-bars">';
-                items.forEach((g, i) => {
-                    const w = Math.max(8, (g.pct / maxPct) * 100);
-                    html += `<div class="genre-bar-row" onclick="openGenre('${source}','${g.key}')" title="Click to see games">
-                        <div class="genre-bar-label">${g.emoji} ${g.label}</div>
-                        <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${w}%;background:${colors[i%colors.length]};">${g.count}</div></div>
-                        <div class="genre-bar-pct">${g.pct}%</div>
-                    </div>`;
-                });
-                html += '</div>';
-                return html;
+function selectPie(idx){
+    const s=segData[idx];
+    const det=document.getElementById('pie-detail');
+    let h='<div class="pie-detail-header"><div class="pie-detail-title" style="color:'+s.color+'">'+s.label+' ('+s.count+')</div><button class="pie-detail-close" onclick="closePieDetail()">&#x2715;</button></div>';
+    h+='<div class="game-card">';
+    s.games.forEach(g=>{h+='<div class="game-row"><div class="game-name">'+g.name+'</div><div class="game-hours">'+(g.pt>0?g.pt+'m':'—')+'</div></div>'});
+    if(!s.games.length)h+='<div class="game-row"><div class="game-name" style="color:#666">No games to show</div></div>';
+    h+='</div>';
+    if(s.total>s.games.length)h+='<button class="show-all-btn" onclick="openModal(\''+s.label+'\',segData['+idx+'].games)">Show all '+s.total+' games</button>';
+    det.innerHTML=h;det.style.display='block';
+    document.querySelectorAll('.pie-legend-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+    det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closePieDetail(){document.getElementById('pie-detail').style.display='none';document.querySelectorAll('.pie-legend-item').forEach(el=>el.classList.remove('active'))}
+
+// VALUE
+function loadValue(full){
+    document.getElementById('value-loading').style.display='block';document.getElementById('value-content').style.display='none';
+    fetch('/api/value/'+steamId+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
+        if(d.error){document.getElementById('value-loading').style.display='none';return}
+        const est=d.is_estimate?'~':'';const note=d.is_estimate?'Estimated from sample':'Full library scan';
+        let h='<div class="value-grid"><div class="value-card"><div class="value-amount green">'+est+'$'+d.library_value.toLocaleString()+'</div><div class="value-label">Estimated Library Value</div><div class="value-note">'+note+'</div>';
+        if(d.is_estimate)h+='<button class="accuracy-btn" onclick="loadValue(true)">&#x1F50D; More accurate</button>';
+        h+='</div><div class="value-card"><div class="value-amount red">'+est+'$'+d.unplayed_value.toLocaleString()+'</div><div class="value-label">Unplayed Game Value</div><div class="value-note">'+note+'</div>';
+        if(d.is_estimate)h+='<button class="accuracy-btn" onclick="loadValue(true)">&#x1F50D; More accurate</button>';
+        h+='</div></div>';
+        if(d.regrets&&d.regrets.length){h+='<div class="regret-card"><div class="regret-title">&#x1F4B8; Most Expensive Regrets</div>';
+            d.regrets.forEach(r=>{h+='<div class="regret-item"><span class="regret-name">'+r.name+'</span><span class="regret-price">$'+r.price.toFixed(2)+'</span></div>'});h+='</div>'}
+        document.getElementById('value-loading').style.display='none';const el=document.getElementById('value-content');el.innerHTML=h;el.style.display='block';
+    }).catch(()=>{document.getElementById('value-loading').style.display='none'});
+}
+loadValue(false);
+
+// PERSONALITY - RADAR
+fetch('/api/personality/'+steamId).then(r=>r.json()).then(data=>{
+    if(data.error){showContent('personality','<p style="text-align:center;color:#666">'+data.error+'</p>');return}
+    personalityData=data;
+    const r=data.radar;if(!r||!r.labels||!r.labels.length){showContent('personality','<p style="text-align:center;color:#666">Not enough genre data.</p>');return}
+
+    let h='';
+    // Mismatch callout
+    if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
+        h+='<div class="mismatch-card"><div class="mismatch-title">&#x1F6A8; You think you like '+data.unplayed_majority.label+' games, but you don\'t</div><div class="mismatch-sub">Your unplayed games are mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+', but you actually play '+data.played_majority.emoji+' '+data.played_majority.label+'</div></div>';
+    }
+    // Majorities
+    if(data.overall_majority)h+='<p style="color:#ccc;margin-bottom:.5rem">&#x1F4DA; <strong>Library:</strong> Mostly '+data.overall_majority.emoji+' '+data.overall_majority.label+' ('+data.overall_majority.pct+'%)</p>';
+    if(data.played_majority)h+='<p style="color:#ccc;margin-bottom:.5rem">&#x1F3AE; <strong>You play:</strong> Mostly '+data.played_majority.emoji+' '+data.played_majority.label+' ('+data.played_majority.pct+'%)</p>';
+    if(data.show_unplayed_mismatch&&data.unplayed_majority)h+='<p style="color:#ccc;margin-bottom:1.5rem">&#x1F6D2; <strong>You ignore:</strong> Mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' ('+data.unplayed_majority.pct+'%)</p>';
+    h+='<div class="radar-toggles"><button class="radar-toggle active" data-layer="owned" onclick="setRadar(\'owned\')">&#x1F4DA; Library</button><button class="radar-toggle" data-layer="played" onclick="setRadar(\'played\')">&#x1F3AE; Played</button><button class="radar-toggle" data-layer="unplayed" onclick="setRadar(\'unplayed\')">&#x1F6D2; Unplayed</button></div>';
+    h+='<div class="radar-canvas-wrap"><canvas id="radar-canvas" width="500" height="500" style="max-width:500px"></canvas></div>';
+    h+='<p style="text-align:center;color:#555;font-size:.8rem;margin-top:.5rem">Click a genre label on the chart to see games</p>';
+
+    if(data.badges&&data.badges.length){h+='<h3 style="color:#888;font-size:1rem;margin:2rem 0 1rem;font-weight:500">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
+        data.badges.forEach(b=>{h+='<div class="badge-card"><div class="badge-emoji">'+b.emoji+'</div><div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.description+'</div></div></div>'});h+='</div>'}
+    showContent('personality',h);
+
+    // Build radar chart
+    const labels=r.labels.map(l=>l.emoji+' '+l.label);
+    const colors={owned:{bg:'rgba(0,168,255,0.25)',border:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',border:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',border:'#ff3366'}};
+    const faded={owned:{bg:'rgba(0,168,255,0.05)',border:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',border:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',border:'rgba(255,51,102,0.2)'}};
+
+    radarChart=new Chart(document.getElementById('radar-canvas'),{type:'radar',
+        data:{labels:labels,datasets:[
+            {label:'Library',data:r.owned,backgroundColor:colors.owned.bg,borderColor:colors.owned.border,borderWidth:2,pointRadius:4,pointBackgroundColor:colors.owned.border},
+            {label:'Played',data:r.played,backgroundColor:faded.played.bg,borderColor:faded.played.border,borderWidth:1,pointRadius:2,pointBackgroundColor:faded.played.border},
+            {label:'Unplayed',data:r.unplayed,backgroundColor:faded.unplayed.bg,borderColor:faded.unplayed.border,borderWidth:1,pointRadius:2,pointBackgroundColor:faded.unplayed.border}
+        ]},
+        options:{responsive:true,maintainAspectRatio:true,scales:{r:{grid:{color:'rgba(255,255,255,0.08)'},angleLines:{color:'rgba(255,255,255,0.08)'},pointLabels:{color:'#ccc',font:{size:11}},ticks:{display:false},suggestedMin:0}},
+            plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.raw+'%'}}}},
+            onClick:function(e,els){
+                const pts=radarChart.getElementsAtEventForMode(e,'nearest',{intersect:false},true);
+                if(pts.length){const idx=pts[0].index;const gk=r.labels[idx].key;const layer=activeRadar;
+                    const games=personalityData.genre_games[gk]?personalityData.genre_games[gk][layer]:[];
+                    openModal(r.labels[idx].emoji+' '+r.labels[idx].label+' ('+layer+')',games)}
             }
-
-            let html = '';
-
-            // 1. Total library makeup
-            html += '<div class="genre-section">';
-            html += '<div class="genre-section-title">&#x1F4DA; Total Library Makeup</div>';
-            html += '<div class="genre-section-sub">Genre distribution across your entire library</div>';
-            if (data.overall_majority) {
-                html += `<div class="genre-majority">${data.overall_majority.emoji} Mostly: ${data.overall_majority.label} (${data.overall_majority.pct}%)</div>`;
-            }
-            html += renderBreakdown(data.overall, 'overall');
-            html += '</div>';
-
-            // 2. What they play
-            html += '<div class="genre-section">';
-            html += '<div class="genre-section-title">&#x1F3AE; What You Actually Play</div>';
-            html += '<div class="genre-section-sub">Genres of games with 60+ minutes played</div>';
-            if (data.played_majority) {
-                html += `<div class="genre-majority">${data.played_majority.emoji} Mostly: ${data.played_majority.label} (${data.played_majority.pct}%)</div>`;
-            }
-            html += renderBreakdown(data.played, 'played');
-            html += '</div>';
-
-            // 3. What they own but don't play — only if mismatch
-            if (data.show_unplayed_mismatch && data.unplayed_majority) {
-                html += '<div class="genre-section">';
-                html += `<div class="mismatch-card">
-                    <div class="mismatch-title">&#x1F6A8; You think you like ${data.unplayed_majority.label} games, but you don't</div>
-                    <div class="mismatch-sub">Your unplayed library is mostly ${data.unplayed_majority.emoji} ${data.unplayed_majority.label}, but you actually play ${data.played_majority.emoji} ${data.played_majority.label}</div>
-                </div>`;
-                html += '<div class="genre-section-title">&#x1F6D2; What You Buy But Don\'t Play</div>';
-                html += '<div class="genre-section-sub">Genres of your unplayed games</div>';
-                html += `<div class="genre-majority" style="border-color:rgba(255,51,102,0.3);">${data.unplayed_majority.emoji} Mostly: ${data.unplayed_majority.label} (${data.unplayed_majority.pct}%)</div>`;
-                html += renderBreakdown(data.unplayed, 'unplayed');
-                html += '</div>';
-            }
-
-            // Badges
-            if (data.badges && data.badges.length) {
-                html += '<h3 class="subsection-label" style="margin-top:3rem;">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
-                data.badges.forEach(b => {
-                    html += `<div class="badge-card"><div class="badge-emoji">${b.emoji}</div><div><div class="badge-name">${b.name}</div><div class="badge-desc">${b.description}</div></div></div>`;
-                });
-                html += '</div>';
-            }
-
-            if (!data.overall || !data.overall.length) html = '<p style="text-align:center;color:#666;">Not enough data to determine your gamer personality.</p>';
-            showContent('personality', html);
-        }).catch(() => showError('personality', 'Failed to load personality data'));
-
-        function openGenre(source, key) {
-            if (!personalityData) return;
-            const list = personalityData[source];
-            const genre = list ? list.find(g => g.key === key) : null;
-            if (!genre) return;
-            openModal(genre.label + (source === 'played' ? ' (played)' : source === 'unplayed' ? ' (unplayed)' : ' (library)'), genre.emoji, genre.games || []);
         }
+    });
+}).catch(()=>showContent('personality','<p style="text-align:center;color:#666">Failed to load.</p>'));
 
-        // ======== FRIENDS ========
-        fetch(`/api/friends/${steamId}`).then(r => r.json()).then(data => {
-            if (data.error && !data.leaderboard) { showError('friends', data.error); return; }
-            if (!data.leaderboard || data.leaderboard.length <= 1) { showError('friends', 'No friends with public profiles found.'); return; }
+function setRadar(layer){
+    activeRadar=layer;
+    document.querySelectorAll('.radar-toggle').forEach(b=>b.classList.toggle('active',b.dataset.layer===layer));
+    if(!radarChart||!personalityData)return;
+    const r=personalityData.radar;
+    const colors={owned:{bg:'rgba(0,168,255,0.25)',border:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',border:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',border:'#ff3366'}};
+    const faded={owned:{bg:'rgba(0,168,255,0.05)',border:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',border:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',border:'rgba(255,51,102,0.2)'}};
+    const layers=['owned','played','unplayed'];const dataKeys=['owned','played','unplayed'];
+    layers.forEach((l,i)=>{
+        const ds=radarChart.data.datasets[i];const active=l===layer;
+        ds.backgroundColor=active?colors[l].bg:faded[l].bg;ds.borderColor=active?colors[l].border:faded[l].border;
+        ds.borderWidth=active?2:1;ds.pointRadius=active?4:2;ds.pointBackgroundColor=active?colors[l].border:faded[l].border;
+    });
+    radarChart.update();
+}
 
-            let html = '';
-            if (data.user_rank) {
-                if (data.user_rank === 1) html += `<div class="roast-card" style="margin-bottom:2rem;"><div class="roast-emoji">&#x1F451;</div><div class="roast-text">You're #1 most wasteful among your friends</div></div>`;
-                else if (data.user_rank <= 3) html += `<div class="roast-card" style="margin-bottom:2rem;"><div class="roast-emoji">&#x1F62C;</div><div class="roast-text">You're #${data.user_rank} most wasteful</div><div class="roast-subtext">Top 3 is not a flex here</div></div>`;
-                else if (data.user_rank === data.leaderboard.length) html += `<div class="roast-card" style="margin-bottom:2rem;border-color:rgba(0,210,106,0.3);background:linear-gradient(135deg,rgba(0,210,106,0.1) 0%,rgba(0,210,106,0.02) 100%);"><div class="roast-emoji">&#x1F3C6;</div><div class="roast-text">Least wasteful among your friends!</div></div>`;
-            }
+// FRIENDS
+fetch('/api/friends/'+steamId).then(r=>r.json()).then(data=>{
+    if(data.error&&!data.leaderboard){showContent('friends','<p style="text-align:center;color:#666">'+data.error+'</p>');return}
+    if(!data.leaderboard||data.leaderboard.length<=1){showContent('friends','<p style="text-align:center;color:#666">No friends with public profiles found.</p>');return}
+    let h='';
+    if(data.user_rank===1)h+='<div class="roast-card"><div class="roast-emoji">&#x1F451;</div><div class="roast-text">#1 most wasteful among your friends</div></div>';
+    else if(data.user_rank<=3)h+='<div class="roast-card"><div class="roast-emoji">&#x1F62C;</div><div class="roast-text">#'+data.user_rank+' most wasteful</div></div>';
+    else if(data.user_rank===data.leaderboard.length)h+='<div class="roast-card" style="border-color:rgba(0,210,106,.3);background:linear-gradient(135deg,rgba(0,210,106,.1),rgba(0,210,106,.02))"><div class="roast-emoji">&#x1F3C6;</div><div class="roast-text">Least wasteful among your friends!</div></div>';
+    h+='<div class="leaderboard">';
+    data.leaderboard.forEach(e=>{const ri=e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
+        const rc=e.rank<=3?'rank-'+e.rank:'';const sc=e.shame_score<25?'low':e.shame_score<40?'med':'high';
+        h+='<div class="leaderboard-row '+(e.is_user?'is-user':'')+'"><div class="lb-rank '+rc+'">'+ri+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-avatar"><span class="lb-name"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-shame '+sc+'">'+e.shame_score+'%</div><div class="lb-stat">'+e.total_games+' owned</div><div class="lb-stat">'+e.played_count+' played</div></div>'});
+    h+='</div>';showContent('friends',h);
+}).catch(()=>showContent('friends','<p style="text-align:center;color:#666">Failed to load.</p>'));
 
-            html += '<div class="leaderboard">';
-            data.leaderboard.forEach(e => {
-                const ri = e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
-                const rc = e.rank<=3?'rank-'+e.rank:'';
-                const sc = e.shame_score<25?'low':e.shame_score<40?'med':'high';
-                html += `<div class="leaderboard-row ${e.is_user?'is-user':''}">
-                    <div class="lb-rank ${rc}">${ri}</div>
-                    <div class="lb-player"><img src="${e.avatar}" alt="" class="lb-avatar"><span class="lb-name"><a href="/results/${e.steam_id}">${e.name}</a>${e.is_user?'<span class="lb-you">(you)</span>':''}</span></div>
-                    <div class="lb-shame ${sc}">${e.shame_score}%</div>
-                    <div class="lb-stat">${e.total_games} owned</div>
-                    <div class="lb-stat">${e.played_count} played</div>
-                </div>`;
-            });
-            html += '</div>';
-            if (data.total_friends > 10) html += `<p style="text-align:center;margin-top:1.5rem;color:#666;">And ${data.total_friends - 9} more friends...</p>`;
-            showContent('friends', html);
-        }).catch(() => showError('friends', 'Failed to load friends leaderboard'));
-
-        function copyLink() {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                const btn = document.querySelector('.share-btn.copy');
-                btn.innerHTML = '&#x2705; Copied!';
-                setTimeout(() => { btn.innerHTML = '&#x1F4CB; Copy Link'; }, 2000);
-            });
-        }
-    </script>
-</body>
-</html>
+function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.share-btn.copy');b.innerHTML='&#x2705; Copied!';setTimeout(()=>b.innerHTML='&#x1F4CB; Copy Link',2000)})}
+</script>
+</body></html>
