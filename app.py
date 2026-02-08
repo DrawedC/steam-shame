@@ -500,6 +500,22 @@ def api_value(steam_id: str):
 
         store_data = get_app_details_batch(appids, max_workers=4, delay=0.4)
 
+        def extract_usd_price(details):
+            """Extract price in USD. Returns None if not USD or unavailable."""
+            price_data = details.get("price_overview")
+            if not price_data:
+                return None
+            # Only trust USD prices to avoid currency confusion
+            currency = price_data.get("currency", "")
+            if currency and currency != "USD":
+                return None
+            price_cents = price_data.get("initial", 0)
+            price_dollars = price_cents / 100
+            # Sanity check: no single game should cost more than $200
+            if price_dollars > 200:
+                return None
+            return price_dollars
+
         # $/hour for top played
         value_list = []
         for g in played_games:
@@ -507,13 +523,11 @@ def api_value(steam_id: str):
             details = store_data.get(appid)
             if not details:
                 continue
-            price_data = details.get("price_overview")
-            if not price_data:
+            price_dollars = extract_usd_price(details)
+            if price_dollars is None or price_dollars <= 0:
                 continue
-            price_cents = price_data.get("initial", 0)
-            price_dollars = price_cents / 100
             hours = g.get("playtime_forever", 0) / 60
-            if hours > 0 and price_dollars > 0:
+            if hours > 0:
                 per_hour = price_dollars / hours
                 value_list.append({
                     "name": g.get("name", "Unknown"),
@@ -533,10 +547,9 @@ def api_value(steam_id: str):
             details = store_data.get(appid)
             if not details:
                 continue
-            price_data = details.get("price_overview")
-            if price_data:
-                price_cents = price_data.get("initial", 0)
-                unplayed_prices.append(price_cents / 100)
+            price_dollars = extract_usd_price(details)
+            if price_dollars is not None and price_dollars > 0:
+                unplayed_prices.append(price_dollars)
 
         total_unplayed = len(unplayed_games)
         sampled_unplayed = len([g for g in unplayed_sample if store_data.get(g["appid"])])
