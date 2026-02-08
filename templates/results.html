@@ -9,75 +9,61 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#0a0a0c;min-height:100vh;color:#e5e5e5;overflow-x:hidden}
-        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;background:radial-gradient(ellipse at 50% 0%,rgba(120,0,255,.15) 0%,transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(255,50,100,.1) 0%,transparent 40%),radial-gradient(ellipse at 20% 80%,rgba(0,150,255,.1) 0%,transparent 40%),#0a0a0c}
+        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',-apple-system,sans-serif;background:#0a0a0c;min-height:100vh;color:#e5e5e5;overflow-x:hidden}
+        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;background:radial-gradient(ellipse at 50% 0%,rgba(120,0,255,.15),transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(255,50,100,.1),transparent 40%),radial-gradient(ellipse at 20% 80%,rgba(0,150,255,.1),transparent 40%),#0a0a0c}
         .player-header{display:flex;align-items:center;gap:1rem;margin-bottom:3rem;opacity:0;animation:fadeInUp .6s ease forwards}
-        .avatar{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,.2)}
-        .player-name{font-size:1.5rem;font-weight:600;color:#fff}.player-subtitle{color:#666;font-size:.9rem;margin-top:.25rem}
+        .avatar{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,.2)}.player-name{font-size:1.5rem;font-weight:600;color:#fff}.player-subtitle{color:#666;font-size:.9rem;margin-top:.25rem}
         .shame-score-display{opacity:0;animation:fadeInUp .6s ease .2s forwards}
         .shame-number{font-size:clamp(8rem,25vw,14rem);font-weight:900;line-height:1;background:linear-gradient(135deg,#ff3366,#ff6b35 50%,#f7c94b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
         .shame-number::after{content:'%';font-size:.4em;position:absolute;top:.5em}
         .shame-label{font-size:1.5rem;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.3em;margin-top:1rem}
         .roast{max-width:500px;margin:2rem auto 0;font-size:1.25rem;color:#999;line-height:1.6;opacity:0;animation:fadeInUp .6s ease .4s forwards}
-        .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);color:#444;font-size:.85rem;opacity:0;animation:fadeInUp .6s ease .8s forwards,bounce 2s ease-in-out 1.5s infinite}
-        .scroll-hint span{display:block;margin-top:.5rem;font-size:1.5rem}
-        .stats-section{padding:6rem 2rem;position:relative}
-        .stats-section:nth-child(odd){background:linear-gradient(180deg,#0d0d10,#0a0a0c)}
-        .section-inner{max-width:900px;margin:0 auto}.section-header{margin-bottom:3rem}
-        .section-title{font-size:3rem;font-weight:800;color:#fff;margin-bottom:.5rem}.section-subtitle{font-size:1.1rem;color:#666}
+        .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);color:#444;font-size:.85rem;opacity:0;animation:fadeInUp .6s ease .8s forwards,bounce 2s ease-in-out 1.5s infinite}.scroll-hint span{display:block;margin-top:.5rem;font-size:1.5rem}
+        .stats-section{padding:6rem 2rem;position:relative}.stats-section:nth-child(odd){background:linear-gradient(180deg,#0d0d10,#0a0a0c)}
+        .section-inner{max-width:900px;margin:0 auto}.section-header{margin-bottom:3rem}.section-title{font-size:3rem;font-weight:800;color:#fff;margin-bottom:.5rem}.section-subtitle{font-size:1.1rem;color:#666}
         .big-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:3rem}
-        .big-stat{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:2rem;text-align:center;transition:transform .3s}
-        .big-stat:hover{transform:translateY(-4px)}.big-stat-number{font-size:3rem;font-weight:800;line-height:1}
-        .big-stat-number.green{color:#00d26a}.big-stat-number.red{color:#ff3366}.big-stat-number.orange{color:#ff6b35}
+        .big-stat{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:2rem;text-align:center;transition:transform .3s}.big-stat:hover{transform:translateY(-4px)}
+        .big-stat-number{font-size:3rem;font-weight:800;line-height:1}.big-stat-number.green{color:#00d26a}.big-stat-number.red{color:#ff3366}.big-stat-number.orange{color:#ff6b35}
         .big-stat-label{font-size:.9rem;color:#666;margin-top:.5rem;font-weight:500}
-        .pie-wrap{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;margin-bottom:2rem}
-        .pie-chart-box{width:300px;height:300px;flex-shrink:0}
+        .pie-wrap{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;margin-bottom:2rem}.pie-chart-box{width:300px;height:300px;flex-shrink:0}
         .pie-legend{display:flex;flex-direction:column;gap:.75rem}
-        .pie-legend-item{display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:#ccc;cursor:pointer;padding:.5rem .75rem;border-radius:8px;transition:background .15s}
-        .pie-legend-item:hover,.pie-legend-item.active{background:rgba(255,255,255,.08)}
-        .pie-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
-        .pie-legend-pct{color:#888;font-size:.85rem;margin-left:auto;font-weight:600;padding-left:1rem}
-        .pie-detail{display:none;margin-top:1.5rem}.pie-detail.active{display:block}
-        .pie-detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-        .pie-detail-title{font-size:1.1rem;font-weight:700;color:#fff}
-        .pie-detail-close{background:rgba(255,255,255,.1);border:none;color:#999;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
-        .pie-detail-close:hover{background:rgba(255,255,255,.2);color:#fff}
+        .pie-legend-item{display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:#ccc;cursor:pointer;padding:.5rem .75rem;border-radius:8px;transition:background .15s}.pie-legend-item:hover,.pie-legend-item.active{background:rgba(255,255,255,.08)}
+        .pie-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}.pie-legend-pct{color:#888;font-size:.85rem;margin-left:auto;font-weight:600;padding-left:1rem}
         .game-card{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;max-height:400px;overflow-y:auto}
         .game-card::-webkit-scrollbar{width:6px}.game-card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
-        .game-row{display:flex;align-items:center;padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;font-size:.9rem}
-        .game-row:last-child{border-bottom:none}.game-row:hover{background:rgba(255,255,255,.03)}
-        .game-name{flex:1;font-weight:500;color:#e5e5e5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:1rem}
-        .game-hours{font-size:.85rem;color:#666;font-weight:600;white-space:nowrap}
-        .show-all-btn{display:block;width:100%;padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#ccc;font-size:.85rem;cursor:pointer;text-align:center;margin-top:.75rem;font-family:inherit;transition:background .2s}
-        .show-all-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-        .value-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+        .game-row{display:flex;align-items:center;padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:.9rem}.game-row:last-child{border-bottom:none}.game-row:hover{background:rgba(255,255,255,.03)}
+        .game-name{flex:1;font-weight:500;color:#e5e5e5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:1rem}.game-hours{font-size:.85rem;color:#666;font-weight:600;white-space:nowrap}
+        .show-all-btn{display:block;width:100%;padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#ccc;font-size:.85rem;cursor:pointer;text-align:center;margin-top:.75rem;font-family:inherit}.show-all-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+        .value-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1rem}
         .value-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:2rem;text-align:center}
         .value-amount{font-size:2.5rem;font-weight:900;line-height:1}.value-amount.green{color:#00d26a}.value-amount.red{color:#ff3366}
         .value-label{color:#888;margin-top:.5rem;font-size:.9rem}.value-note{color:#555;font-size:.75rem;margin-top:.5rem;font-style:italic}
-        .accuracy-btn{display:inline-block;margin-top:.75rem;padding:8px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#ccc;font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .2s}
-        .accuracy-btn:hover{background:rgba(255,255,255,.12);color:#fff}
-        .regret-card{background:linear-gradient(135deg,rgba(255,51,102,.08),rgba(255,51,102,.02));border:1px solid rgba(255,51,102,.15);border-radius:16px;padding:1.5rem;margin-bottom:2rem}
-        .regret-title{font-size:1rem;font-weight:600;color:#ff3366;margin-bottom:1rem}
-        .regret-item{display:flex;justify-content:space-between;padding:.4rem 0;font-size:.9rem}.regret-name{color:#ccc}.regret-price{color:#ff3366;font-weight:600}
+        .accuracy-row{text-align:center;margin-bottom:2rem}
+        .accuracy-btn{padding:10px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#ccc;font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .2s}.accuracy-btn:hover{background:rgba(255,255,255,.12);color:#fff}
         .backlog-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
         .backlog-big{font-size:2rem;font-weight:800;color:#ff6b35}.backlog-sub{color:#888;font-size:.9rem;margin-top:.25rem}
-        .radar-wrap{position:relative;margin-bottom:2rem}
-        .radar-canvas-wrap{display:flex;justify-content:center;margin-bottom:1rem}
+        .suggest-card{background:linear-gradient(145deg,rgba(0,168,255,.08),rgba(0,168,255,.02));border:1px solid rgba(0,168,255,.2);border-radius:20px;padding:0;overflow:hidden;margin-bottom:2rem;text-align:center}
+        .suggest-img{width:100%;max-height:200px;object-fit:cover;display:block}.suggest-body{padding:1.5rem}
+        .suggest-label{font-size:.85rem;color:#00a8ff;text-transform:uppercase;letter-spacing:.15em;font-weight:600;margin-bottom:.5rem}.suggest-name{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:.75rem}
+        .suggest-btn{display:inline-block;padding:.6rem 1.5rem;background:#00a8ff;color:#fff;border-radius:50px;text-decoration:none;font-weight:600;font-size:.9rem;transition:transform .2s}.suggest-btn:hover{transform:translateY(-2px)}
+        .suggest-reroll{display:inline-block;margin-left:1rem;padding:.6rem 1.5rem;background:rgba(255,255,255,.08);color:#ccc;border-radius:50px;border:none;font-size:.9rem;cursor:pointer;font-family:inherit}.suggest-reroll:hover{background:rgba(255,255,255,.12);color:#fff}
         .radar-toggles{display:flex;justify-content:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
         .radar-toggle{padding:.6rem 1.5rem;border-radius:50px;font-size:.9rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .2s;font-family:inherit;background:rgba(255,255,255,.06);color:#888}
         .radar-toggle.active{color:#fff}
         .radar-toggle[data-layer="owned"].active{background:rgba(0,168,255,.2);border-color:#00a8ff;color:#00a8ff}
         .radar-toggle[data-layer="played"].active{background:rgba(0,210,106,.2);border-color:#00d26a;color:#00d26a}
         .radar-toggle[data-layer="unplayed"].active{background:rgba(255,51,102,.2);border-color:#ff3366;color:#ff3366}
+        .radar-canvas-wrap{display:flex;justify-content:center;margin-bottom:1rem}
+        .dna-summary{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;align-items:center}
+        .dna-chip{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:12px;font-size:.9rem;font-weight:600}
+        .dna-chip.owned{background:rgba(0,168,255,.15);color:#00a8ff}.dna-chip.played{background:rgba(0,210,106,.15);color:#00d26a}.dna-chip.unplayed{background:rgba(255,51,102,.15);color:#ff3366}
         .mismatch-card{background:linear-gradient(135deg,rgba(255,51,102,.12),rgba(255,51,102,.03));border:1px solid rgba(255,51,102,.25);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
         .mismatch-title{font-size:1.1rem;font-weight:700;color:#ff3366;margin-bottom:.25rem}.mismatch-sub{font-size:.9rem;color:#999}
         .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:2rem}
-        .badge-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:transform .2s}
-        .badge-card:hover{transform:translateY(-2px)}.badge-emoji{font-size:2rem;flex-shrink:0}.badge-name{font-weight:700;color:#fff;margin-bottom:.25rem}.badge-desc{font-size:.85rem;color:#888;line-height:1.4}
+        .badge-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:transform .2s}.badge-card:hover{transform:translateY(-2px)}
+        .badge-emoji{font-size:2rem;flex-shrink:0}.badge-name{font-weight:700;color:#fff;margin-bottom:.25rem}.badge-desc{font-size:.85rem;color:#888;line-height:1.4}
         .leaderboard{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:20px;overflow:hidden}
-        .leaderboard-row{display:grid;grid-template-columns:50px 1fr 70px 90px 90px;padding:1rem 1.5rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
-        .leaderboard-row:hover{background:rgba(255,255,255,.03)}.leaderboard-row:last-child{border-bottom:none}
+        .leaderboard-row{display:grid;grid-template-columns:50px 1fr 70px 90px 90px;padding:1rem 1.5rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.04)}.leaderboard-row:hover{background:rgba(255,255,255,.03)}.leaderboard-row:last-child{border-bottom:none}
         .leaderboard-row.is-user{background:rgba(0,168,255,.1);border-left:3px solid #00a8ff}
         .lb-rank{font-weight:700;font-size:1.1rem;color:#666}.lb-rank.rank-1{color:#f7c94b}.lb-rank.rank-2{color:#c0c0c0}.lb-rank.rank-3{color:#cd7f32}
         .lb-player{display:flex;align-items:center;gap:.75rem;min-width:0}.lb-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0}
@@ -86,28 +72,21 @@
         .lb-shame{font-weight:700;text-align:center}.lb-shame.low{color:#00d26a}.lb-shame.med{color:#ff6b35}.lb-shame.high{color:#ff3366}
         .lb-stat{color:#888;font-size:.85rem;text-align:center}
         .roast-card{background:linear-gradient(135deg,rgba(255,51,102,.1),rgba(255,107,53,.05));border:1px solid rgba(255,51,102,.2);border-radius:20px;padding:2rem;margin:2rem 0;text-align:center}
-        .roast-card .roast-emoji{font-size:3rem;margin-bottom:.75rem}.roast-card .roast-text{font-size:1.3rem;font-weight:600;color:#fff;line-height:1.5}.roast-card .roast-subtext{font-size:.9rem;color:#888;margin-top:.5rem}
-        .loading-state{text-align:center;padding:3rem;color:#666}
-        .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#00a8ff;border-radius:50%;margin:0 auto 1rem;animation:spin 1s linear infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}
+        .roast-card .roast-emoji{font-size:3rem;margin-bottom:.75rem}.roast-card .roast-text{font-size:1.3rem;font-weight:600;color:#fff}.roast-card .roast-subtext{font-size:.9rem;color:#888;margin-top:.5rem}
+        .loading-state{text-align:center;padding:3rem;color:#666}.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#00a8ff;border-radius:50%;margin:0 auto 1rem;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
         .share-section{text-align:center;padding:4rem 2rem}.share-title{font-size:2rem;font-weight:700;color:#fff;margin-bottom:.5rem}.share-subtitle{color:#666;margin-bottom:2rem}
         .share-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-        .share-btn{padding:1rem 2rem;border-radius:50px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:transform .2s;border:none}
-        .share-btn:hover{transform:translateY(-2px)}.share-btn.twitter{background:#1da1f2;color:#fff}.share-btn.copy{background:rgba(255,255,255,.1);color:#fff}
+        .share-btn{padding:1rem 2rem;border-radius:50px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;border:none;transition:transform .2s}.share-btn:hover{transform:translateY(-2px)}.share-btn.twitter{background:#1da1f2;color:#fff}.share-btn.copy{background:rgba(255,255,255,.1);color:#fff}
         .back-link{position:fixed;top:1.5rem;left:1.5rem;color:#666;text-decoration:none;font-size:.9rem;z-index:100}.back-link:hover{color:#fff}
-        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}
-        .modal-overlay.active{display:flex}
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}.modal-overlay.active{display:flex}
         .modal-box{background:#151518;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem;max-width:500px;width:100%;max-height:70vh;display:flex;flex-direction:column;animation:modalIn .2s ease}
         @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-        .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}.modal-title{font-size:1.25rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:.5rem}
-        .modal-count{font-size:.85rem;color:#666;font-weight:400}
-        .modal-close{background:rgba(255,255,255,.1);border:none;color:#999;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
-        .modal-close:hover{background:rgba(255,255,255,.2);color:#fff}
+        .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}.modal-title{font-size:1.25rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:.5rem}.modal-count{font-size:.85rem;color:#666;font-weight:400}
+        .modal-close{background:rgba(255,255,255,.1);border:none;color:#999;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.modal-close:hover{background:rgba(255,255,255,.2);color:#fff}
         .modal-list{overflow-y:auto;flex:1}.modal-list::-webkit-scrollbar{width:6px}.modal-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
-        .modal-game{padding:.65rem .75rem;border-radius:8px;color:#ccc;font-size:.9rem;transition:background .15s}.modal-game:hover{background:rgba(255,255,255,.05)}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
-        @media(max-width:700px){.big-stats{grid-template-columns:1fr}.section-title{font-size:2rem}.value-grid{grid-template-columns:1fr}.leaderboard-row{grid-template-columns:40px 1fr 60px 70px}.leaderboard-row .lb-stat:last-child{display:none}.pie-wrap{flex-direction:column}.badge-grid{grid-template-columns:1fr}}
+        .modal-game{padding:.65rem .75rem;border-radius:8px;color:#ccc;font-size:.9rem}.modal-game:hover{background:rgba(255,255,255,.05)}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+        @media(max-width:700px){.big-stats{grid-template-columns:1fr}.section-title{font-size:2rem}.value-grid{grid-template-columns:1fr}.leaderboard-row{grid-template-columns:40px 1fr 60px 70px}.leaderboard-row .lb-stat:last-child{display:none}.pie-wrap{flex-direction:column}.badge-grid{grid-template-columns:1fr}.dna-summary{flex-direction:column}}
     </style>
 </head>
 <body>
@@ -115,10 +94,11 @@
 <section class="hero">
     <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-subtitle">Steam Shame Report</div></div></div>
     <div class="shame-score-display"><div class="shame-number">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
-    <p class="roast">{% if stats.shame_score >= 50 %}You own {{ stats.total_games }} games and have played {{ stats.played_count }}. That's not a library, that's a graveyard.{% elif stats.shame_score >= 35 %}Steam sales broke you. {{ stats.never_played_count }} games collecting digital dust.{% elif stats.shame_score >= 20 %}Not terrible, but {{ stats.never_played_count }} unplayed games is still too many.{% else %}You actually play your games. Impressive.{% endif %}</p>
+    <p class="roast">{% if stats.shame_score >= 50 %}You own {{ stats.total_games }} games and have played {{ stats.played_count }}. That's a graveyard.{% elif stats.shame_score >= 35 %}Steam sales broke you. {{ stats.never_played_count }} games collecting dust.{% elif stats.shame_score >= 20 %}Not terrible, but {{ stats.never_played_count }} unplayed games is too many.{% else %}You actually play your games. Impressive.{% endif %}</p>
     <div class="scroll-hint">Scroll for the full damage report<span>&#8595;</span></div>
 </section>
 
+<!-- Shame Pile -->
 <section class="stats-section"><div class="section-inner">
     <div class="section-header"><h2 class="section-title">The Shame Pile</h2><p class="section-subtitle">Where your library really stands</p></div>
     <div class="big-stats">
@@ -129,78 +109,84 @@
     <div class="pie-wrap">
         <div class="pie-chart-box"><canvas id="pie-canvas"></canvas></div>
         <div class="pie-legend">
-            <div class="pie-legend-item" onclick="selectPie(0)"><div class="pie-dot" style="background:#00d26a"></div>Played (61+ min)<span class="pie-legend-pct">{{ stats.played_count }} ({{ (stats.played_count/stats.total_games*100)|round(1) }}%)</span></div>
-            <div class="pie-legend-item" onclick="selectPie(1)"><div class="pie-dot" style="background:#ff6b35"></div>Abandoned (1-60 min)<span class="pie-legend-pct">{{ stats.abandoned_count }} ({{ (stats.abandoned_count/stats.total_games*100)|round(1) }}%)</span></div>
-            <div class="pie-legend-item" onclick="selectPie(2)"><div class="pie-dot" style="background:#ff3366"></div>Never Played<span class="pie-legend-pct">{{ stats.never_played_count }} ({{ (stats.never_played_count/stats.total_games*100)|round(1) }}%)</span></div>
+            <div class="pie-legend-item" onclick="selectPie(0)"><div class="pie-dot" style="background:#00d26a"></div>Played<span class="pie-legend-pct">{{ (stats.played_count/stats.total_games*100)|round(1) }}%</span></div>
+            <div class="pie-legend-item" onclick="selectPie(1)"><div class="pie-dot" style="background:#ff6b35"></div>Abandoned<span class="pie-legend-pct">{{ (stats.abandoned_count/stats.total_games*100)|round(1) }}%</span></div>
+            <div class="pie-legend-item" onclick="selectPie(2)"><div class="pie-dot" style="background:#ff3366"></div>Never Played<span class="pie-legend-pct">{{ (stats.never_played_count/stats.total_games*100)|round(1) }}%</span></div>
         </div>
     </div>
     <div id="pie-detail" style="display:none"></div>
+
+    <!-- Value -->
     <div id="value-loading" class="loading-state"><div class="spinner"></div><p>Calculating library value...</p></div>
     <div id="value-content" style="display:none"></div>
-    {% if stats.backlog_days > 0 %}<div class="backlog-card"><div class="backlog-big">{{ stats.backlog_days }} days</div><div class="backlog-sub">to clear your backlog at 1 hour/day (~10 hrs per game)</div>{% if stats.backlog_days > 365 %}<div style="color:#ff3366;font-size:.85rem;margin-top:.5rem;font-weight:600">That's {{ (stats.backlog_days/365)|round(1) }} years. Maybe stop buying.</div>{% endif %}</div>{% endif %}
+
+    <!-- Backlog -->
+    {% if stats.backlog_days > 0 %}<div class="backlog-card"><div class="backlog-big">{{ stats.backlog_days }} days</div><div class="backlog-sub">to clear your backlog at 1 hour/day (~10 hrs per game)</div>{% if stats.backlog_days > 365 %}<div style="color:#ff3366;font-size:.85rem;margin-top:.5rem;font-weight:600">That's {{ (stats.backlog_days/365)|round(1) }} years.</div>{% endif %}</div>{% endif %}
+
+    <!-- Play Next Suggestion -->
+    <div id="suggest-card" style="display:none"></div>
 </div></section>
 
+<!-- Gamer DNA -->
 <section class="stats-section" id="personality-section"><div class="section-inner">
     <div class="section-header"><h2 class="section-title">&#x1F9EC; Gamer DNA</h2><p class="section-subtitle">What your library says about you</p></div>
     <div id="personality-loading" class="loading-state"><div class="spinner"></div><p>Profiling your gaming habits...</p></div>
     <div id="personality-content" style="display:none"></div>
 </div></section>
 
+<!-- Friends -->
 <section class="stats-section" id="friends-section"><div class="section-inner">
     <div class="section-header"><h2 class="section-title">Friends Leaderboard</h2><p class="section-subtitle">See who's the most wasteful</p></div>
     <div id="friends-loading" class="loading-state"><div class="spinner"></div><p>Loading friends...</p></div>
     <div id="friends-content" style="display:none"></div>
 </div></section>
 
-<section class="share-section"><h2 class="share-title">Spread the shame</h2><p class="share-subtitle">Let your friends know</p>
+<!-- Share -->
+<section class="share-section">
+    <h2 class="share-title">Spread the shame</h2><p class="share-subtitle">Let your friends know</p>
     <div class="share-buttons"><a href="https://twitter.com/intent/tweet?text=Steam%20Shame%3A%20{{ stats.shame_score }}%25%20{{ stats.total_games }}%20games%2C%20{{ stats.never_played_count }}%20never%20played&url={{ request.url }}" target="_blank" class="share-btn twitter">Share on X</a><button class="share-btn copy" onclick="copyLink()">&#x1F4CB; Copy Link</button></div>
 </section>
 
+<!-- Modal -->
 <div class="modal-overlay" id="game-modal" onclick="if(event.target===this)closeModal()"><div class="modal-box">
     <div class="modal-header"><div class="modal-title" id="modal-title"></div><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
     <div class="modal-list" id="modal-list"></div>
 </div></div>
 
 <script>
-const steamId = "{{ steam_id }}";
-const segData = [
-    {label:'Played (61+ min)',color:'#00d26a',count:{{ stats.played_count }},total:{{ stats.played_total }},
-     games:[{% for g in stats.played_games %}{"name":"{{ g.name|replace('"','\\"')|replace("'","\\'") }}","pt":{{ g.playtime }}}{% if not loop.last %},{% endif %}{% endfor %}]},
-    {label:'Abandoned (1-60 min)',color:'#ff6b35',count:{{ stats.abandoned_count }},total:{{ stats.abandoned_total }},
-     games:[{% for g in stats.abandoned_games %}{"name":"{{ g.name|replace('"','\\"')|replace("'","\\'") }}","pt":{{ g.playtime }}}{% if not loop.last %},{% endif %}{% endfor %}]},
-    {label:'Never Played',color:'#ff3366',count:{{ stats.never_played_count }},total:{{ stats.unplayed_total }},
-     games:[{% for g in stats.unplayed_games %}{"name":"{{ g.name|replace('"','\\"')|replace("'","\\'") }}","pt":{{ g.playtime }}}{% if not loop.last %},{% endif %}{% endfor %}]}
+const steamId="{{steam_id}}";
+const seg=[
+    {label:'Played (61+ min)',color:'#00d26a',count:{{stats.played_count}},total:{{stats.played_total}},
+     games:[{% for g in stats.played_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {label:'Abandoned (1-60 min)',color:'#ff6b35',count:{{stats.abandoned_count}},total:{{stats.abandoned_total}},
+     games:[{% for g in stats.abandoned_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {label:'Never Played',color:'#ff3366',count:{{stats.never_played_count}},total:{{stats.unplayed_total}},
+     games:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"0m"}{% if not loop.last %},{% endif %}{% endfor %}]}
 ];
-let personalityData=null, radarChart=null, activeRadar='owned';
+let personalityData=null,radarChart=null,activeRadar='owned';
 
-// Helpers
-function showContent(id,h){document.getElementById(id+'-loading').style.display='none';const e=document.getElementById(id+'-content');e.innerHTML=h;e.style.display='block'}
 function openModal(t,g){document.getElementById('modal-title').innerHTML=t+' <span class="modal-count">('+g.length+')</span>';
-    let h='';g.forEach(x=>{if(typeof x==='string')h+='<div class="modal-game">'+x+'</div>';else{h+='<div class="modal-game">'+x.name;if(x.pt>0)h+=' <span style="color:#666;font-size:.8rem">'+x.pt+'m</span>';h+='</div>'}});
+    let h='';g.forEach(x=>{if(typeof x==='string')h+='<div class="modal-game">'+x+'</div>';else h+='<div class="modal-game">'+x.name+(x.pt&&x.pt!=='0m'?' <span style="color:#666;font-size:.8rem">'+x.pt+'</span>':'')+'</div>'});
     if(!g.length)h='<div class="modal-game" style="color:#555">No games</div>';
     document.getElementById('modal-list').innerHTML=h;document.getElementById('game-modal').classList.add('active');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('game-modal').classList.remove('active');document.body.style.overflow=''}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function showContent(id,h){document.getElementById(id+'-loading').style.display='none';const e=document.getElementById(id+'-content');e.innerHTML=h;e.style.display='block'}
 
-// PIE CHART
-const pieCtx=document.getElementById('pie-canvas').getContext('2d');
-const pieChart=new Chart(pieCtx,{type:'doughnut',data:{labels:segData.map(s=>s.label),datasets:[{data:segData.map(s=>s.count),backgroundColor:segData.map(s=>s.color),borderColor:'#0a0a0c',borderWidth:3,hoverOffset:20}]},
-    options:{responsive:true,maintainAspectRatio:true,cutout:'40%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){const t=segData.reduce((a,s)=>a+s.count,0);return c.label+': '+c.raw+' ('+(c.raw/t*100).toFixed(1)+'%)'}}}},
-    onClick:function(e,els){if(els.length)selectPie(els[0].index)}}});
-
-function selectPie(idx){
-    const s=segData[idx];
-    const det=document.getElementById('pie-detail');
-    let h='<div class="pie-detail-header"><div class="pie-detail-title" style="color:'+s.color+'">'+s.label+' ('+s.count+')</div><button class="pie-detail-close" onclick="closePieDetail()">&#x2715;</button></div>';
-    h+='<div class="game-card">';
-    s.games.forEach(g=>{h+='<div class="game-row"><div class="game-name">'+g.name+'</div><div class="game-hours">'+(g.pt>0?g.pt+'m':'—')+'</div></div>'});
+// PIE
+const pieChart=new Chart(document.getElementById('pie-canvas'),{type:'doughnut',
+    data:{labels:seg.map(s=>s.label),datasets:[{data:seg.map(s=>s.count),backgroundColor:seg.map(s=>s.color),borderColor:'#0a0a0c',borderWidth:3,hoverOffset:20}]},
+    options:{responsive:true,maintainAspectRatio:true,cutout:'40%',plugins:{legend:{display:false}},
+        onClick:(e,els)=>{if(els.length)selectPie(els[0].index)}}});
+function selectPie(i){
+    const s=seg[i],d=document.getElementById('pie-detail');
+    let h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem"><div style="font-size:1.1rem;font-weight:700;color:'+s.color+'">'+s.label+' ('+s.count+')</div><button onclick="closePieDetail()" style="background:rgba(255,255,255,.1);border:none;color:#999;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">&#x2715;</button></div>';
+    h+='<div class="game-card">';s.games.forEach(g=>{h+='<div class="game-row"><div class="game-name">'+g.name+'</div><div class="game-hours">'+g.pt+'</div></div>'});
     if(!s.games.length)h+='<div class="game-row"><div class="game-name" style="color:#666">No games to show</div></div>';
-    h+='</div>';
-    if(s.total>s.games.length)h+='<button class="show-all-btn" onclick="openModal(\''+s.label+'\',segData['+idx+'].games)">Show all '+s.total+' games</button>';
-    det.innerHTML=h;det.style.display='block';
-    document.querySelectorAll('.pie-legend-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
-    det.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
+    h+='</div>';if(s.total>s.games.length)h+='<button class="show-all-btn" onclick="openModal(\''+s.label.replace(/'/g,"\\'")+'\',seg['+i+'].games)">Show all '+s.total+' games</button>';
+    d.innerHTML=h;d.style.display='block';
+    document.querySelectorAll('.pie-legend-item').forEach((el,j)=>el.classList.toggle('active',j===i));
+    d.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function closePieDetail(){document.getElementById('pie-detail').style.display='none';document.querySelectorAll('.pie-legend-item').forEach(el=>el.classList.remove('active'))}
 
 // VALUE
@@ -208,96 +194,84 @@ function loadValue(full){
     document.getElementById('value-loading').style.display='block';document.getElementById('value-content').style.display='none';
     fetch('/api/value/'+steamId+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
         if(d.error){document.getElementById('value-loading').style.display='none';return}
-        const est=d.is_estimate?'~':'';const note=d.is_estimate?'Estimated from sample':'Full library scan';
-        let h='<div class="value-grid"><div class="value-card"><div class="value-amount green">'+est+'$'+d.library_value.toLocaleString()+'</div><div class="value-label">Estimated Library Value</div><div class="value-note">'+note+'</div>';
-        if(d.is_estimate)h+='<button class="accuracy-btn" onclick="loadValue(true)">&#x1F50D; More accurate</button>';
-        h+='</div><div class="value-card"><div class="value-amount red">'+est+'$'+d.unplayed_value.toLocaleString()+'</div><div class="value-label">Unplayed Game Value</div><div class="value-note">'+note+'</div>';
-        if(d.is_estimate)h+='<button class="accuracy-btn" onclick="loadValue(true)">&#x1F50D; More accurate</button>';
-        h+='</div></div>';
-        if(d.regrets&&d.regrets.length){h+='<div class="regret-card"><div class="regret-title">&#x1F4B8; Most Expensive Regrets</div>';
-            d.regrets.forEach(r=>{h+='<div class="regret-item"><span class="regret-name">'+r.name+'</span><span class="regret-price">$'+r.price.toFixed(2)+'</span></div>'});h+='</div>'}
+        const est=d.is_estimate?'~':'',note=d.is_estimate?'Estimated from sample':'Full library scan';
+        let h='<div class="value-grid"><div class="value-card"><div class="value-amount green">'+est+'$'+d.library_value.toLocaleString()+'</div><div class="value-label">Estimated Library Value</div><div class="value-note">'+note+'</div></div>';
+        h+='<div class="value-card"><div class="value-amount red">'+est+'$'+d.unplayed_value.toLocaleString()+'</div><div class="value-label">Unplayed Game Value</div><div class="value-note">'+note+'</div></div></div>';
+        h+='<div style="text-align:center;margin-bottom:2rem"><div class="value-note" style="margin-bottom:.75rem">*Based on current MSRP. Does not reflect discounts or sale prices paid.</div>';
+        if(d.is_estimate)h+='<button class="accuracy-btn" onclick="loadValue(true)">&#x1F50D; Scan full library for more accurate values</button>';
+        h+='</div>';
         document.getElementById('value-loading').style.display='none';const el=document.getElementById('value-content');el.innerHTML=h;el.style.display='block';
-    }).catch(()=>{document.getElementById('value-loading').style.display='none'});
-}
+    }).catch(()=>{document.getElementById('value-loading').style.display='none'})}
 loadValue(false);
 
-// PERSONALITY - RADAR
+// SUGGEST
+function loadSuggest(){
+    fetch('/api/suggest/'+steamId).then(r=>r.json()).then(d=>{
+        if(d.error||!d.appid)return;
+        const el=document.getElementById('suggest-card');
+        el.innerHTML='<div class="suggest-card"><img src="'+d.image+'" class="suggest-img" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-label">&#x1F3B2; Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><a href="'+d.store_url+'" target="_blank" class="suggest-btn">View on Steam</a><button class="suggest-reroll" onclick="loadSuggest()">&#x1F504; Pick another</button></div></div>';
+        el.style.display='block';
+    }).catch(()=>{})}
+loadSuggest();
+
+// PERSONALITY / RADAR
 fetch('/api/personality/'+steamId).then(r=>r.json()).then(data=>{
     if(data.error){showContent('personality','<p style="text-align:center;color:#666">'+data.error+'</p>');return}
-    personalityData=data;
-    const r=data.radar;if(!r||!r.labels||!r.labels.length){showContent('personality','<p style="text-align:center;color:#666">Not enough genre data.</p>');return}
-
+    personalityData=data;const r=data.radar;
+    if(!r||!r.labels||!r.labels.length){showContent('personality','<p style="text-align:center;color:#666">Not enough data.</p>');return}
     let h='';
+    // Summary chips with toggle buttons
+    h+='<div class="dna-summary">';
+    if(data.overall_majority)h+='<button class="radar-toggle active" data-layer="owned" onclick="setRadar(\'owned\')">&#x1F4DA; Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</button>';
+    if(data.played_majority)h+='<button class="radar-toggle" data-layer="played" onclick="setRadar(\'played\')">&#x1F3AE; Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</button>';
+    if(data.unplayed_majority)h+='<button class="radar-toggle" data-layer="unplayed" onclick="setRadar(\'unplayed\')">&#x1F6D2; Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</button>';
+    h+='</div>';
     // Mismatch callout
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
-        h+='<div class="mismatch-card"><div class="mismatch-title">&#x1F6A8; You think you like '+data.unplayed_majority.label+' games, but you don\'t</div><div class="mismatch-sub">Your unplayed games are mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+', but you actually play '+data.played_majority.emoji+' '+data.played_majority.label+'</div></div>';
-    }
-    // Majorities
-    if(data.overall_majority)h+='<p style="color:#ccc;margin-bottom:.5rem">&#x1F4DA; <strong>Library:</strong> Mostly '+data.overall_majority.emoji+' '+data.overall_majority.label+' ('+data.overall_majority.pct+'%)</p>';
-    if(data.played_majority)h+='<p style="color:#ccc;margin-bottom:.5rem">&#x1F3AE; <strong>You play:</strong> Mostly '+data.played_majority.emoji+' '+data.played_majority.label+' ('+data.played_majority.pct+'%)</p>';
-    if(data.show_unplayed_mismatch&&data.unplayed_majority)h+='<p style="color:#ccc;margin-bottom:1.5rem">&#x1F6D2; <strong>You ignore:</strong> Mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' ('+data.unplayed_majority.pct+'%)</p>';
-    h+='<div class="radar-toggles"><button class="radar-toggle active" data-layer="owned" onclick="setRadar(\'owned\')">&#x1F4DA; Library</button><button class="radar-toggle" data-layer="played" onclick="setRadar(\'played\')">&#x1F3AE; Played</button><button class="radar-toggle" data-layer="unplayed" onclick="setRadar(\'unplayed\')">&#x1F6D2; Unplayed</button></div>';
+        h+='<div class="mismatch-card"><div class="mismatch-title">&#x1F6A8; You think you like '+data.unplayed_majority.label+', but you don\'t</div><div class="mismatch-sub">Your unplayed library is mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+', but you actually play '+data.played_majority.emoji+' '+data.played_majority.label+'</div></div>'}
     h+='<div class="radar-canvas-wrap"><canvas id="radar-canvas" width="500" height="500" style="max-width:500px"></canvas></div>';
-    h+='<p style="text-align:center;color:#555;font-size:.8rem;margin-top:.5rem">Click a genre label on the chart to see games</p>';
-
+    h+='<p style="text-align:center;color:#555;font-size:.8rem;margin-top:.5rem">Click a genre on the chart to see games</p>';
     if(data.badges&&data.badges.length){h+='<h3 style="color:#888;font-size:1rem;margin:2rem 0 1rem;font-weight:500">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
         data.badges.forEach(b=>{h+='<div class="badge-card"><div class="badge-emoji">'+b.emoji+'</div><div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.description+'</div></div></div>'});h+='</div>'}
     showContent('personality',h);
-
-    // Build radar chart
+    // Build radar
     const labels=r.labels.map(l=>l.emoji+' '+l.label);
-    const colors={owned:{bg:'rgba(0,168,255,0.25)',border:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',border:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',border:'#ff3366'}};
-    const faded={owned:{bg:'rgba(0,168,255,0.05)',border:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',border:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',border:'rgba(255,51,102,0.2)'}};
-
+    const C={owned:{bg:'rgba(0,168,255,0.25)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',br:'#ff3366'}};
+    const F={owned:{bg:'rgba(0,168,255,0.05)',br:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',br:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',br:'rgba(255,51,102,0.2)'}};
     radarChart=new Chart(document.getElementById('radar-canvas'),{type:'radar',
-        data:{labels:labels,datasets:[
-            {label:'Library',data:r.owned,backgroundColor:colors.owned.bg,borderColor:colors.owned.border,borderWidth:2,pointRadius:4,pointBackgroundColor:colors.owned.border},
-            {label:'Played',data:r.played,backgroundColor:faded.played.bg,borderColor:faded.played.border,borderWidth:1,pointRadius:2,pointBackgroundColor:faded.played.border},
-            {label:'Unplayed',data:r.unplayed,backgroundColor:faded.unplayed.bg,borderColor:faded.unplayed.border,borderWidth:1,pointRadius:2,pointBackgroundColor:faded.unplayed.border}
-        ]},
+        data:{labels,datasets:[
+            {label:'Library',data:r.owned,backgroundColor:C.owned.bg,borderColor:C.owned.br,borderWidth:2,pointRadius:4,pointBackgroundColor:C.owned.br},
+            {label:'Played',data:r.played,backgroundColor:F.played.bg,borderColor:F.played.br,borderWidth:1,pointRadius:2,pointBackgroundColor:F.played.br},
+            {label:'Unplayed',data:r.unplayed,backgroundColor:F.unplayed.bg,borderColor:F.unplayed.br,borderWidth:1,pointRadius:2,pointBackgroundColor:F.unplayed.br}]},
         options:{responsive:true,maintainAspectRatio:true,scales:{r:{grid:{color:'rgba(255,255,255,0.08)'},angleLines:{color:'rgba(255,255,255,0.08)'},pointLabels:{color:'#ccc',font:{size:11}},ticks:{display:false},suggestedMin:0}},
-            plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.raw+'%'}}}},
-            onClick:function(e,els){
-                const pts=radarChart.getElementsAtEventForMode(e,'nearest',{intersect:false},true);
-                if(pts.length){const idx=pts[0].index;const gk=r.labels[idx].key;const layer=activeRadar;
-                    const games=personalityData.genre_games[gk]?personalityData.genre_games[gk][layer]:[];
-                    openModal(r.labels[idx].emoji+' '+r.labels[idx].label+' ('+layer+')',games)}
-            }
-        }
-    });
+            plugins:{legend:{display:false}},
+            onClick:(e,els)=>{const pts=radarChart.getElementsAtEventForMode(e,'nearest',{intersect:false},true);
+                if(pts.length){const idx=pts[0].index,gk=r.labels[idx].key,layer=activeRadar;
+                    const games=(personalityData.genre_games[gk]||{})[layer]||[];
+                    openModal(r.labels[idx].emoji+' '+r.labels[idx].label+' ('+layer+')',games)}}}});
 }).catch(()=>showContent('personality','<p style="text-align:center;color:#666">Failed to load.</p>'));
 
 function setRadar(layer){
-    activeRadar=layer;
-    document.querySelectorAll('.radar-toggle').forEach(b=>b.classList.toggle('active',b.dataset.layer===layer));
-    if(!radarChart||!personalityData)return;
-    const r=personalityData.radar;
-    const colors={owned:{bg:'rgba(0,168,255,0.25)',border:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',border:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',border:'#ff3366'}};
-    const faded={owned:{bg:'rgba(0,168,255,0.05)',border:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',border:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',border:'rgba(255,51,102,0.2)'}};
-    const layers=['owned','played','unplayed'];const dataKeys=['owned','played','unplayed'];
-    layers.forEach((l,i)=>{
-        const ds=radarChart.data.datasets[i];const active=l===layer;
-        ds.backgroundColor=active?colors[l].bg:faded[l].bg;ds.borderColor=active?colors[l].border:faded[l].border;
-        ds.borderWidth=active?2:1;ds.pointRadius=active?4:2;ds.pointBackgroundColor=active?colors[l].border:faded[l].border;
-    });
-    radarChart.update();
-}
+    activeRadar=layer;document.querySelectorAll('.radar-toggle').forEach(b=>b.classList.toggle('active',b.dataset.layer===layer));
+    if(!radarChart)return;
+    const C={owned:{bg:'rgba(0,168,255,0.25)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',br:'#ff3366'}};
+    const F={owned:{bg:'rgba(0,168,255,0.05)',br:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',br:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',br:'rgba(255,51,102,0.2)'}};
+    ['owned','played','unplayed'].forEach((l,i)=>{const ds=radarChart.data.datasets[i],a=l===layer;
+        ds.backgroundColor=a?C[l].bg:F[l].bg;ds.borderColor=a?C[l].br:F[l].br;ds.borderWidth=a?2:1;ds.pointRadius=a?4:2;ds.pointBackgroundColor=a?C[l].br:F[l].br});
+    radarChart.update()}
 
 // FRIENDS
 fetch('/api/friends/'+steamId).then(r=>r.json()).then(data=>{
     if(data.error&&!data.leaderboard){showContent('friends','<p style="text-align:center;color:#666">'+data.error+'</p>');return}
-    if(!data.leaderboard||data.leaderboard.length<=1){showContent('friends','<p style="text-align:center;color:#666">No friends with public profiles found.</p>');return}
+    if(!data.leaderboard||data.leaderboard.length<=1){showContent('friends','<p style="text-align:center;color:#666">No friends with public profiles.</p>');return}
     let h='';
-    if(data.user_rank===1)h+='<div class="roast-card"><div class="roast-emoji">&#x1F451;</div><div class="roast-text">#1 most wasteful among your friends</div></div>';
+    if(data.user_rank===1)h+='<div class="roast-card"><div class="roast-emoji">&#x1F451;</div><div class="roast-text">#1 most wasteful among friends</div></div>';
     else if(data.user_rank<=3)h+='<div class="roast-card"><div class="roast-emoji">&#x1F62C;</div><div class="roast-text">#'+data.user_rank+' most wasteful</div></div>';
-    else if(data.user_rank===data.leaderboard.length)h+='<div class="roast-card" style="border-color:rgba(0,210,106,.3);background:linear-gradient(135deg,rgba(0,210,106,.1),rgba(0,210,106,.02))"><div class="roast-emoji">&#x1F3C6;</div><div class="roast-text">Least wasteful among your friends!</div></div>';
+    else if(data.user_rank===data.leaderboard.length)h+='<div class="roast-card" style="border-color:rgba(0,210,106,.3);background:linear-gradient(135deg,rgba(0,210,106,.1),rgba(0,210,106,.02))"><div class="roast-emoji">&#x1F3C6;</div><div class="roast-text">Least wasteful!</div></div>';
     h+='<div class="leaderboard">';
-    data.leaderboard.forEach(e=>{const ri=e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
-        const rc=e.rank<=3?'rank-'+e.rank:'';const sc=e.shame_score<25?'low':e.shame_score<40?'med':'high';
-        h+='<div class="leaderboard-row '+(e.is_user?'is-user':'')+'"><div class="lb-rank '+rc+'">'+ri+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-avatar"><span class="lb-name"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-shame '+sc+'">'+e.shame_score+'%</div><div class="lb-stat">'+e.total_games+' owned</div><div class="lb-stat">'+e.played_count+' played</div></div>'});
+    data.leaderboard.forEach(e=>{h+='<div class="leaderboard-row '+(e.is_user?'is-user':'')+'"><div class="lb-rank '+(e.rank<=3?'rank-'+e.rank:'')+'">'+(e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank)+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-avatar"><span class="lb-name"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-shame '+(e.shame_score<25?'low':e.shame_score<40?'med':'high')+'">'+e.shame_score+'%</div><div class="lb-stat">'+e.total_games+' owned</div><div class="lb-stat">'+e.played_count+' played</div></div>'});
     h+='</div>';showContent('friends',h);
-}).catch(()=>showContent('friends','<p style="text-align:center;color:#666">Failed to load.</p>'));
-
+}).catch(()=>showContent('friends','<p style="text-align:center;color:#666">Failed.</p>'));
 function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.share-btn.copy');b.innerHTML='&#x2705; Copied!';setTimeout(()=>b.innerHTML='&#x1F4CB; Copy Link',2000)})}
 </script>
 </body></html>
