@@ -585,12 +585,11 @@ def api_indie(steam_id: str):
 
             tier = classify_indie_tier(review_count)
             tiers[tier["tier"]] += 1
-            if len(indie_examples[tier["tier"]]) < 3:
-                indie_examples[tier["tier"]].append({
-                    "name": g.get("name", "Unknown"),
-                    "appid": appid,
-                    "reviews": review_count
-                })
+            indie_examples[tier["tier"]].append({
+                "name": g.get("name", "Unknown"),
+                "appid": appid,
+                "reviews": review_count
+            })
 
         total_classified = sum(tiers.values())
         indie_pct = 0
@@ -646,24 +645,33 @@ def api_personality(steam_id: str):
         played_genre_counts = {}
         purchased_genre_counts = {}
         unplayed_genre_counts = {}
+        played_genre_games = {}
+        purchased_genre_games = {}
+        unplayed_genre_games = {}
 
         for g in played_sample:
             details = store_data.get(g["appid"])
             if not details:
                 continue
             cats = classify_game_genres(details)
+            game_name = g.get("name", "Unknown")
             for c in cats:
                 played_genre_counts[c] = played_genre_counts.get(c, 0) + 1
                 purchased_genre_counts[c] = purchased_genre_counts.get(c, 0) + 1
+                played_genre_games.setdefault(c, []).append(game_name)
+                purchased_genre_games.setdefault(c, []).append(game_name)
 
         for g in unplayed_sample:
             details = store_data.get(g["appid"])
             if not details:
                 continue
             cats = classify_game_genres(details)
+            game_name = g.get("name", "Unknown")
             for c in cats:
                 purchased_genre_counts[c] = purchased_genre_counts.get(c, 0) + 1
                 unplayed_genre_counts[c] = unplayed_genre_counts.get(c, 0) + 1
+                purchased_genre_games.setdefault(c, []).append(game_name)
+                unplayed_genre_games.setdefault(c, []).append(game_name)
 
         played_sorted = sorted(played_genre_counts.items(), key=lambda x: x[1], reverse=True)
         purchased_sorted = sorted(purchased_genre_counts.items(), key=lambda x: x[1], reverse=True)
@@ -712,7 +720,8 @@ def api_personality(steam_id: str):
                 "key": cat_key,
                 "label": cat_info.get("label", cat_key),
                 "emoji": cat_info.get("emoji", "🎮"),
-                "count": count
+                "count": count,
+                "games": played_genre_games.get(cat_key, [])
             })
 
         genre_breakdown_purchased = []
@@ -722,7 +731,8 @@ def api_personality(steam_id: str):
                 "key": cat_key,
                 "label": cat_info.get("label", cat_key),
                 "emoji": cat_info.get("emoji", "🎮"),
-                "count": count
+                "count": count,
+                "games": purchased_genre_games.get(cat_key, [])
             })
 
         stats = analyze_library(games)
