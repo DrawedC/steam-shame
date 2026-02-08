@@ -153,6 +153,17 @@ def analyze_library(games: list) -> dict:
     if not games:
         return None
 
+    thirty_days_ago = time.time() - (30 * 24 * 60 * 60)
+
+    def is_recent(game):
+        """Check if a game was played/touched in the last 30 days."""
+        last_played = game.get("rtime_last_played", 0)
+        if last_played and last_played > thirty_days_ago:
+            return True
+        if game.get("playtime_2weeks", 0) > 0:
+            return True
+        return False
+
     total_games = len(games)
 
     # Categorize games by playtime
@@ -169,23 +180,24 @@ def analyze_library(games: list) -> dict:
     sorted_by_playtime = sorted(games, key=lambda x: x.get("playtime_forever", 0), reverse=True)
     top_10 = sorted_by_playtime[:10]
 
-    # Games you "tried" but gave up on (10-60 min) — get ALL, show sample
+    # Games you "tried" but gave up on (10-60 min) — exclude recently played (still giving it a shot)
     all_gave_up = sorted(
-        [g for g in games if 10 <= g.get("playtime_forever", 0) < 60],
+        [g for g in games if 10 <= g.get("playtime_forever", 0) < 60 and not is_recent(g)],
         key=lambda x: x.get("playtime_forever", 0),
         reverse=True
     )
     gave_up_sample = all_gave_up[:10]
     gave_up_total = len(all_gave_up)
 
-    # Random sample of never played
-    never_played_sample = random.sample(never_played, min(10, len(never_played))) if never_played else []
+    # Never played — exclude games with recent 2-week activity (might have just bought it)
+    never_played_shameful = [g for g in never_played if not is_recent(g)]
+    never_played_sample = random.sample(never_played_shameful, min(10, len(never_played_shameful))) if never_played_shameful else []
 
     # Calculate concentration
     top_5_minutes = sum(g.get("playtime_forever", 0) for g in sorted_by_playtime[:5])
     concentration = (top_5_minutes / total_minutes * 100) if total_minutes > 0 else 0
 
-    # Shame score
+    # Shame score (still based on total never played for the headline number)
     shame_score = (len(never_played) / total_games * 100) if total_games > 0 else 0
 
     # Verdict
@@ -257,16 +269,63 @@ def classify_game_genres(store_data: dict) -> list:
     return list(categories)
 
 
-def classify_indie_tier(review_count: int) -> dict:
-    """Classify a game's indie tier based on review count."""
-    if review_count < 500:
-        return {"tier": "hidden_gem", "label": "Hidden Gem", "emoji": "💎", "color": "#a855f7"}
-    elif review_count < 1000:
-        return {"tier": "indie", "label": "Indie", "emoji": "🎨", "color": "#22c55e"}
-    elif review_count < 10000:
-        return {"tier": "mid_tier", "label": "Mid-Tier", "emoji": "📊", "color": "#3b82f6"}
+AAA_PUBLISHERS = {
+    "electronic arts", "ea", "activision", "activision blizzard", "blizzard entertainment",
+    "ubisoft", "ubisoft entertainment", "take-two interactive", "2k", "2k games",
+    "rockstar games", "bethesda softworks", "bethesda game studios",
+    "square enix", "capcom", "sega", "bandai namco", "bandai namco entertainment",
+    "warner bros", "wb games", "sony interactive entertainment", "playstation studios",
+    "microsoft studios", "xbox game studios", "nintendo",
+    "thq nordic", "deep silver", "focus entertainment", "focus home interactive",
+    "505 games", "paradox interactive", "koei tecmo", "konami", "konami digital entertainment",
+    "riot games", "valve", "epic games", "cd projekt red", "cd projekt",
+    "techland", "remedy entertainment", "naughty dog", "insomniac games",
+    "from software", "fromsoftware", "gearbox software", "gearbox publishing",
+}
+
+
+def classify_game_tier(store_data: dict) -> dict:
+    """Classify a game's tier using multiple signals:
+    1. Steam 'Indie' genre tag
+    2. Self-published check (developer == publisher)
+    3. Known AAA publisher list
+    4. Review count for sub-tiers
+    """
+    genres = [g.get("description", "").lower() for g in store_data.get("genres", [])]
+    developers = [d.lower().strip() for d in store_data.get("developers", [])]
+    publishers = [p.lower().strip() for p in store_data.get("publishers", [])]
+    review_count = store_data.get("recommendations", {}).get("total", 0)
+
+    has_indie_tag = "indie" in genres
+
+    # Check if any publisher is a known AAA publisher
+    is_aaa_publisher = False
+    for pub in publishers:
+        if pub in AAA_PUBLISHERS:
+            is_aaa_publisher = True
+            break
+
+    # Self-published: developer and publisher overlap
+    is_self_published = False
+    if developers and publishers:
+        dev_set = set(developers)
+        pub_set = set(publishers)
+        is_self_published = bool(dev_set & pub_set)
+
+    # Classification logic
+    if has_indie_tag or (is_self_published and not is_aaa_publisher):
+        # It's indie — now determine sub-tier by obscurity
+        if review_count < 500:
+            return {"tier": "hidden_gem", "label": "Hidden Gem Indie", "emoji": "💎", "color": "#a855f7"}
+        elif review_count < 5000:
+            return {"tier": "indie", "label": "Indie", "emoji": "🎨", "color": "#22c55e"}
+        else:
+            return {"tier": "indie_hit", "label": "Indie Hit", "emoji": "⭐", "color": "#06b6d4"}
+    elif is_aaa_publisher:
+        return {"tier": "aaa", "label": "AAA", "emoji": "🏢", "color": "#f59e0b"}
     else:
-        return {"tier": "mainstream", "label": "Mainstream", "emoji": "🏢", "color": "#f59e0b"}
+        # Not tagged indie, not AAA — mid-tier / AA
+        return {"tier": "mid_tier", "label": "AA / Mid-Tier", "emoji": "📊", "color": "#3b82f6"}
 
 
 def detect_badges(stats: dict, store_details: dict, games: list) -> list:
@@ -509,10 +568,11 @@ def api_value(steam_id: str):
             currency = price_data.get("currency", "")
             if currency and currency != "USD":
                 return None
-            price_cents = price_data.get("initial", 0)
+            # Use final_price (current/discounted) over initial (sticker/bundle price)
+            price_cents = price_data.get("final", price_data.get("initial", 0))
             price_dollars = price_cents / 100
-            # Sanity check: no single game should cost more than $200
-            if price_dollars > 200:
+            # Sanity cap: standard game max is ~$70, allow some headroom for DLC editions
+            if price_dollars > 80:
                 return None
             return price_dollars
 
@@ -572,7 +632,7 @@ def api_value(steam_id: str):
 
 @app.route("/api/indie/<steam_id>")
 def api_indie(steam_id: str):
-    """Async endpoint: indie analysis using review count as proxy."""
+    """Async endpoint: indie analysis using genre tags, publisher signals, and reviews."""
     try:
         games_data = get_owned_games(steam_id)
         games = games_data.get("response", {}).get("games", [])
@@ -585,34 +645,39 @@ def api_indie(steam_id: str):
 
         store_data = get_app_details_batch(appids, max_workers=4, delay=0.4)
 
-        tiers = {"hidden_gem": 0, "indie": 0, "mid_tier": 0, "mainstream": 0}
-        indie_examples = {"hidden_gem": [], "indie": [], "mid_tier": [], "mainstream": []}
+        tiers = {"hidden_gem": 0, "indie": 0, "indie_hit": 0, "mid_tier": 0, "aaa": 0}
+        tier_examples = {"hidden_gem": [], "indie": [], "indie_hit": [], "mid_tier": [], "aaa": []}
 
         for g in sample:
             appid = g["appid"]
             details = store_data.get(appid)
             if not details:
                 continue
-            recs = details.get("recommendations", {})
-            review_count = recs.get("total", 0)
 
-            tier = classify_indie_tier(review_count)
+            tier = classify_game_tier(details)
             tiers[tier["tier"]] += 1
-            indie_examples[tier["tier"]].append({
+
+            review_count = details.get("recommendations", {}).get("total", 0)
+            devs = details.get("developers", [])
+            pubs = details.get("publishers", [])
+            tier_examples[tier["tier"]].append({
                 "name": g.get("name", "Unknown"),
                 "appid": appid,
-                "reviews": review_count
+                "reviews": review_count,
+                "developer": devs[0] if devs else "Unknown",
+                "publisher": pubs[0] if pubs else "Unknown"
             })
 
         total_classified = sum(tiers.values())
+        indie_total = tiers["hidden_gem"] + tiers["indie"] + tiers["indie_hit"]
         indie_pct = 0
         if total_classified > 0:
-            indie_pct = round(((tiers["hidden_gem"] + tiers["indie"]) / total_classified) * 100, 1)
+            indie_pct = round((indie_total / total_classified) * 100, 1)
 
         if indie_pct > 60:
             indie_roast = "You're basically running an indie game film festival. Mainstream? Never heard of it."
         elif indie_pct > 40:
-            indie_roast = "A healthy mix of indie gems and AAA titles. You have taste AND a marketing budget."
+            indie_roast = "A solid mix of indie gems and big-budget titles. You have range."
         elif indie_pct > 20:
             indie_roast = "You dabble in indie, but let's be real — you're here for the blockbusters."
         else:
@@ -620,7 +685,7 @@ def api_indie(steam_id: str):
 
         return jsonify({
             "tiers": tiers,
-            "examples": indie_examples,
+            "examples": tier_examples,
             "indie_percentage": indie_pct,
             "total_classified": total_classified,
             "total_games": len(games),
