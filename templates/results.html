@@ -651,8 +651,11 @@
                     html += `<div class="modal-game">${g}</div>`;
                 } else {
                     html += `<div class="modal-game">${g.name}`;
-                    if (g.reviews !== undefined) {
-                        html += `<div class="modal-game-sub">${g.reviews.toLocaleString()} reviews</div>`;
+                    let sub = [];
+                    if (g.developer) sub.push(g.developer);
+                    if (g.reviews !== undefined) sub.push(`${g.reviews.toLocaleString()} reviews`);
+                    if (sub.length > 0) {
+                        html += `<div class="modal-game-sub">${sub.join(' &middot; ')}</div>`;
                     }
                     html += '</div>';
                 }
@@ -755,19 +758,15 @@
                 
                 const t = data.tiers;
                 const total = data.total_classified || 1;
-                const pcts = {
-                    hidden_gem: ((t.hidden_gem / total) * 100).toFixed(1),
-                    indie: ((t.indie / total) * 100).toFixed(1),
-                    mid_tier: ((t.mid_tier / total) * 100).toFixed(1),
-                    mainstream: ((t.mainstream / total) * 100).toFixed(1)
-                };
                 
                 const tierMeta = {
-                    hidden_gem: { emoji: '&#x1F48E;', label: 'Hidden Gems', color: '#a855f7' },
-                    indie: { emoji: '&#x1F3A8;', label: 'Indie', color: '#22c55e' },
-                    mid_tier: { emoji: '&#x1F4CA;', label: 'Mid-Tier', color: '#3b82f6' },
-                    mainstream: { emoji: '&#x1F3E2;', label: 'Mainstream', color: '#f59e0b' }
+                    hidden_gem: { emoji: '&#x1F48E;', label: 'Hidden Gem Indie', color: '#a855f7', desc: 'Indie, <500 reviews' },
+                    indie: { emoji: '&#x1F3A8;', label: 'Indie', color: '#22c55e', desc: 'Indie, <5K reviews' },
+                    indie_hit: { emoji: '&#x2B50;', label: 'Indie Hit', color: '#06b6d4', desc: 'Indie, 5K+ reviews' },
+                    mid_tier: { emoji: '&#x1F4CA;', label: 'AA / Mid-Tier', color: '#3b82f6', desc: 'Not indie, not AAA' },
+                    aaa: { emoji: '&#x1F3E2;', label: 'AAA', color: '#f59e0b', desc: 'Major publisher' }
                 };
+                const tierOrder = ['hidden_gem', 'indie', 'indie_hit', 'mid_tier', 'aaa'];
                 
                 let html = `
                     <div class="roast-card" style="border-color: rgba(168, 85, 247, 0.3); background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0.02) 100%);">
@@ -779,20 +778,23 @@
                     <div class="tier-bar-container">
                         <div class="tier-bar">`;
                 
-                ['hidden_gem', 'indie', 'mid_tier', 'mainstream'].forEach(tier => {
+                tierOrder.forEach(tier => {
                     if (t[tier] > 0) {
                         const m = tierMeta[tier];
-                        html += `<div class="tier-segment clickable" style="flex: ${t[tier]}; background: ${m.color};" onclick="openIndieTier('${tier}')" title="Click to see ${m.label} games"><span>${m.emoji} ${pcts[tier]}%</span></div>`;
+                        const pct = ((t[tier] / total) * 100).toFixed(1);
+                        html += `<div class="tier-segment clickable" style="flex: ${t[tier]}; background: ${m.color};" onclick="openIndieTier('${tier}')" title="Click to see ${m.label} games"><span>${m.emoji} ${pct}%</span></div>`;
                     }
                 });
                 
                 html += `</div>
-                        <div class="tier-legend">
-                            <div class="tier-legend-item clickable" onclick="openIndieTier('hidden_gem')" title="Click to see games"><div class="tier-dot" style="background:#a855f7;"></div> Hidden Gem (&lt;500 reviews): ${t.hidden_gem}</div>
-                            <div class="tier-legend-item clickable" onclick="openIndieTier('indie')" title="Click to see games"><div class="tier-dot" style="background:#22c55e;"></div> Indie (&lt;1K): ${t.indie}</div>
-                            <div class="tier-legend-item clickable" onclick="openIndieTier('mid_tier')" title="Click to see games"><div class="tier-dot" style="background:#3b82f6;"></div> Mid-Tier (&lt;10K): ${t.mid_tier}</div>
-                            <div class="tier-legend-item clickable" onclick="openIndieTier('mainstream')" title="Click to see games"><div class="tier-dot" style="background:#f59e0b;"></div> Mainstream (10K+): ${t.mainstream}</div>
-                        </div>
+                        <div class="tier-legend">`;
+                
+                tierOrder.forEach(tier => {
+                    const m = tierMeta[tier];
+                    html += `<div class="tier-legend-item clickable" onclick="openIndieTier('${tier}')" title="Click to see games"><div class="tier-dot" style="background:${m.color};"></div> ${m.label} (${m.desc}): ${t[tier] || 0}</div>`;
+                });
+                
+                html += `</div>
                     </div>
                     <p style="text-align:center; color:#555; font-size:0.8rem; margin-top:1rem;">Based on ${data.total_classified} of ${data.total_games} games sampled &middot; Click a tier to see games</p>`;
                 
@@ -803,10 +805,11 @@
         function openIndieTier(tier) {
             if (!indieData) return;
             const meta = {
-                hidden_gem: { emoji: '💎', label: 'Hidden Gems (<500 reviews)' },
-                indie: { emoji: '🎨', label: 'Indie (<1K reviews)' },
-                mid_tier: { emoji: '📊', label: 'Mid-Tier (<10K reviews)' },
-                mainstream: { emoji: '🏢', label: 'Mainstream (10K+ reviews)' }
+                hidden_gem: { emoji: '💎', label: 'Hidden Gem Indies' },
+                indie: { emoji: '🎨', label: 'Indie Games' },
+                indie_hit: { emoji: '⭐', label: 'Indie Hits' },
+                mid_tier: { emoji: '📊', label: 'AA / Mid-Tier' },
+                aaa: { emoji: '🏢', label: 'AAA Games' }
             };
             const m = meta[tier];
             const games = (indieData.examples[tier] || []).sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
