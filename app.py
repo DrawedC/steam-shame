@@ -8,59 +8,96 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-this")
 STEAM_API_KEY = os.environ.get("STEAM_API_KEY", "")
+
+# Caches
 _store_cache = {}
 _store_cache_lock = threading.Lock()
 STORE_CACHE_TTL = 3600
 
+_games_cache = {}
+_games_cache_lock = threading.Lock()
+GAMES_CACHE_TTL = 300  # 5 min — avoids re-fetching for async endpoints
+
+import logging
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("steam-shame")
+
 # ============== Steam API ==============
 def get_owned_games(steam_id):
-    r = requests.get("http://api.steampowered.com/IPlayerService/GetOwnedGames/v1/",
-        params={"key":STEAM_API_KEY,"steamid":steam_id,"include_appinfo":True,"include_played_free_games":True,"format":"json"})
-    r.raise_for_status(); return r.json()
+    """Fetch owned games with short-term cache to avoid redundant calls."""
+    now = time.time()
+    with _games_cache_lock:
+        c = _games_cache.get(steam_id)
+        if c and (now - c["ts"]) < GAMES_CACHE_TTL:
+            return c["data"]
+    try:
+        r = requests.get("http://api.steampowered.com/IPlayerService/GetOwnedGames/v1/",
+            params={"key":STEAM_API_KEY,"steamid":steam_id,"include_appinfo":True,
+                    "include_played_free_games":True,"format":"json"}, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        with _games_cache_lock:
+            _games_cache[steam_id] = {"data":data,"ts":now}
+        return data
+    except requests.exceptions.HTTPError as e:
+        log.warning(f"Steam API error for {steam_id}: {e}")
+        raise
+    except requests.exceptions.Timeout:
+        log.warning(f"Steam API timeout for {steam_id}")
+        raise
 
 def get_player_summary(steam_id):
     r = requests.get("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
-        params={"key":STEAM_API_KEY,"steamids":steam_id,"format":"json"})
+        params={"key":STEAM_API_KEY,"steamids":steam_id,"format":"json"}, timeout=15)
     r.raise_for_status(); return r.json()
 
 def resolve_vanity_url(vanity_name):
     r = requests.get("http://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/",
-        params={"key":STEAM_API_KEY,"vanityurl":vanity_name,"format":"json"})
+        params={"key":STEAM_API_KEY,"vanityurl":vanity_name,"format":"json"}, timeout=15)
     r.raise_for_status(); d = r.json()
     return d["response"]["steamid"] if d.get("response",{}).get("success")==1 else None
 
 def get_friends_list(steam_id):
-    r = requests.get("http://api.steampowered.com/ISteamUser/GetFriendList/v1/",
-        params={"key":STEAM_API_KEY,"steamid":steam_id,"relationship":"friend","format":"json"})
-    if r.status_code == 401: return []
-    r.raise_for_status(); return r.json().get("friendslist",{}).get("friends",[])
+    try:
+        r = requests.get("http://api.steampowered.com/ISteamUser/GetFriendList/v1/",
+            params={"key":STEAM_API_KEY,"steamid":steam_id,"relationship":"friend","format":"json"}, timeout=15)
+        if r.status_code == 401: return []
+        r.raise_for_status(); return r.json().get("friendslist",{}).get("friends",[])
+    except: return []
 
 def get_app_details(appid):
+    """Fetch store details with cache. Returns None on failure (rate limit, timeout, etc)."""
     now = time.time()
     with _store_cache_lock:
         c = _store_cache.get(appid)
         if c and (now - c["ts"]) < STORE_CACHE_TTL: return c["data"]
     try:
         r = requests.get(f"https://store.steampowered.com/api/appdetails?appids={appid}", timeout=10)
+        if r.status_code == 429:
+            log.warning(f"Store API rate limited on appid {appid}")
+            return None
         if r.status_code == 200:
             ad = r.json().get(str(appid),{})
             if ad.get("success"):
                 result = ad.get("data",{})
                 with _store_cache_lock: _store_cache[appid] = {"data":result,"ts":now}
                 return result
-    except: pass
+    except Exception as e:
+        log.debug(f"Store API error for {appid}: {e}")
     return None
 
-def get_app_details_batch(appids, max_workers=5, delay=0.35):
+def get_app_details_batch(appids, max_workers=4, delay=0.5):
+    """Batch fetch store details. Slower but more reliable to avoid rate limits."""
     results = {}
     def fetch(aid):
-        time.sleep(random.uniform(0.1, delay)); return aid, get_app_details(aid)
+        time.sleep(random.uniform(0.2, delay)); return aid, get_app_details(aid)
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         for f in as_completed({ex.submit(fetch, a): a for a in appids}):
             try:
                 aid, d = f.result()
                 if d: results[aid] = d
             except: pass
+    log.info(f"Store batch: {len(results)}/{len(appids)} fetched")
     return results
 
 def extract_usd_price(details):
@@ -221,7 +258,7 @@ def results(steam_id):
                 message="Either this account has no games, or game details are set to private.")
         stats = analyze_library(games)
         # Detect likely private game details
-        if not stats["any_playtime"] and stats["total_games"] > 5:
+        if not stats["any_playtime"] and stats["total_games"] > 2:
             return render_template("error.html", error="Game details appear private",
                 message="We can see your games but not your playtime. Please set Game Details to Public in your Steam Privacy Settings.")
         return render_template("results.html", player_name=p.get("personaname","Unknown"),
@@ -238,8 +275,8 @@ def api_value(steam_id):
         if not games: return jsonify({"error":"No games"}), 404
         played = [g for g in games if g.get("playtime_forever",0) > 0]
         unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
-        sp = played if full else (random.sample(played, min(40, len(played))) if played else [])
-        su = unplayed if full else (random.sample(unplayed, min(40, len(unplayed))) if unplayed else [])
+        sp = played if full else (random.sample(played, min(25, len(played))) if played else [])
+        su = unplayed if full else (random.sample(unplayed, min(25, len(unplayed))) if unplayed else [])
         sd = get_app_details_batch([g["appid"] for g in sp+su], max_workers=5, delay=0.35)
         pp, up = [], []
         for g in sp:
@@ -287,9 +324,9 @@ def api_personality(steam_id):
         all_played = [g for g in games if g.get("playtime_forever",0) > 0]
         all_unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
 
-        owned_sample = random.sample(games, min(60, len(games)))
-        played_sample = random.sample(all_played, min(40, len(all_played))) if all_played else []
-        unplayed_sample = random.sample(all_unplayed, min(40, len(all_unplayed))) if all_unplayed else []
+        owned_sample = random.sample(games, min(40, len(games)))
+        played_sample = random.sample(all_played, min(30, len(all_played))) if all_played else []
+        unplayed_sample = random.sample(all_unplayed, min(30, len(all_unplayed))) if all_unplayed else []
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
         sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
@@ -349,7 +386,7 @@ def api_friends(steam_id):
         if not ps or ps[0].get("communityvisibilitystate")!=3: return jsonify({"error":"Profile not accessible"}),403
         friends = get_friends_list(steam_id)
         if not friends: return jsonify({"leaderboard":[],"user_rank":None,"error":"No friends found"})
-        aids = [steam_id]+[f["steamid"] for f in friends[:50]]
+        aids = [steam_id]+[f["steamid"] for f in friends[:15]]
         aps = []
         for i in range(0,len(aids),100):
             bd = get_player_summary(",".join(aids[i:i+100]))
@@ -362,7 +399,8 @@ def api_friends(steam_id):
                 gl = get_owned_games(pid).get("response",{}).get("games",[])
                 if not gl: continue
                 s = analyze_library(gl)
-                if not s["any_playtime"] and s["total_games"] > 5: continue  # skip private details
+                # Skip private game details: profile is public but all games show 0 playtime
+                if not s["any_playtime"]: continue
                 if s["shame_score"] >= 99.9: continue
                 lb.append({"steam_id":pid,"name":p.get("personaname","Unknown"),"avatar":p.get("avatar",""),
                     "shame_score":s["shame_score"],"total_games":s["total_games"],
@@ -396,7 +434,7 @@ def friends_leaderboard(steam_id):
                 gl = get_owned_games(pid).get("response",{}).get("games",[])
                 if not gl: continue
                 s = analyze_library(gl)
-                if not s["any_playtime"] and s["total_games"] > 5: continue
+                if not s["any_playtime"]: continue
                 lb.append({"steam_id":pid,"name":pl.get("personaname","Unknown"),"avatar":pl.get("avatar",""),
                     "shame_score":s["shame_score"],"total_games":s["total_games"],
                     "played_count":s["played_count"],"never_played":s["never_played_count"],"is_user":pid==steam_id})
