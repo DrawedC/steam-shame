@@ -13,11 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -27,7 +23,6 @@
             overflow-x: hidden;
         }
         
-        /* Hero Section */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -47,511 +42,267 @@
         .hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
             opacity: 0.03;
             pointer-events: none;
         }
         
         .player-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            display: flex; align-items: center; gap: 1rem;
             margin-bottom: 3rem;
-            opacity: 0;
-            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0; animation: fadeInUp 0.6s ease forwards;
         }
         
-        .avatar {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-        }
+        .avatar { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); }
+        .player-name { font-size: 1.5rem; font-weight: 600; color: #fff; }
+        .player-subtitle { color: #666; font-size: 0.9rem; margin-top: 0.25rem; }
         
-        .player-name {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #fff;
-        }
-        
-        .player-subtitle {
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
-        }
-        
-        .shame-score-display {
-            opacity: 0;
-            animation: fadeInUp 0.6s ease 0.2s forwards;
-        }
+        .shame-score-display { opacity: 0; animation: fadeInUp 0.6s ease 0.2s forwards; }
         
         .shame-number {
             font-size: clamp(8rem, 25vw, 14rem);
-            font-weight: 900;
-            line-height: 1;
+            font-weight: 900; line-height: 1;
             background: linear-gradient(135deg, #ff3366 0%, #ff6b35 50%, #f7c94b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; position: relative;
         }
-        
-        .shame-number::after {
-            content: '%';
-            font-size: 0.4em;
-            position: absolute;
-            top: 0.5em;
-        }
+        .shame-number::after { content: '%'; font-size: 0.4em; position: absolute; top: 0.5em; }
         
         .shame-label {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.3em;
-            margin-top: 1rem;
+            font-size: 1.5rem; font-weight: 600; color: #666;
+            text-transform: uppercase; letter-spacing: 0.3em; margin-top: 1rem;
         }
         
         .roast {
-            max-width: 500px;
-            margin: 2rem auto 0;
-            font-size: 1.25rem;
-            color: #999;
-            line-height: 1.6;
-            opacity: 0;
-            animation: fadeInUp 0.6s ease 0.4s forwards;
+            max-width: 500px; margin: 2rem auto 0;
+            font-size: 1.25rem; color: #999; line-height: 1.6;
+            opacity: 0; animation: fadeInUp 0.6s ease 0.4s forwards;
         }
         
         .scroll-hint {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #444;
-            font-size: 0.85rem;
-            opacity: 0;
-            animation: fadeInUp 0.6s ease 0.8s forwards, bounce 2s ease-in-out 1.5s infinite;
+            position: absolute; bottom: 2rem; left: 50%;
+            transform: translateX(-50%); color: #444; font-size: 0.85rem;
+            opacity: 0; animation: fadeInUp 0.6s ease 0.8s forwards, bounce 2s ease-in-out 1.5s infinite;
         }
-        
-        .scroll-hint span {
-            display: block;
-            margin-top: 0.5rem;
-            font-size: 1.5rem;
-        }
+        .scroll-hint span { display: block; margin-top: 0.5rem; font-size: 1.5rem; }
         
         /* Stats Sections */
-        .stats-section {
-            padding: 6rem 2rem;
-            position: relative;
-        }
-        
-        .stats-section:nth-child(odd) {
-            background: linear-gradient(180deg, #0d0d10 0%, #0a0a0c 100%);
-        }
-        
-        .section-inner {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .section-header {
-            margin-bottom: 3rem;
-        }
-        
-        .section-title {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-        
-        .section-subtitle {
-            font-size: 1.1rem;
-            color: #666;
-        }
+        .stats-section { padding: 6rem 2rem; position: relative; }
+        .stats-section:nth-child(odd) { background: linear-gradient(180deg, #0d0d10 0%, #0a0a0c 100%); }
+        .section-inner { max-width: 900px; margin: 0 auto; }
+        .section-header { margin-bottom: 3rem; }
+        .section-title { font-size: 3rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; }
+        .section-subtitle { font-size: 1.1rem; color: #666; }
         
         /* Big Stats Grid */
-        .big-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-        
+        .big-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-bottom: 4rem; }
         .big-stat {
             background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 24px;
-            padding: 2.5rem;
-            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
+            padding: 2.5rem; text-align: center;
             transition: transform 0.3s ease, border-color 0.3s ease;
         }
-        
-        .big-stat:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255,255,255,0.15);
-        }
-        
-        .big-stat-number {
-            font-size: 4rem;
-            font-weight: 800;
-            color: #fff;
-            line-height: 1;
-        }
-        
-        .big-stat-number.highlight-red {
-            color: #ff3366;
-        }
-        
-        .big-stat-number.highlight-green {
-            color: #00d26a;
-        }
-        
-        .big-stat-number.highlight-blue {
-            color: #00a8ff;
-        }
-        
-        .big-stat-number.highlight-orange {
-            color: #ff6b35;
-        }
-        
-        .big-stat-label {
-            font-size: 1rem;
-            color: #666;
-            margin-top: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .big-stat-roast {
-            font-size: 0.85rem;
-            color: #ff3366;
-            margin-top: 1rem;
-            font-style: italic;
-        }
+        .big-stat:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); }
+        .big-stat-number { font-size: 4rem; font-weight: 800; color: #fff; line-height: 1; }
+        .big-stat-number.highlight-red { color: #ff3366; }
+        .big-stat-number.highlight-green { color: #00d26a; }
+        .big-stat-number.highlight-blue { color: #00a8ff; }
+        .big-stat-number.highlight-orange { color: #ff6b35; }
+        .big-stat-label { font-size: 1rem; color: #666; margin-top: 0.75rem; font-weight: 500; }
+        .big-stat-roast { font-size: 0.85rem; color: #ff3366; margin-top: 1rem; font-style: italic; }
         
         /* Game Lists */
         .game-card {
             background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
+            overflow: hidden; margin-bottom: 1.5rem;
         }
-        
         .game-row {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
+            display: flex; align-items: center; padding: 1rem 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.04);
             transition: background 0.2s ease;
         }
-        
-        .game-row:last-child {
-            border-bottom: none;
-        }
-        
-        .game-row:hover {
-            background: rgba(255,255,255,0.03);
-        }
-        
-        .game-rank {
-            width: 40px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #444;
-        }
-        
+        .game-row:last-child { border-bottom: none; }
+        .game-row:hover { background: rgba(255,255,255,0.03); }
+        .game-rank { width: 40px; font-size: 1.25rem; font-weight: 700; color: #444; }
         .game-rank.gold { color: #f7c94b; }
         .game-rank.silver { color: #c0c0c0; }
         .game-rank.bronze { color: #cd7f32; }
-        
         .game-name {
-            flex: 1;
-            font-weight: 500;
-            color: #e5e5e5;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-right: 1rem;
+            flex: 1; font-weight: 500; color: #e5e5e5;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 1rem;
         }
-        
-        .game-hours {
-            font-size: 0.95rem;
-            color: #666;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        
-        .game-hours span {
-            color: #fff;
-        }
+        .game-hours { font-size: 0.95rem; color: #666; font-weight: 600; white-space: nowrap; }
+        .game-hours span { color: #fff; }
+        .game-value { font-size: 0.85rem; color: #00d26a; font-weight: 600; white-space: nowrap; margin-left: 1rem; }
         
         /* Roast Cards */
         .roast-card {
             background: linear-gradient(135deg, rgba(255, 51, 102, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
-            border: 1px solid rgba(255, 51, 102, 0.2);
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin: 3rem 0;
-            text-align: center;
+            border: 1px solid rgba(255, 51, 102, 0.2); border-radius: 20px;
+            padding: 2.5rem; margin: 3rem 0; text-align: center;
         }
-        
-        .roast-card .roast-emoji {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        
-        .roast-card .roast-text {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #fff;
-            line-height: 1.5;
-        }
-        
-        .roast-card .roast-subtext {
-            font-size: 1rem;
-            color: #888;
-            margin-top: 1rem;
-        }
+        .roast-card .roast-emoji { font-size: 3rem; margin-bottom: 1rem; }
+        .roast-card .roast-text { font-size: 1.4rem; font-weight: 600; color: #fff; line-height: 1.5; }
+        .roast-card .roast-subtext { font-size: 1rem; color: #888; margin-top: 1rem; }
         
         /* Friends Leaderboard */
         .leaderboard {
             background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden;
         }
-        
         .leaderboard-row {
-            display: grid;
-            grid-template-columns: 50px 1fr 80px 100px;
-            padding: 1rem 1.5rem;
-            align-items: center;
+            display: grid; grid-template-columns: 50px 1fr 80px 100px;
+            padding: 1rem 1.5rem; align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.04);
             transition: background 0.2s ease;
         }
-        
-        .leaderboard-row:hover {
-            background: rgba(255,255,255,0.03);
-        }
-        
-        .leaderboard-row:last-child {
-            border-bottom: none;
-        }
-        
-        .leaderboard-row.is-user {
-            background: rgba(0, 168, 255, 0.1);
-            border-left: 3px solid #00a8ff;
-        }
-        
-        .lb-rank {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #666;
-        }
-        
+        .leaderboard-row:hover { background: rgba(255,255,255,0.03); }
+        .leaderboard-row:last-child { border-bottom: none; }
+        .leaderboard-row.is-user { background: rgba(0, 168, 255, 0.1); border-left: 3px solid #00a8ff; }
+        .lb-rank { font-weight: 700; font-size: 1.1rem; color: #666; }
         .lb-rank.rank-1 { color: #f7c94b; }
         .lb-rank.rank-2 { color: #c0c0c0; }
         .lb-rank.rank-3 { color: #cd7f32; }
-        
-        .lb-player {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            min-width: 0;
-        }
-        
-        .lb-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        
-        .lb-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #e5e5e5;
-            font-weight: 500;
-        }
-        
-        .lb-name a {
-            color: inherit;
-            text-decoration: none;
-        }
-        
-        .lb-name a:hover {
-            color: #00a8ff;
-        }
-        
-        .lb-you {
-            color: #00a8ff;
-            font-size: 0.8rem;
-            margin-left: 0.25rem;
-        }
-        
-        .lb-shame {
-            font-weight: 700;
-            text-align: center;
-        }
-        
+        .lb-player { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .lb-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+        .lb-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e5e5e5; font-weight: 500; }
+        .lb-name a { color: inherit; text-decoration: none; }
+        .lb-name a:hover { color: #00a8ff; }
+        .lb-you { color: #00a8ff; font-size: 0.8rem; margin-left: 0.25rem; }
+        .lb-shame { font-weight: 700; text-align: center; }
         .lb-shame.low { color: #00d26a; }
         .lb-shame.med { color: #ff6b35; }
         .lb-shame.high { color: #ff3366; }
-        
-        .lb-games {
-            color: #666;
-            font-size: 0.9rem;
-            text-align: right;
-        }
+        .lb-games { color: #666; font-size: 0.9rem; text-align: right; }
         
         /* Loading State */
-        .loading-state {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }
-        
+        .loading-state { text-align: center; padding: 3rem; color: #666; }
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: #00a8ff;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1); border-top-color: #00a8ff;
+            border-radius: 50%; margin: 0 auto 1rem;
             animation: spin 1s linear infinite;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         /* Share Section */
-        .share-section {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: linear-gradient(180deg, #0a0a0c 0%, #0d0d10 100%);
-        }
-        
-        .share-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-        
-        .share-subtitle {
-            color: #666;
-            margin-bottom: 2rem;
-        }
-        
-        .share-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
+        .share-section { text-align: center; padding: 4rem 2rem; background: linear-gradient(180deg, #0a0a0c 0%, #0d0d10 100%); }
+        .share-title { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+        .share-subtitle { color: #666; margin-bottom: 2rem; }
+        .share-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
         .share-btn {
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: none;
+            padding: 1rem 2rem; border-radius: 50px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+            gap: 0.5rem; transition: transform 0.2s ease, box-shadow 0.2s ease; border: none;
         }
-        
-        .share-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .share-btn.twitter {
-            background: #1da1f2;
-            color: #fff;
-        }
-        
-        .share-btn.twitter:hover {
-            box-shadow: 0 8px 30px rgba(29, 161, 242, 0.4);
-        }
-        
-        .share-btn.copy {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-        }
-        
-        .share-btn.copy:hover {
-            background: rgba(255,255,255,0.15);
-        }
+        .share-btn:hover { transform: translateY(-2px); }
+        .share-btn.twitter { background: #1da1f2; color: #fff; }
+        .share-btn.twitter:hover { box-shadow: 0 8px 30px rgba(29, 161, 242, 0.4); }
+        .share-btn.copy { background: rgba(255,255,255,0.1); color: #fff; }
+        .share-btn.copy:hover { background: rgba(255,255,255,0.15); }
         
         /* Back Link */
         .back-link {
-            position: fixed;
-            top: 1.5rem;
-            left: 1.5rem;
-            color: #666;
-            text-decoration: none;
-            font-size: 0.9rem;
-            z-index: 100;
+            position: fixed; top: 1.5rem; left: 1.5rem; color: #666;
+            text-decoration: none; font-size: 0.9rem; z-index: 100;
             transition: color 0.2s ease;
         }
-        
-        .back-link:hover {
-            color: #fff;
-        }
+        .back-link:hover { color: #fff; }
         
         /* Animations */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
         @keyframes bounce {
             0%, 100% { transform: translateX(-50%) translateY(0); }
             50% { transform: translateX(-50%) translateY(-10px); }
         }
         
+        /* === NEW: Async Section Styles === */
+        
+        /* Badge Grid */
+        .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+        .badge-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
+            padding: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .badge-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+        .badge-emoji { font-size: 2rem; flex-shrink: 0; }
+        .badge-name { font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+        .badge-desc { font-size: 0.85rem; color: #888; line-height: 1.4; }
+        
+        /* Personality Type Cards */
+        .personality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .type-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+            padding: 2rem; text-align: center;
+            transition: transform 0.2s ease;
+        }
+        .type-card:hover { transform: translateY(-3px); }
+        .type-card .type-emoji { font-size: 3rem; margin-bottom: 0.75rem; }
+        .type-card .type-label { font-size: 1.3rem; font-weight: 700; color: #fff; }
+        .type-card .type-sublabel { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+        .type-card.think-you-like { border-color: rgba(255, 51, 102, 0.3); background: linear-gradient(145deg, rgba(255,51,102,0.08) 0%, rgba(255,51,102,0.02) 100%); }
+        
+        /* Indie Tier Bar */
+        .tier-bar-container { margin: 2rem 0; }
+        .tier-bar {
+            display: flex; height: 48px; border-radius: 12px; overflow: hidden;
+            background: rgba(255,255,255,0.05);
+        }
+        .tier-segment {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700; color: #fff;
+            transition: flex 0.5s ease;
+            min-width: 0;
+        }
+        .tier-segment span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
+        .tier-legend { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1rem; }
+        .tier-legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #999; }
+        .tier-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        
+        /* Value Cards */
+        .value-highlight {
+            background: linear-gradient(145deg, rgba(0, 210, 106, 0.1) 0%, rgba(0, 210, 106, 0.03) 100%);
+            border: 1px solid rgba(0, 210, 106, 0.2); border-radius: 20px;
+            padding: 2.5rem; text-align: center; margin-bottom: 2rem;
+        }
+        .value-highlight .wasted-amount { font-size: 3.5rem; font-weight: 900; color: #ff3366; }
+        .value-highlight .wasted-label { color: #888; margin-top: 0.5rem; font-size: 1rem; }
+        .value-highlight .wasted-note { color: #555; font-size: 0.8rem; margin-top: 0.75rem; font-style: italic; }
+        
+        /* Genre Breakdown Bars */
+        .genre-bars { margin: 1.5rem 0; }
+        .genre-bar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+        .genre-bar-label { width: 140px; font-size: 0.85rem; color: #ccc; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+        .genre-bar-track { flex: 1; height: 24px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; }
+        .genre-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; display: flex; align-items: center; padding-left: 8px; font-size: 0.75rem; font-weight: 600; color: #fff; }
+        .genre-bar-count { width: 30px; text-align: right; font-size: 0.85rem; color: #666; flex-shrink: 0; }
+        
+        /* Section divider label */
+        .subsection-label { color: #888; font-size: 1rem; margin-bottom: 1rem; font-weight: 500; }
+        
         /* Responsive */
         @media (max-width: 700px) {
-            .big-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-            
-            .leaderboard-row {
-                grid-template-columns: 40px 1fr 60px;
-            }
-            
-            .lb-games {
-                display: none;
-            }
-            
-            .roast-card .roast-text {
-                font-size: 1.1rem;
-            }
+            .big-stats { grid-template-columns: 1fr; }
+            .section-title { font-size: 2rem; }
+            .leaderboard-row { grid-template-columns: 40px 1fr 60px; }
+            .lb-games { display: none; }
+            .roast-card .roast-text { font-size: 1.1rem; }
+            .personality-grid { grid-template-columns: 1fr; }
+            .badge-grid { grid-template-columns: 1fr; }
+            .genre-bar-label { width: 100px; }
         }
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">← Check another</a>
+    <a href="/" class="back-link">&#8592; Check another</a>
     
     <!-- Hero Section -->
     <section class="hero">
@@ -582,7 +333,7 @@
         
         <div class="scroll-hint">
             Scroll for the full damage report
-            <span>↓</span>
+            <span>&#8595;</span>
         </div>
     </section>
     
@@ -642,10 +393,9 @@
                 </div>
             </div>
             
-            <!-- Roast Card -->
             <div class="roast-card">
                 <div class="roast-emoji">
-                    {% if stats.concentration > 80 %}💀{% elif stats.shame_score > 50 %}🤡{% else %}🎮{% endif %}
+                    {% if stats.concentration > 80 %}&#x1F480;{% elif stats.shame_score > 50 %}&#x1F921;{% else %}&#x1F3AE;{% endif %}
                 </div>
                 <div class="roast-text">
                     {% if stats.concentration > 80 %}
@@ -671,11 +421,11 @@
                 <p class="section-subtitle">Where your time actually went</p>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" id="top-games-card">
                 {% for game in stats.top_10 %}
-                <div class="game-row">
+                <div class="game-row" data-appid="{{ game.appid }}">
                     <div class="game-rank {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
-                        {% if loop.index == 1 %}👑{% elif loop.index == 2 %}2{% elif loop.index == 3 %}3{% else %}{{ loop.index }}{% endif %}
+                        {% if loop.index == 1 %}&#x1F451;{% elif loop.index == 2 %}2{% elif loop.index == 3 %}3{% else %}{{ loop.index }}{% endif %}
                     </div>
                     <div class="game-name">{{ game.name }}</div>
                     <div class="game-hours"><span>{{ game.playtime_formatted }}</span></div>
@@ -685,7 +435,7 @@
             
             {% if stats.top_10[0].playtime > 6000 %}
             <div class="roast-card">
-                <div class="roast-emoji">⏰</div>
+                <div class="roast-emoji">&#x23F0;</div>
                 <div class="roast-text">
                     {{ stats.top_10[0].playtime_formatted }} in {{ stats.top_10[0].name }}?
                 </div>
@@ -697,7 +447,23 @@
         </div>
     </section>
     
-    <!-- Shame Section -->
+    <!-- Value Section (async) -->
+    <section class="stats-section" id="value-section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">&#x1F4B0; Money Talk</h2>
+                <p class="section-subtitle">What your library is really worth (or wasting)</p>
+            </div>
+            <div id="value-loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Crunching the numbers on your spending...</p>
+            </div>
+            <div id="value-content" style="display: none;"></div>
+            <div id="value-error" style="display: none; text-align: center; color: #666; padding: 2rem;"></div>
+        </div>
+    </section>
+    
+    <!-- Shame Pile Section -->
     {% if stats.gave_up or stats.never_played_sample %}
     <section class="stats-section">
         <div class="section-inner">
@@ -707,11 +473,11 @@
             </div>
             
             {% if stats.gave_up %}
-            <h3 style="color: #888; font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">😬 Played for 10-60 minutes then abandoned</h3>
+            <h3 style="color: #888; font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">&#x1F62C; Played for 10-60 minutes then abandoned{% if stats.gave_up_total > 10 %} &mdash; showing 10 of {{ stats.gave_up_total }} games{% endif %}</h3>
             <div class="game-card" style="margin-bottom: 2rem;">
                 {% for game in stats.gave_up %}
                 <div class="game-row">
-                    <div class="game-rank" style="color: #ff3366;">✗</div>
+                    <div class="game-rank" style="color: #ff3366;">&#x2717;</div>
                     <div class="game-name">{{ game.name }}</div>
                     <div class="game-hours">{{ game.playtime }}m</div>
                 </div>
@@ -720,11 +486,11 @@
             {% endif %}
             
             {% if stats.never_played_sample %}
-            <h3 style="color: #888; font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">🗑️ Never even launched</h3>
+            <h3 style="color: #888; font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">&#x1F5D1;&#xFE0F; Never even launched &mdash; showing 10 of {{ stats.never_played_count }} games</h3>
             <div class="game-card">
                 {% for game in stats.never_played_sample %}
                 <div class="game-row">
-                    <div class="game-rank" style="color: #666;">—</div>
+                    <div class="game-rank" style="color: #666;">&mdash;</div>
                     <div class="game-name">{{ game.name }}</div>
                     <div class="game-hours" style="color: #ff3366;">0m</div>
                 </div>
@@ -734,6 +500,38 @@
         </div>
     </section>
     {% endif %}
+    
+    <!-- Indie Analysis (async) -->
+    <section class="stats-section" id="indie-section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">&#x1F3A8; Indie Score</h2>
+                <p class="section-subtitle">How underground is your taste?</p>
+            </div>
+            <div id="indie-loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Analyzing your taste level...</p>
+            </div>
+            <div id="indie-content" style="display: none;"></div>
+            <div id="indie-error" style="display: none; text-align: center; color: #666; padding: 2rem;"></div>
+        </div>
+    </section>
+    
+    <!-- Gamer Personality (async) -->
+    <section class="stats-section" id="personality-section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">&#x1F9EC; Gamer DNA</h2>
+                <p class="section-subtitle">What your library says about you</p>
+            </div>
+            <div id="personality-loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Profiling your gaming habits...</p>
+            </div>
+            <div id="personality-content" style="display: none;"></div>
+            <div id="personality-error" style="display: none; text-align: center; color: #666; padding: 2rem;"></div>
+        </div>
+    </section>
     
     <!-- Friends Leaderboard Section -->
     <section class="stats-section" id="friends-section">
@@ -758,103 +556,294 @@
         <p class="share-subtitle">Let your friends know how bad it is</p>
         
         <div class="share-buttons">
-            <a href="https://twitter.com/intent/tweet?text=My%20Steam%20Shame%20Score%3A%20{{ stats.shame_score }}%25%20😬%0A%0AI%20own%20{{ stats.total_games }}%20games%20and%20have%20never%20played%20{{ stats.never_played_count }}%20of%20them.%0A%0ACheck%20yours%3A&url={{ request.url }}" 
+            <a href="https://twitter.com/intent/tweet?text=My%20Steam%20Shame%20Score%3A%20{{ stats.shame_score }}%25%20%F0%9F%98%AC%0A%0AI%20own%20{{ stats.total_games }}%20games%20and%20have%20never%20played%20{{ stats.never_played_count }}%20of%20them.%0A%0ACheck%20yours%3A&url={{ request.url }}" 
                target="_blank" 
                class="share-btn twitter">
                 Share on X
             </a>
             <button class="share-btn copy" onclick="copyLink()">
-                📋 Copy Link
+                &#x1F4CB; Copy Link
             </button>
         </div>
     </section>
     
     <script>
-        // Load friends leaderboard async
-        document.addEventListener('DOMContentLoaded', function() {
-            const steamId = "{{ steam_id }}";
-            const loadingEl = document.getElementById('friends-loading');
-            const contentEl = document.getElementById('friends-content');
-            const errorEl = document.getElementById('friends-error');
-            
-            fetch(`/api/friends/${steamId}`)
-                .then(response => response.json())
-                .then(data => {
-                    loadingEl.style.display = 'none';
-                    
-                    if (data.error) {
-                        errorEl.innerHTML = `<p>${data.error}</p>`;
-                        errorEl.style.display = 'block';
-                        return;
-                    }
-                    
-                    if (!data.leaderboard || data.leaderboard.length <= 1) {
-                        errorEl.innerHTML = '<p>No friends with public profiles found.<br><span style="font-size: 0.85rem;">They\'re probably hiding their shame too.</span></p>';
-                        errorEl.style.display = 'block';
-                        return;
-                    }
-                    
-                    let html = '';
-                    
-                    // Rank announcement
-                    if (data.user_rank) {
-                        let rankMsg = '';
-                        if (data.user_rank === 1) {
-                            rankMsg = `<div class="roast-card" style="margin-bottom: 2rem;"><div class="roast-emoji">👑</div><div class="roast-text">You're #1 most wasteful among your friends</div><div class="roast-subtext">Congratulations? Maybe?</div></div>`;
-                        } else if (data.user_rank <= 3) {
-                            rankMsg = `<div class="roast-card" style="margin-bottom: 2rem;"><div class="roast-emoji">😬</div><div class="roast-text">You're #${data.user_rank} most wasteful</div><div class="roast-subtext">Top 3 is not a flex here</div></div>`;
-                        } else if (data.user_rank === data.leaderboard.length) {
-                            rankMsg = `<div class="roast-card" style="margin-bottom: 2rem; border-color: rgba(0, 210, 106, 0.3); background: linear-gradient(135deg, rgba(0, 210, 106, 0.1) 0%, rgba(0, 210, 106, 0.02) 100%);"><div class="roast-emoji">🏆</div><div class="roast-text">Least wasteful among your friends!</div><div class="roast-subtext">You actually play your games. Respect.</div></div>`;
-                        }
-                        html += rankMsg;
-                    }
-                    
-                    // Leaderboard
-                    html += '<div class="leaderboard">';
-                    data.leaderboard.forEach(entry => {
-                        const rankIcon = entry.rank === 1 ? '👑' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : entry.rank;
-                        const rankClass = entry.rank === 1 ? 'rank-1' : entry.rank === 2 ? 'rank-2' : entry.rank === 3 ? 'rank-3' : '';
-                        const isUserClass = entry.is_user ? 'is-user' : '';
-                        const youTag = entry.is_user ? '<span class="lb-you">(you)</span>' : '';
-                        const shameClass = entry.shame_score < 30 ? 'low' : entry.shame_score < 50 ? 'med' : 'high';
-                        
+        const steamId = "{{ steam_id }}";
+        
+        // ======== HELPER ========
+        function showError(sectionId, msg) {
+            document.getElementById(sectionId + '-loading').style.display = 'none';
+            const el = document.getElementById(sectionId + '-error');
+            el.innerHTML = `<p>${msg}</p>`;
+            el.style.display = 'block';
+        }
+        function showContent(sectionId, html) {
+            document.getElementById(sectionId + '-loading').style.display = 'none';
+            const el = document.getElementById(sectionId + '-content');
+            el.innerHTML = html;
+            el.style.display = 'block';
+        }
+        
+        // ======== VALUE / PRICE ========
+        fetch(`/api/value/${steamId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { showError('value', data.error); return; }
+                
+                let html = '';
+                
+                // Money wasted highlight
+                if (data.estimated_wasted > 0) {
+                    html += `
+                        <div class="value-highlight">
+                            <div class="wasted-amount">~$${data.estimated_wasted.toLocaleString()}</div>
+                            <div class="wasted-label">Estimated spent on games you've never played</div>
+                            <div class="wasted-note">${data.is_estimate ? `Based on a sample of ${data.sample_size} of ${data.total_unplayed} unplayed games (avg ~$${data.avg_unplayed_price.toFixed(2)} each)` : `Based on ${data.total_unplayed} unplayed games`}</div>
+                        </div>`;
+                }
+                
+                // Best value
+                if (data.best_value && data.best_value.length > 0) {
+                    html += '<h3 class="subsection-label">&#x2705; Best bang for your buck</h3><div class="game-card">';
+                    data.best_value.forEach((g, i) => {
                         html += `
-                            <div class="leaderboard-row ${isUserClass}">
-                                <div class="lb-rank ${rankClass}">${rankIcon}</div>
-                                <div class="lb-player">
-                                    <img src="${entry.avatar}" alt="" class="lb-avatar">
-                                    <span class="lb-name">
-                                        <a href="/results/${entry.steam_id}">${entry.name}</a>${youTag}
-                                    </span>
-                                </div>
-                                <div class="lb-shame ${shameClass}">${entry.shame_score}%</div>
-                                <div class="lb-games">${entry.total_games} games</div>
-                            </div>
-                        `;
+                            <div class="game-row">
+                                <div class="game-rank" style="color: #00d26a;">${i + 1}</div>
+                                <div class="game-name">${g.name}</div>
+                                <div class="game-value">${g.per_hour_formatted}</div>
+                                <div class="game-hours">${g.hours}h &middot; $${g.price}</div>
+                            </div>`;
                     });
                     html += '</div>';
-                    
-                    if (data.total_friends > 10) {
-                        html += `<p style="text-align: center; margin-top: 1.5rem; color: #666;">And ${data.total_friends - 9} more friends...</p>`;
-                    }
-                    
-                    contentEl.innerHTML = html;
-                    contentEl.style.display = 'block';
-                })
-                .catch(err => {
-                    loadingEl.style.display = 'none';
-                    errorEl.innerHTML = '<p>Failed to load friends leaderboard</p>';
-                    errorEl.style.display = 'block';
-                });
-        });
+                }
+                
+                // Worst value
+                if (data.worst_value && data.worst_value.length > 0) {
+                    html += '<h3 class="subsection-label" style="margin-top: 2rem;">&#x1F4B8; Biggest money pits</h3><div class="game-card">';
+                    data.worst_value.forEach((g, i) => {
+                        html += `
+                            <div class="game-row">
+                                <div class="game-rank" style="color: #ff3366;">${i + 1}</div>
+                                <div class="game-name">${g.name}</div>
+                                <div class="game-value" style="color: #ff3366;">${g.per_hour_formatted}</div>
+                                <div class="game-hours">${g.hours}h &middot; $${g.price}</div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                if (!html) html = '<p style="text-align:center;color:#666;">Could not retrieve price data for your games.</p>';
+                showContent('value', html);
+            })
+            .catch(() => showError('value', 'Failed to load value data'));
         
+        // ======== INDIE ANALYSIS ========
+        fetch(`/api/indie/${steamId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { showError('indie', data.error); return; }
+                
+                const t = data.tiers;
+                const total = data.total_classified || 1;
+                const pcts = {
+                    hidden_gem: ((t.hidden_gem / total) * 100).toFixed(1),
+                    indie: ((t.indie / total) * 100).toFixed(1),
+                    mid_tier: ((t.mid_tier / total) * 100).toFixed(1),
+                    mainstream: ((t.mainstream / total) * 100).toFixed(1)
+                };
+                
+                let html = `
+                    <div class="roast-card" style="border-color: rgba(168, 85, 247, 0.3); background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0.02) 100%);">
+                        <div class="roast-emoji">&#x1F3A8;</div>
+                        <div class="roast-text">${data.indie_percentage}% Indie</div>
+                        <div class="roast-subtext">${data.roast}</div>
+                    </div>
+                    
+                    <div class="tier-bar-container">
+                        <div class="tier-bar">
+                            ${t.hidden_gem > 0 ? `<div class="tier-segment" style="flex: ${t.hidden_gem}; background: #a855f7;"><span>&#x1F48E; ${pcts.hidden_gem}%</span></div>` : ''}
+                            ${t.indie > 0 ? `<div class="tier-segment" style="flex: ${t.indie}; background: #22c55e;"><span>&#x1F3A8; ${pcts.indie}%</span></div>` : ''}
+                            ${t.mid_tier > 0 ? `<div class="tier-segment" style="flex: ${t.mid_tier}; background: #3b82f6;"><span>&#x1F4CA; ${pcts.mid_tier}%</span></div>` : ''}
+                            ${t.mainstream > 0 ? `<div class="tier-segment" style="flex: ${t.mainstream}; background: #f59e0b;"><span>&#x1F3E2; ${pcts.mainstream}%</span></div>` : ''}
+                        </div>
+                        <div class="tier-legend">
+                            <div class="tier-legend-item"><div class="tier-dot" style="background:#a855f7;"></div> Hidden Gem (&lt;500 reviews): ${t.hidden_gem}</div>
+                            <div class="tier-legend-item"><div class="tier-dot" style="background:#22c55e;"></div> Indie (&lt;1K): ${t.indie}</div>
+                            <div class="tier-legend-item"><div class="tier-dot" style="background:#3b82f6;"></div> Mid-Tier (&lt;10K): ${t.mid_tier}</div>
+                            <div class="tier-legend-item"><div class="tier-dot" style="background:#f59e0b;"></div> Mainstream (10K+): ${t.mainstream}</div>
+                        </div>
+                    </div>
+                    <p style="text-align:center; color:#555; font-size:0.8rem; margin-top:1rem;">Based on ${data.total_classified} of ${data.total_games} games sampled</p>`;
+                
+                showContent('indie', html);
+            })
+            .catch(() => showError('indie', 'Failed to load indie analysis'));
+        
+        // ======== PERSONALITY ========
+        fetch(`/api/personality/${steamId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { showError('personality', data.error); return; }
+                
+                let html = '<div class="personality-grid">';
+                
+                // Primary type (what you play)
+                if (data.primary_type) {
+                    html += `
+                        <div class="type-card">
+                            <div class="type-emoji">${data.primary_type.emoji}</div>
+                            <div class="type-label">${data.primary_type.label}</div>
+                            <div class="type-sublabel">What you actually play</div>
+                        </div>`;
+                }
+                
+                // Purchase type (what you buy)
+                if (data.purchase_type) {
+                    html += `
+                        <div class="type-card">
+                            <div class="type-emoji">${data.purchase_type.emoji}</div>
+                            <div class="type-label">${data.purchase_type.label}</div>
+                            <div class="type-sublabel">What you buy</div>
+                        </div>`;
+                }
+                
+                // "You think you like" type
+                if (data.think_you_like) {
+                    html += `
+                        <div class="type-card think-you-like">
+                            <div class="type-emoji">${data.think_you_like.emoji}</div>
+                            <div class="type-label">${data.think_you_like.label}</div>
+                            <div class="type-sublabel">You think you like this<br><span style="color:#ff3366;font-size:0.75rem;">${data.think_you_like.count} bought, never played</span></div>
+                        </div>`;
+                }
+                
+                html += '</div>';
+                
+                // Genre breakdown bars (played)
+                if (data.genre_breakdown_played && data.genre_breakdown_played.length > 0) {
+                    const maxCount = data.genre_breakdown_played[0].count;
+                    const colors = ['#ff3366', '#ff6b35', '#f7c94b', '#00d26a', '#00a8ff', '#a855f7'];
+                    html += '<h3 class="subsection-label" style="margin-top:2rem;">&#x1F3AE; What you play</h3><div class="genre-bars">';
+                    data.genre_breakdown_played.forEach((g, i) => {
+                        const pct = Math.max(8, (g.count / maxCount) * 100);
+                        html += `
+                            <div class="genre-bar-row">
+                                <div class="genre-bar-label">${g.emoji} ${g.label}</div>
+                                <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${pct}%;background:${colors[i % colors.length]};">${g.count}</div></div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                // Genre breakdown bars (purchased)
+                if (data.genre_breakdown_purchased && data.genre_breakdown_purchased.length > 0) {
+                    const maxCount = data.genre_breakdown_purchased[0].count;
+                    const colors = ['#a855f7', '#3b82f6', '#22c55e', '#f59e0b', '#ff3366', '#00a8ff'];
+                    html += '<h3 class="subsection-label" style="margin-top:2rem;">&#x1F6D2; What you buy</h3><div class="genre-bars">';
+                    data.genre_breakdown_purchased.forEach((g, i) => {
+                        const pct = Math.max(8, (g.count / maxCount) * 100);
+                        html += `
+                            <div class="genre-bar-row">
+                                <div class="genre-bar-label">${g.emoji} ${g.label}</div>
+                                <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${pct}%;background:${colors[i % colors.length]};">${g.count}</div></div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                // Badges
+                if (data.badges && data.badges.length > 0) {
+                    html += '<h3 class="subsection-label" style="margin-top:3rem;">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
+                    data.badges.forEach(b => {
+                        html += `
+                            <div class="badge-card">
+                                <div class="badge-emoji">${b.emoji}</div>
+                                <div>
+                                    <div class="badge-name">${b.name}</div>
+                                    <div class="badge-desc">${b.description}</div>
+                                </div>
+                            </div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                if (!data.primary_type && (!data.badges || data.badges.length === 0)) {
+                    html = '<p style="text-align:center;color:#666;">Not enough data to determine your gamer personality.</p>';
+                }
+                
+                showContent('personality', html);
+            })
+            .catch(() => showError('personality', 'Failed to load personality data'));
+        
+        // ======== FRIENDS LEADERBOARD ========
+        fetch(`/api/friends/${steamId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('friends-loading').style.display = 'none';
+                
+                if (data.error) {
+                    showError('friends', data.error);
+                    return;
+                }
+                
+                if (!data.leaderboard || data.leaderboard.length <= 1) {
+                    showError('friends', 'No friends with public profiles found.<br><span style="font-size: 0.85rem;">They\'re probably hiding their shame too.</span>');
+                    return;
+                }
+                
+                let html = '';
+                
+                if (data.user_rank) {
+                    let rankMsg = '';
+                    if (data.user_rank === 1) {
+                        rankMsg = `<div class="roast-card" style="margin-bottom: 2rem;"><div class="roast-emoji">&#x1F451;</div><div class="roast-text">You're #1 most wasteful among your friends</div><div class="roast-subtext">Congratulations? Maybe?</div></div>`;
+                    } else if (data.user_rank <= 3) {
+                        rankMsg = `<div class="roast-card" style="margin-bottom: 2rem;"><div class="roast-emoji">&#x1F62C;</div><div class="roast-text">You're #${data.user_rank} most wasteful</div><div class="roast-subtext">Top 3 is not a flex here</div></div>`;
+                    } else if (data.user_rank === data.leaderboard.length) {
+                        rankMsg = `<div class="roast-card" style="margin-bottom: 2rem; border-color: rgba(0, 210, 106, 0.3); background: linear-gradient(135deg, rgba(0, 210, 106, 0.1) 0%, rgba(0, 210, 106, 0.02) 100%);"><div class="roast-emoji">&#x1F3C6;</div><div class="roast-text">Least wasteful among your friends!</div><div class="roast-subtext">You actually play your games. Respect.</div></div>`;
+                    }
+                    html += rankMsg;
+                }
+                
+                html += '<div class="leaderboard">';
+                data.leaderboard.forEach(entry => {
+                    const rankIcon = entry.rank === 1 ? '&#x1F451;' : entry.rank === 2 ? '&#x1F948;' : entry.rank === 3 ? '&#x1F949;' : entry.rank;
+                    const rankClass = entry.rank === 1 ? 'rank-1' : entry.rank === 2 ? 'rank-2' : entry.rank === 3 ? 'rank-3' : '';
+                    const isUserClass = entry.is_user ? 'is-user' : '';
+                    const youTag = entry.is_user ? '<span class="lb-you">(you)</span>' : '';
+                    const shameClass = entry.shame_score < 30 ? 'low' : entry.shame_score < 50 ? 'med' : 'high';
+                    
+                    html += `
+                        <div class="leaderboard-row ${isUserClass}">
+                            <div class="lb-rank ${rankClass}">${rankIcon}</div>
+                            <div class="lb-player">
+                                <img src="${entry.avatar}" alt="" class="lb-avatar">
+                                <span class="lb-name">
+                                    <a href="/results/${entry.steam_id}">${entry.name}</a>${youTag}
+                                </span>
+                            </div>
+                            <div class="lb-shame ${shameClass}">${entry.shame_score}%</div>
+                            <div class="lb-games">${entry.total_games} games</div>
+                        </div>`;
+                });
+                html += '</div>';
+                
+                if (data.total_friends > 10) {
+                    html += `<p style="text-align: center; margin-top: 1.5rem; color: #666;">And ${data.total_friends - 9} more friends...</p>`;
+                }
+                
+                showContent('friends', html);
+            })
+            .catch(err => {
+                showError('friends', 'Failed to load friends leaderboard');
+            });
+        
+        // ======== COPY LINK ========
         function copyLink() {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 const btn = document.querySelector('.share-btn.copy');
-                btn.innerHTML = '✅ Copied!';
-                setTimeout(() => {
-                    btn.innerHTML = '📋 Copy Link';
-                }, 2000);
+                btn.innerHTML = '&#x2705; Copied!';
+                setTimeout(() => { btn.innerHTML = '&#x1F4CB; Copy Link'; }, 2000);
             });
         }
     </script>
