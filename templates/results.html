@@ -96,6 +96,7 @@
     <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-subtitle">Steam Shame Report</div></div></div>
     <div class="shame-score-display"><div class="shame-number">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
     <div style="margin-top:1.5rem;opacity:0;animation:fadeInUp .6s ease .3s forwards"><span style="font-size:1.1rem;color:#ff3366;font-weight:700">{{ (stats.never_played_count/stats.total_games*100)|round(1) }}%</span><span style="color:#666;font-size:1rem"> of games never played</span></div>
+    <div style="margin-top:1.25rem;opacity:0;animation:fadeInUp .6s ease .5s forwards;display:inline-flex;align-items:center;gap:.75rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:.75rem 1.5rem"><span style="font-size:2rem">{{ stats.descriptor.emoji }}</span><div style="text-align:left"><div style="font-size:1.1rem;font-weight:700;color:#fff">{{ stats.descriptor.title }}</div><div style="font-size:.85rem;color:#888">{{ stats.descriptor.description }}</div></div></div>
     <p class="roast">{% if stats.shame_score >= 50 %}You own {{ stats.total_games }} games and have played {{ stats.played_count }}. That's a graveyard.{% elif stats.shame_score >= 35 %}Steam sales broke you. {{ stats.never_played_count }} games collecting dust.{% elif stats.shame_score >= 20 %}Not terrible, but {{ stats.never_played_count }} unplayed games is too many.{% else %}You actually play your games. Impressive.{% endif %}</p>
     <div class="scroll-hint">Scroll for the full damage report<span>&#8595;</span></div>
 </section>
@@ -124,9 +125,6 @@
 
     <!-- Backlog -->
     {% if stats.backlog_days > 0 %}<div class="backlog-card"><div class="backlog-big">{{ stats.backlog_days }} days</div><div class="backlog-sub">to clear your backlog at 1 hour/day (~10 hrs per game)</div>{% if stats.backlog_days > 365 %}<div style="color:#ff3366;font-size:.85rem;margin-top:.5rem;font-weight:600">That's {{ (stats.backlog_days/365)|round(1) }} years.</div>{% endif %}</div>{% endif %}
-
-    <!-- Play Next Suggestion -->
-    <div id="suggest-card" style="display:none"></div>
 </div></section>
 
 <!-- Gamer DNA -->
@@ -134,6 +132,11 @@
     <div class="section-header" style="margin-bottom:1.5rem"><h2 class="section-title">&#x1F9EC; Gamer DNA</h2><p class="section-subtitle">What your library says about you</p></div>
     <div id="personality-loading" class="loading-state"><div class="spinner"></div><p>Profiling your gaming habits...</p></div>
     <div id="personality-content" style="display:none"></div>
+</div></section>
+
+<!-- Play Next Suggestion -->
+<section class="stats-section" style="padding-top:3rem;padding-bottom:3rem"><div class="section-inner">
+    <div id="suggest-card" style="display:none"></div>
 </div></section>
 
 <!-- Friends -->
@@ -233,6 +236,8 @@ fetch('/api/personality/'+steamId).then(r=>r.json()).then(data=>{
         h+='<div class="mismatch-card"><div class="mismatch-title">&#x1F6A8; You think you like '+data.unplayed_majority.label+', but you don\'t</div><div class="mismatch-sub">Your unplayed library is mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+', but you actually play '+data.played_majority.emoji+' '+data.played_majority.label+'</div></div>'}
     h+='<div class="radar-canvas-wrap"><canvas id="radar-canvas" width="600" height="600" style="max-width:600px"></canvas></div>';
     h+='<p style="text-align:center;color:#888;font-size:.9rem;margin-top:1rem;font-weight:500">&#x1F446; Click any genre on the chart to see games in that category</p>';
+    // Mismatch badge
+    if(data.mismatch_badge){h+='<div style="margin-top:2rem;display:flex;justify-content:center"><div class="badge-card" style="max-width:400px;border-color:rgba(255,51,102,.2);background:linear-gradient(145deg,rgba(255,51,102,.08),rgba(255,51,102,.02))"><div class="badge-emoji">'+data.mismatch_badge.emoji+'</div><div><div class="badge-name" style="color:#ff3366">'+data.mismatch_badge.title+'</div><div class="badge-desc">'+data.mismatch_badge.description+'</div></div></div></div>'}
     if(data.badges&&data.badges.length){h+='<h3 style="color:#888;font-size:1rem;margin:2rem 0 1rem;font-weight:500">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
         data.badges.forEach(b=>{h+='<div class="badge-card"><div class="badge-emoji">'+b.emoji+'</div><div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.description+'</div></div></div>'});h+='</div>'}
     showContent('personality',h);
