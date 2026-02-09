@@ -1,9 +1,10 @@
 """
 Steam Shame - A web app that calculates your Steam library shame score.
 """
-from flask import Flask, redirect, request, url_for, render_template, jsonify
-import requests, os, re, random, time, math, threading
+from flask import Flask, redirect, request, url_for, render_template, jsonify, send_file
+import requests, os, re, random, time, math, threading, io
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from PIL import Image, ImageDraw, ImageFont
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-this")
@@ -12,7 +13,7 @@ STEAM_API_KEY = os.environ.get("STEAM_API_KEY", "")
 # Caches
 _store_cache = {}
 _store_cache_lock = threading.Lock()
-STORE_CACHE_TTL = 3600
+STORE_CACHE_TTL = 86400  # 24 hours — genres rarely change
 
 _games_cache = {}
 _games_cache_lock = threading.Lock()
@@ -368,9 +369,9 @@ def api_personality(steam_id):
         all_played = [g for g in games if g.get("playtime_forever",0) > 0]
         all_unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
 
-        owned_sample = random.sample(games, min(40, len(games)))
-        played_sample = random.sample(all_played, min(30, len(all_played))) if all_played else []
-        unplayed_sample = random.sample(all_unplayed, min(30, len(all_unplayed))) if all_unplayed else []
+        owned_sample = random.sample(games, min(80, len(games)))
+        played_sample = random.sample(all_played, min(50, len(all_played))) if all_played else []
+        unplayed_sample = random.sample(all_unplayed, min(50, len(all_unplayed))) if all_unplayed else []
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
         sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
@@ -443,21 +444,27 @@ def api_friends(steam_id):
         for i in range(0,len(aids),100):
             bd = get_player_summary(",".join(aids[i:i+100]))
             aps.extend(bd.get("response",{}).get("players",[]))
-        lb = []
-        for p in aps:
+
+        # Parallelize game fetching for each friend
+        def fetch_friend(p):
             pid = p.get("steamid")
-            if p.get("communityvisibilitystate")!=3: continue
+            if p.get("communityvisibilitystate")!=3: return None
             try:
                 gl = get_owned_games(pid).get("response",{}).get("games",[])
-                if not gl: continue
+                if not gl: return None
                 s = analyze_library(gl)
-                # Skip private game details: profile is public but all games show 0 playtime
-                if not s["any_playtime"]: continue
-                if s["shame_score"] >= 99.9: continue
-                lb.append({"steam_id":pid,"name":p.get("personaname","Unknown"),"avatar":p.get("avatar",""),
+                if not s["any_playtime"]: return None
+                if s["shame_score"] >= 99.9: return None
+                return {"steam_id":pid,"name":p.get("personaname","Unknown"),"avatar":p.get("avatar",""),
                     "shame_score":s["shame_score"],"total_games":s["total_games"],
-                    "played_count":s["played_count"],"never_played":s["never_played_count"],"is_user":pid==steam_id})
-            except: continue
+                    "played_count":s["played_count"],"never_played":s["never_played_count"],"is_user":pid==steam_id}
+            except: return None
+
+        lb = []
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            for result in ex.map(fetch_friend, aps):
+                if result: lb.append(result)
+
         lb.sort(key=lambda x: x["shame_score"], reverse=True)
         ur = None
         for i,e in enumerate(lb): e["rank"]=i+1; ur = i+1 if e["is_user"] else ur
@@ -497,6 +504,73 @@ def friends_leaderboard(steam_id):
         return render_template("friends.html",player_name=p.get("personaname","Unknown"),
             avatar_url=p.get("avatarfull",""),steam_id=steam_id,leaderboard=lb,user_rank=ur,total_friends=len(lb)-1)
     except Exception as e: return render_template("error.html",error="Error",message=str(e))
+
+
+@app.route("/share/<steam_id>.png")
+def share_image(steam_id):
+    """Generate an OG share image with the shame score."""
+    try:
+        pd = get_player_summary(steam_id)
+        players = pd.get("response",{}).get("players",[])
+        if not players: return "Not found", 404
+        p = players[0]
+        games = get_owned_games(steam_id).get("response",{}).get("games",[])
+        if not games: return "No games", 404
+        stats = analyze_library(games)
+
+        W, H = 1200, 630
+        img = Image.new('RGB', (W, H), '#0a0a0c')
+        draw = ImageDraw.Draw(img)
+
+        # Background gradient feel with shapes
+        for i in range(H):
+            a = int(15 * (1 - i/H))
+            draw.line([(0,i),(W,i)], fill=(a, 0, a+5))
+
+        # Accent circle
+        draw.ellipse([W//2-200, -100, W//2+200, 200], fill=(40, 0, 60))
+
+        # Use default font at different sizes
+        try:
+            font_huge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 140)
+            font_big = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
+            font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+            font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20)
+        except:
+            font_huge = ImageFont.load_default()
+            font_big = font_med = font_sm = font_huge
+
+        name = p.get("personaname", "Unknown")
+        score = str(stats["shame_score"])
+
+        # Player name
+        draw.text((W//2, 80), name, fill='#ffffff', font=font_big, anchor='mt')
+
+        # Score
+        draw.text((W//2, 180), score + "%", fill='#ff3366', font=font_huge, anchor='mt')
+
+        # Label
+        draw.text((W//2, 360), "SHAME SCORE", fill='#555555', font=font_med, anchor='mt')
+
+        # Stats line
+        stat_text = f"{stats['total_games']} games  ·  {stats['played_count']} played  ·  {stats['never_played_count']} never touched"
+        draw.text((W//2, 420), stat_text, fill='#888888', font=font_sm, anchor='mt')
+
+        # Descriptor
+        desc = stats["descriptor"]
+        draw.text((W//2, 470), f"{desc['title']}", fill='#aaaaaa', font=font_med, anchor='mt')
+
+        # Branding
+        draw.text((W//2, 570), "SteamShame", fill='#333333', font=font_big, anchor='mt')
+
+        buf = io.BytesIO()
+        img.save(buf, format='PNG', optimize=True)
+        buf.seek(0)
+        return send_file(buf, mimetype='image/png', download_name=f'steam-shame-{steam_id}.png')
+    except Exception as e:
+        log.error(f"Share image error: {e}")
+        return "Error generating image", 500
+
 
 if __name__ == "__main__":
     if not STEAM_API_KEY: print("Warning: STEAM_API_KEY not set!")
