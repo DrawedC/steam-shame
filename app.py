@@ -385,9 +385,13 @@ def api_personality(steam_id):
         all_played = [g for g in games if g.get("playtime_forever",0) > 0]
         all_unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
 
-        owned_sample = random.sample(games, min(80, len(games)))
-        played_sample = random.sample(all_played, min(50, len(all_played))) if all_played else []
-        unplayed_sample = random.sample(all_unplayed, min(50, len(all_unplayed))) if all_unplayed else []
+        # NEW: Seed random with steam_id for consistent sampling across loads
+        random.seed(int(steam_id))
+
+        # Slightly increased sample sizes for better accuracy
+        owned_sample = random.sample(games, min(120, len(games)))
+        played_sample = random.sample(all_played, min(80, len(all_played))) if all_played else []
+        unplayed_sample = random.sample(all_unplayed, min(80, len(all_unplayed))) if all_unplayed else []
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
         sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
@@ -524,79 +528,71 @@ def friends_leaderboard(steam_id):
 
 @app.route("/share/<steam_id>.png")
 def share_image(steam_id):
+    """Generate an OG share image with the shame score."""
     try:
         pd = get_player_summary(steam_id)
-        players = pd.get("response", {}).get("players", [])
-        if not players:
-            return "Not found", 404
+        players = pd.get("response",{}).get("players",[])
+        if not players: return "Not found", 404
         p = players[0]
-        games = get_owned_games(steam_id).get("response", {}).get("games", [])
-        if not games:
-            return "No games", 404
+        games = get_owned_games(steam_id).get("response",{}).get("games",[])
+        if not games: return "No games", 404
         stats = analyze_library(games)
 
         W, H = 1200, 630
-        img = Image.new('RGB', (W, H), (12, 12, 18))
+        img = Image.new('RGB', (W, H), (10, 10, 12))
         draw = ImageDraw.Draw(img)
 
-        # Subtle dark gradient background
+        # Subtle gradient background
         for i in range(H):
-            r = int(12 + 10 * (i / H))
-            g = int(12 + 6 * (i / H))
-            b = int(18 + 14 * (i / H))
-            draw.line([(0, i), (W, i)], fill=(r, g, b))
+            r = int(10 + 8 * (i/H))
+            draw.line([(0,i),(W,i)], fill=(r, r-2, r+2))
 
-        # Glow accent behind big number
-        for radius in range(220, 0, -4):
-            alpha = int(35 * (radius / 220))
-            draw.ellipse(
-                [W//2 - radius, 80 - radius//2, W//2 + radius, 80 + radius//2 + 80],
-                fill=(alpha + 40, alpha//3, alpha + 60)
-            )
+        # Small accent glow at top center
+        for r_size in range(150, 0, -1):
+            alpha = int(25 * (r_size / 150))
+            draw.ellipse([W//2-r_size, -r_size//2, W//2+r_size, r_size//2+20],
+                        fill=(alpha+20, 0, alpha+30))
 
-        # Try to load nicer fonts (adjust paths if needed)
         try:
-            font_huge = ImageFont.truetype("arialbd.ttf", 180)     # or "DejaVuSans-Bold.ttf", etc.
-            font_large = ImageFont.truetype("arialbd.ttf", 72)
-            font_med = ImageFont.truetype("arial.ttf", 42)
-            font_sm = ImageFont.truetype("arial.ttf", 32)
+            font_huge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 160)
+            font_big = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42)
+            font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
+            font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
+            font_brand = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
         except:
-            font_huge = font_large = font_med = font_sm = ImageFont.load_default()
+            font_huge = ImageFont.load_default()
+            font_big = font_med = font_sm = font_brand = font_huge
 
-        name = p.get("personaname", "Player")
-        score_str = f"{stats['shame_score']:.1f}"
+        name = p.get("personaname", "Unknown")
+        score = str(stats["shame_score"])
 
         # Player name at top
-        draw.text((W//2, 50), name, fill=(220, 220, 240), font=font_large, anchor="mt")
+        draw.text((W//2, 60), name, fill=(255,255,255), font=font_big, anchor='mt')
 
-        # Huge shame score with gradient
-        # Simple fake gradient by drawing multiple times with offset
-        for dx, dy, color in [(-2,-2,(255,140,0)), (2,2,(255,60,140)), (0,0,(255,100,60))]:
-            draw.text((W//2 + dx, 140 + dy), score_str, fill=color, font=font_huge, anchor="mt")
+        # Big score number
+        draw.text((W//2, 140), score + "%", fill=(255,51,102), font=font_huge, anchor='mt')
 
-        # % symbol smaller
-        pct_x = W//2 + font_huge.getlength(score_str) // 2 + 10
-        draw.text((pct_x, 140 + 30), "%", fill=(255, 180, 100), font=font_med, anchor="lt")
+        # Label
+        draw.text((W//2, 340), "SHAME SCORE", fill=(100,100,100), font=font_med, anchor='mt')
 
-        # "SHAME SCORE" label
-        draw.text((W//2, 340), "SHAME SCORE", fill=(140, 140, 160), font=font_med, anchor="mt")
+        # Divider line
+        draw.line([(W//2-120, 390), (W//2+120, 390)], fill=(50,50,55), width=2)
 
-        # Stats line
-        stats_text = f"{stats['total_games']} games   •   {stats['played_count']} played   •   {stats['never_played_count']} never touched"
-        draw.text((W//2, 410), stats_text, fill=(180, 180, 200), font=font_sm, anchor="mt")
+        # Stats
+        stat_text = f"{stats['total_games']} games  ·  {stats['played_count']} played  ·  {stats['never_played_count']} never touched"
+        draw.text((W//2, 420), stat_text, fill=(160,160,160), font=font_sm, anchor='mt')
 
-        # Descriptor / verdict
-        desc = stats.get("descriptor", {}).get("title", "The Collector")
-        draw.text((W//2, 470), desc, fill=(200, 200, 220), font=font_med, anchor="mt")
+        # Descriptor
+        desc = stats["descriptor"]
+        draw.text((W//2, 470), desc['title'], fill=(200,200,200), font=font_med, anchor='mt')
 
-        # Small branding
-        draw.text((W//2, H - 50), "SteamShame • steam-shame.up.railway.app", fill=(90, 90, 110), font=font_sm, anchor="mt")
+        # Branding at bottom
+        draw.text((W//2, 570), "SteamShame", fill=(60,60,65), font=font_brand, anchor='mt')
 
         buf = io.BytesIO()
-        img.save(buf, format='PNG', optimize=True, quality=95)
+        img.save(buf, format='PNG', optimize=True)
         buf.seek(0)
-        return send_file(buf, mimetype='image/png', download_name=f"steam-shame-{steam_id}.png")
-
+        return send_file(buf, mimetype='image/png', download_name=f'steam-shame-{steam_id}.png')
     except Exception as e:
         log.error(f"Share image error: {e}")
         return "Error generating image", 500
