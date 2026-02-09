@@ -51,6 +51,41 @@
             .shame-woman{height:22vh;right:-2%;opacity:.4}
             .input-row button{padding:.9rem 1.3rem;font-size:.9rem}
         }
+        @media (max-width: 640px) {
+    body {
+        justify-content: flex-start;          /* Stop perfect vertical centering */
+    }
+
+    .page {
+        padding-top: 40px;                    /* Add some breathing room from very top */
+        padding-bottom: 80px;                 /* Prevent content touching bottom edge */
+        justify-content: flex-start;          /* Pull content upward */
+        min-height: auto;                     /* Remove forced full height */
+        height: auto;                         /* Let it grow naturally */
+    }
+
+    .logo-img {
+        margin-top: 20px;                     /* Small top margin instead of huge centering gap */
+        margin-bottom: 1.5rem;                /* Slightly less space below logo */
+        width: clamp(220px, 65vw, 300px);     /* Make logo a bit smaller on small phones */
+    }
+
+    .form-area {
+        margin-top: 0.5rem;                   /* Reduce gap above input */
+        margin-bottom: 1rem;
+    }
+
+    .input-row input,
+    .input-row button {
+        padding: 0.85rem 1rem;                /* Slightly smaller padding for compactness */
+        font-size: 0.95rem;
+    }
+
+    .help {
+        margin-top: 0.8rem;
+        font-size: 0.75rem;
+    }
+        }
     </style>
 </head>
 <body>
