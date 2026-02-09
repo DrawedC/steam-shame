@@ -147,11 +147,23 @@
             .sec-in{max-width:960px}
             .hero{min-height:100vh}
             .shame-num{font-size:12rem}
+            .shame-label{font-size:1.3rem;letter-spacing:.25em}
+            .player-name{font-size:1.6rem}
+            .hero-stat-val{font-size:1.3rem}
+            .hero-stat-lbl{font-size:.8rem}
+            .hero-badge-name{font-size:.9rem}
+            .hero-badge-desc{font-size:.75rem}
+            .hero-badge-icon{font-size:1.3rem}
+            .hero-badge{padding:.5rem 1rem}
 
-            /* Two-column layout for Shame Pile */
-            .shame-pile-grid{display:grid;grid-template-columns:300px 1fr;gap:2rem;align-items:start}
-            .pie-area{margin-bottom:0}
-            .pile-stats{display:flex;flex-direction:column;gap:1rem}
+            .sec-title{font-size:1.75rem}
+            .sec-sub{font-size:1rem}
+            .info-main{font-size:1.1rem}
+            .info-main .val{font-size:1.2rem}
+            .info-sub{font-size:.85rem}
+            .info-icon{font-size:2.5rem}
+
+            .pie-box{width:320px;height:320px}
 
             /* Gamer DNA tighter on desktop */
             .dna-grid{display:grid;grid-template-columns:1fr;gap:0}
@@ -159,15 +171,30 @@
 
             /* Suggest horizontal */
             .suggest-img{width:280px}
+            .suggest-name{font-size:1.25rem}
+            .suggest-eye{font-size:.8rem}
 
             /* Leaderboard wider */
             .lb-head,.lb-row{grid-template-columns:50px 1fr 80px 80px 80px}
+            .lb-row{font-size:.9rem}
+
+            .share-title{font-size:1.5rem}
+            .share-sub{font-size:.95rem}
+            .callout-text{font-size:1.1rem}
+
+            .scroll-hint{font-size:.85rem}
         }
 
         /* ===== TABLET (641-1023px) ===== */
         @media(min-width:641px) and (max-width:1023px){
             .sec-in{max-width:720px}
             .suggest-img{width:200px}
+            .shame-num{font-size:9rem}
+            .player-name{font-size:1.4rem}
+            .hero-stat-val{font-size:1.15rem}
+            .sec-title{font-size:1.6rem}
+            .info-main{font-size:1rem}
+            .pie-box{width:300px;height:300px}
         }
 
         /* ===== MOBILE (<=640px) ===== */
@@ -200,6 +227,9 @@
     </div>
     <div class="hero-badges">
         <div class="hero-badge"><div class="hero-badge-icon">{{ stats.descriptor.emoji }}</div><div class="hero-badge-text"><div class="hero-badge-name">{{ stats.descriptor.title }}</div><div class="hero-badge-desc">{{ stats.descriptor.description }}</div></div></div>
+        {% for b in instant_badges %}
+        <div class="hero-badge"><div class="hero-badge-icon">{{ b.emoji }}</div><div class="hero-badge-text"><div class="hero-badge-name">{{ b.name }}</div><div class="hero-badge-desc">{{ b.description }}</div></div></div>
+        {% endfor %}
         <div id="badges-slot"></div>
     </div>
     <div class="scroll-hint">Scroll for the damage<span>&#8595;</span></div>
@@ -268,6 +298,12 @@ const S=[
      g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]}
 ];
 const MOST_PLAYED = {% if stats.most_played %}{"name":"{{stats.most_played.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{stats.most_played.playtime_fmt}}"}{% else %}null{% endif %};
+// Full lists for "Show all" modal
+const FULL=[
+    [{% for g in stats.all_played %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
+    [{% for g in stats.all_abandoned %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
+    [{% for g in stats.all_unplayed %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]
+];
 let PD=null,RC=null,RL='owned';
 
 function show(id,h){document.getElementById(id+'-load').style.display='none';const e=document.getElementById(id+'-out');e.innerHTML=h;e.style.display='block'}
@@ -295,7 +331,7 @@ function selectPie(i){
     let h='<div class="detail-header"><div class="detail-title" style="color:'+s.c+'">'+s.l+' — '+s.n+' games ('+s.pct+')</div><button class="detail-close" onclick="closePie()">&#x2715;</button></div><div class="detail-list">';
     s.g.forEach(g=>{h+='<div class="g-row"><div class="g-name">'+g.name+'</div><div class="g-time">'+g.pt+'</div></div>'});
     if(!s.g.length)h+='<div class="g-row"><div class="g-name" style="color:#333">No games to show</div></div>';
-    h+='</div>';if(s.t>s.g.length)h+='<button class="expand-btn" onclick="openModal(\''+s.l.replace(/'/g,"\\'")+'\',S['+i+'].g)">Show all '+s.t+'</button>';
+    h+='</div>';if(s.t>s.g.length)h+='<button class="expand-btn" onclick="openModal(\''+s.l.replace(/'/g,"\\'")+'\',FULL['+i+'])">Show all '+s.t+'</button>';
     p.innerHTML=h;p.classList.add('open');p.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function closePie(){document.getElementById('pie-detail').classList.remove('open')}
 
@@ -358,10 +394,14 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     h+='</div>';
     h+='<div class="radar-disclaimer">Based on a sample of your library</div>';
 
-    // Badges into hero
+    // Async badges: only mismatch + early access (instant badges already rendered server-side)
     let bh='';
     if(data.mismatch_badge)bh+='<div class="hero-badge highlight"><div class="hero-badge-icon">'+data.mismatch_badge.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+data.mismatch_badge.title+'</div><div class="hero-badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
-    if(data.badges)data.badges.forEach(b=>{bh+='<div class="hero-badge"><div class="hero-badge-icon">'+b.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+b.name+'</div><div class="hero-badge-desc">'+b.description+'</div></div></div>'});
+    if(data.badges){
+        // Only add badges not already rendered (Early Access Addict is the async one)
+        const instantNames=new Set([{% for b in instant_badges %}"{{b.name}}",{% endfor %}]);
+        data.badges.forEach(b=>{if(!instantNames.has(b.name))bh+='<div class="hero-badge"><div class="hero-badge-icon">'+b.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+b.name+'</div><div class="hero-badge-desc">'+b.description+'</div></div></div>'});
+    }
     document.getElementById('badges-slot').innerHTML=bh;
     show('dna',h);
 
