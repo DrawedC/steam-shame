@@ -10,42 +10,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',-apple-system,sans-serif;background:#0a0a0c;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;color:#e5e5e5}
-        .wrap{max-width:440px;width:100%;text-align:center}
-        .logo{font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:.3rem}
-        .logo span{background:linear-gradient(135deg,#ff3366,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .tagline{font-size:1.05rem;color:#555;margin-bottom:2.5rem}
-        .form-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.75rem;margin-bottom:2rem}
-        .error{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.2);padding:.75rem 1rem;border-radius:10px;margin-bottom:1rem;color:#ff3366;font-size:.9rem}
-        .input-row{display:flex;gap:.5rem;margin-bottom:.75rem}
-        .input-row input{flex:1;padding:.75rem 1rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:.95rem;font-family:inherit;outline:none;transition:border-color .2s}
+        body{font-family:'Inter',-apple-system,sans-serif;background:#1a1a1e;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e5e5e5;overflow:hidden;position:relative}
+        body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(30,50,80,.4),transparent 60%),radial-gradient(ellipse at 80% 70%,rgba(40,20,30,.3),transparent 50%);pointer-events:none;z-index:0}
+
+        .page{position:relative;z-index:1;width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+        .logo-img{width:180px;height:auto;margin-bottom:.75rem;filter:drop-shadow(0 4px 24px rgba(0,100,200,.3))}
+        .title{font-size:clamp(3.5rem,10vw,8rem);font-weight:900;letter-spacing:.04em;line-height:.95;text-align:center;color:#fff;text-shadow:0 0 60px rgba(100,160,255,.15),0 2px 0 rgba(0,0,0,.3);margin-bottom:2rem;user-select:none}
+        .title span{display:inline-block;background:linear-gradient(180deg,#ffffff 0%,#8ebbdb 60%,#3a6d94 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        .form-area{position:relative;z-index:10;width:100%;max-width:620px;margin-bottom:1.5rem}
+        .error{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.2);padding:.75rem 1rem;border-radius:10px;margin-bottom:1rem;color:#ff3366;font-size:.9rem;text-align:center}
+        .input-row{display:flex;gap:0;width:100%}
+        .input-row input{flex:1;padding:.9rem 1.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px 0 0 12px;color:#fff;font-size:1rem;font-family:inherit;outline:none;transition:border-color .2s}
         .input-row input:focus{border-color:rgba(255,255,255,.25)}
-        .input-row input::placeholder{color:#444}
-        .input-row button{padding:.75rem 1.5rem;background:#ff3366;border:none;border-radius:10px;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .1s,opacity .2s}
-        .input-row button:hover{opacity:.9;transform:translateY(-1px)}
-        .help{font-size:.8rem;color:#444;text-align:left;line-height:1.5}
+        .input-row input::placeholder{color:#555}
+        .input-row button{padding:.9rem 2rem;background:linear-gradient(135deg,#ff3366,#ff1a53);border:none;border-radius:0 12px 12px 0;color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.08em;transition:transform .1s,box-shadow .2s;text-transform:uppercase}
+        .input-row button:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,51,102,.4)}
+        .help{font-size:.8rem;color:#444;text-align:center;line-height:1.5;margin-top:.6rem}
         .help code{color:#666;background:rgba(255,255,255,.05);padding:.1rem .3rem;border-radius:3px;font-size:.75rem}
-        .features{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:2rem}
-        .feat{padding:.75rem .5rem}
-        .feat-icon{font-size:1.5rem;margin-bottom:.35rem}
+
+        .features{display:flex;gap:2rem;margin-top:2rem;margin-bottom:2rem}
+        .feat{text-align:center}
+        .feat-icon{font-size:1.5rem;margin-bottom:.3rem}
         .feat-text{font-size:.8rem;color:#555;line-height:1.3}
-        .footer{font-size:.75rem;color:#333;line-height:1.6}
+
+        .footer{font-size:.75rem;color:#333;line-height:1.6;text-align:center;margin-top:1rem}
         .footer a{color:#555;text-decoration:none}.footer a:hover{color:#888}
-        @media(max-width:480px){.features{grid-template-columns:1fr}.logo{font-size:2rem}}
+
+        .shame-woman{position:fixed;bottom:0;right:2%;z-index:2;pointer-events:none;height:55vh;max-height:500px;object-fit:contain;opacity:.85;filter:drop-shadow(-4px 0 20px rgba(0,0,0,.5))}
+
+        @media(min-width:1024px){
+            .title{font-size:clamp(5rem,9vw,9rem)}
+            .logo-img{width:220px}
+            .form-area{max-width:640px}
+        }
+        @media(max-width:1023px) and (min-width:641px){
+            .shame-woman{height:40vh;right:0}
+        }
+        @media(max-width:640px){
+            .page{padding:1.5rem 1rem;justify-content:center}
+            .logo-img{width:120px}
+            .title{font-size:clamp(2.5rem,12vw,4rem);margin-bottom:1.5rem}
+            .features{gap:1rem}
+            .shame-woman{height:28vh;right:-2%;opacity:.5}
+            .input-row button{padding:.9rem 1.3rem;font-size:.9rem}
+        }
     </style>
 </head>
 <body>
-    <div class="wrap">
-        <div class="logo">Steam<span>Shame</span></div>
-        <p class="tagline">How bad is your backlog, really?</p>
-        <div class="form-box">
+    <div class="page">
+        <img src="/static/steam_shame_logo.png" alt="Steam Shame" class="logo-img">
+        <div class="title"><span>STEAM SHAME</span></div>
+        <div class="form-area">
             {% if error %}<div class="error">{{ error }}</div>{% endif %}
             <form action="/lookup" method="POST">
                 <div class="input-row">
                     <input type="text" name="steam_input" placeholder="Steam URL or username" required autocomplete="off">
-                    <button type="submit">Check</button>
+                    <button type="submit">Shame</button>
                 </div>
-                <p class="help">Paste your Steam profile URL, Steam ID, or custom URL.<br>Example: <code>steamcommunity.com/id/yourname</code></p>
+                <p class="help">Paste your Steam profile URL, Steam ID, or custom URL. Example: <code>steamcommunity.com/id/yourname</code></p>
             </form>
         </div>
         <div class="features">
@@ -55,5 +78,6 @@
         </div>
         <div class="footer">Your Steam profile and game details must be <strong style="color:#555">Public</strong><br><a href="https://steamcommunity.com/my/edit/settings" target="_blank">Check your privacy settings →</a></div>
     </div>
+    <img src="/static/shame_woman.png" alt="" class="shame-woman">
 </body>
 </html>
