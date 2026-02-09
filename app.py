@@ -13,11 +13,11 @@ STEAM_API_KEY = os.environ.get("STEAM_API_KEY", "")
 # Caches
 _store_cache = {}
 _store_cache_lock = threading.Lock()
-STORE_CACHE_TTL = 86400  # 24 hours â€” genres rarely change
+STORE_CACHE_TTL = 86400  # 24 hours — genres rarely change
 
 _games_cache = {}
 _games_cache_lock = threading.Lock()
-GAMES_CACHE_TTL = 300  # 5 min â€” avoids re-fetching for async endpoints
+GAMES_CACHE_TTL = 300  # 5 min — avoids re-fetching for async endpoints
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -189,23 +189,23 @@ def analyze_library(games):
 
 # ============== Genre ==============
 GENRE_CATEGORIES = {
-    "fps_shooter":{"names":["FPS","Shooter","First-Person Shooter","Third-Person Shooter"],"label":"Shooter","emoji":"ðŸ”«"},
-    "rpg":{"names":["RPG","JRPG","Action RPG","Turn-Based RPG","CRPG","Role-Playing"],"label":"RPG","emoji":"âš”ï¸"},
-    "strategy":{"names":["Strategy","Real-Time Strategy","Turn-Based Strategy","Tower Defense","RTS","4X","Grand Strategy"],"label":"Strategy","emoji":"ðŸ§ "},
-    "survival":{"names":["Survival","Survival Horror","Crafting","Base Building","Open World Survival Craft"],"label":"Survival","emoji":"ðŸ•ï¸"},
-    "simulation":{"names":["Simulation","Life Sim","Farming Sim","Management","City Builder","Building"],"label":"Simulation","emoji":"ðŸ—ï¸"},
-    "action":{"names":["Action","Hack and Slash","Beat 'em up","Action-Adventure"],"label":"Action","emoji":"ðŸ’¥"},
-    "puzzle":{"names":["Puzzle","Logic","Hidden Object"],"label":"Puzzle","emoji":"ðŸ§©"},
-    "platformer":{"names":["Platformer","2D Platformer","3D Platformer","Precision Platformer"],"label":"Platformer","emoji":"ðŸ„"},
-    "horror":{"names":["Horror","Psychological Horror","Survival Horror"],"label":"Horror","emoji":"ðŸ‘»"},
-    "racing":{"names":["Racing","Driving","Automobile Sim"],"label":"Racing","emoji":"ðŸŽï¸"},
-    "sports":{"names":["Sports","Football","Basketball","Baseball","Soccer","Golf"],"label":"Sports","emoji":"âš½"},
-    "sandbox":{"names":["Sandbox","Open World","Exploration"],"label":"Open World","emoji":"ðŸŒ"},
-    "roguelike":{"names":["Roguelike","Roguelite","Roguevania","Procedural Generation"],"label":"Roguelike","emoji":"ðŸ’€"},
-    "multiplayer":{"names":["Massively Multiplayer","MMO","MMORPG","Co-op","Multiplayer"],"label":"Multiplayer","emoji":"ðŸ‘¥"},
-    "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game"],"label":"Casual","emoji":"ðŸŽ²"},
-    "visual_novel":{"names":["Visual Novel","Dating Sim","Choose Your Own Adventure","Interactive Fiction"],"label":"Visual Novel","emoji":"ðŸ“–"},
-    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":"ðŸ¥Š"},
+    "fps_shooter":{"names":["FPS","Shooter","First-Person Shooter","Third-Person Shooter"],"label":"Shooter","emoji":"🔫"},
+    "rpg":{"names":["RPG","JRPG","Action RPG","Turn-Based RPG","CRPG","Role-Playing"],"label":"RPG","emoji":"⚔ï¸"},
+    "strategy":{"names":["Strategy","Real-Time Strategy","Turn-Based Strategy","Tower Defense","RTS","4X","Grand Strategy"],"label":"Strategy","emoji":"🧠"},
+    "survival":{"names":["Survival","Survival Horror","Crafting","Base Building","Open World Survival Craft"],"label":"Survival","emoji":"🏕️"},
+    "simulation":{"names":["Simulation","Life Sim","Farming Sim","Management","City Builder","Building"],"label":"Simulation","emoji":"🏗️"},
+    "action":{"names":["Action","Hack and Slash","Beat 'em up","Action-Adventure"],"label":"Action","emoji":"💥"},
+    "puzzle":{"names":["Puzzle","Logic","Hidden Object"],"label":"Puzzle","emoji":"🧩"},
+    "platformer":{"names":["Platformer","2D Platformer","3D Platformer","Precision Platformer"],"label":"Platformer","emoji":"🏄"},
+    "horror":{"names":["Horror","Psychological Horror","Survival Horror"],"label":"Horror","emoji":"👻"},
+    "racing":{"names":["Racing","Driving","Automobile Sim"],"label":"Racing","emoji":"🏎️"},
+    "sports":{"names":["Sports","Football","Basketball","Baseball","Soccer","Golf"],"label":"Sports","emoji":"⚽"},
+    "sandbox":{"names":["Sandbox","Open World","Exploration"],"label":"Open World","emoji":"🌍"},
+    "roguelike":{"names":["Roguelike","Roguelite","Roguevania","Procedural Generation"],"label":"Roguelike","emoji":"💀"},
+    "multiplayer":{"names":["Massively Multiplayer","MMO","MMORPG","Co-op","Multiplayer"],"label":"Multiplayer","emoji":"👥"},
+    "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game"],"label":"Casual","emoji":"🎲"},
+    "visual_novel":{"names":["Visual Novel","Dating Sim","Choose Your Own Adventure","Interactive Fiction"],"label":"Visual Novel","emoji":"📖"},
+    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":"🥊"},
 }
 
 def classify_game_genres(store_data):
@@ -225,13 +225,13 @@ def detect_descriptor(stats):
     unplayed_pct = (stats["never_played_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
 
     if played_pct > 50:
-        return {"type": "player", "emoji": "ðŸŽ®", "title": "The Player",
+        return {"type": "player", "emoji": "🎮", "title": "The Player",
                 "description": "You actually play your games. A rare breed."}
     elif abandoned_pct > played_pct and abandoned_pct > unplayed_pct:
-        return {"type": "sampler", "emoji": "ðŸ§ª", "title": "The Sampler",
+        return {"type": "sampler", "emoji": "🧪", "title": "The Sampler",
                 "description": "You try everything but commit to nothing."}
     else:
-        return {"type": "collector", "emoji": "ðŸ›ï¸", "title": "The Collector",
+        return {"type": "collector", "emoji": "🏛️", "title": "The Collector",
                 "description": "You buy games like they're going out of style. They're not."}
 
 
@@ -366,7 +366,7 @@ def api_suggest(steam_id):
         pick = random.choice(unplayed)
         appid = pick["appid"]
         name = pick.get("name","Unknown")
-        # Steam capsule image â€” better aspect ratio than header.jpg
+        # Steam capsule image — better aspect ratio than header.jpg
         img = f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/capsule_616x353.jpg"
         store_url = f"https://store.steampowered.com/app/{appid}"
         return jsonify({"name":name,"appid":appid,"image":img,"store_url":store_url})
@@ -415,7 +415,7 @@ def api_personality(steam_id):
             return {k: round((counts.get(k,0)/t)*100,1) for k in all_genres}
 
         labels = [{"key":k,"label":GENRE_CATEGORIES.get(k,{}).get("label",k),
-                   "emoji":GENRE_CATEGORIES.get(k,{}).get("emoji","ðŸŽ®")} for k in all_genres]
+                   "emoji":GENRE_CATEGORIES.get(k,{}).get("emoji","🎮")} for k in all_genres]
         on, pn, un = norm(oc), norm(pc), norm(uc)
         radar = {"labels":labels,
                  "owned":[on.get(k,0) for k in all_genres],
@@ -428,7 +428,7 @@ def api_personality(steam_id):
             top = max(counts.items(), key=lambda x: x[1])
             t = sum(counts.values()) or 1
             i = GENRE_CATEGORIES.get(top[0],{})
-            return {"key":top[0],"label":i.get("label",top[0]),"emoji":i.get("emoji","ðŸŽ®"),"pct":round((top[1]/t)*100,1)}
+            return {"key":top[0],"label":i.get("label",top[0]),"emoji":i.get("emoji","🎮"),"pct":round((top[1]/t)*100,1)}
 
         om, pm, um = maj(oc), maj(pc), maj(uc)
         mismatch = pm and um and pm["key"] != um["key"]
@@ -439,7 +439,7 @@ def api_personality(steam_id):
         # Mismatch badge for Gamer DNA
         mismatch_badge = None
         if mismatch and um:
-            mismatch_badge = {"emoji": "ðŸ¤”", "title": f"Thinks They Like {um['label']}",
+            mismatch_badge = {"emoji": "🤔", "title": f"Thinks They Like {um['label']}",
                               "description": f"Your unplayed library is full of {um['emoji']} {um['label']} games, but that's not what you actually play."}
 
         return jsonify({"radar":radar,"genre_games":genre_games,"overall_majority":om,
@@ -575,7 +575,7 @@ def share_image(steam_id):
         draw.line([(W//2-120, 390), (W//2+120, 390)], fill=(50,50,55), width=2)
 
         # Stats
-        stat_text = f"{stats['total_games']} games  Â·  {stats['played_count']} played  Â·  {stats['never_played_count']} never touched"
+        stat_text = f"{stats['total_games']} games  ·  {stats['played_count']} played  ·  {stats['never_played_count']} never touched"
         draw.text((W//2, 420), stat_text, fill=(160,160,160), font=font_sm, anchor='mt')
 
         # Descriptor
