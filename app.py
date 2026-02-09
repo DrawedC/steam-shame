@@ -154,7 +154,7 @@ def analyze_library(games):
                  "playtime":g.get("playtime_forever",0),
                  "playtime_fmt":format_playtime(g.get("playtime_forever",0))} for g in lst[:limit]]
 
-    backlog_days = round(len(raw_unplayed) * 10)  # 10h avg at 1h/day
+    backlog_hours = len(raw_unplayed) * 10  # ~10 hours avg per game
 
     # Pick a random unplayed game to suggest
     suggest = None
@@ -178,7 +178,7 @@ def analyze_library(games):
         "abandoned_games": gl(abandoned, 30),
         "unplayed_games": gl(random.sample(unplayed, min(30, len(unplayed))) if unplayed else [], 30),
         "played_total": len(played), "abandoned_total": len(abandoned), "unplayed_total": len(unplayed),
-        "shame_score": shame, "verdict": verdict, "backlog_days": backlog_days,
+        "shame_score": shame, "verdict": verdict, "backlog_hours": backlog_hours,
         "suggest": suggest, "most_played": most_played,
     }
     result["descriptor"] = detect_descriptor(result)
@@ -186,23 +186,12 @@ def analyze_library(games):
 
 # ============== Genre ==============
 GENRE_CATEGORIES = {
-    "fps_shooter":{"names":["FPS","Shooter","First-Person Shooter","Third-Person Shooter"],"label":"Shooter","emoji":"🔫"},
-    "rpg":{"names":["RPG","JRPG","Action RPG","Turn-Based RPG","CRPG","Role-Playing"],"label":"RPG","emoji":"⚔️"},
-    "strategy":{"names":["Strategy","Real-Time Strategy","Turn-Based Strategy","Tower Defense","RTS","4X","Grand Strategy"],"label":"Strategy","emoji":"🧠"},
-    "survival":{"names":["Survival","Survival Horror","Crafting","Base Building","Open World Survival Craft"],"label":"Survival","emoji":"🏕️"},
-    "simulation":{"names":["Simulation","Life Sim","Farming Sim","Management","City Builder","Building"],"label":"Simulation","emoji":"🏗️"},
-    "action":{"names":["Action","Hack and Slash","Beat 'em up","Action-Adventure"],"label":"Action","emoji":"💥"},
-    "puzzle":{"names":["Puzzle","Logic","Hidden Object"],"label":"Puzzle","emoji":"🧩"},
-    "platformer":{"names":["Platformer","2D Platformer","3D Platformer","Precision Platformer"],"label":"Platformer","emoji":"🍄"},
-    "horror":{"names":["Horror","Psychological Horror","Survival Horror"],"label":"Horror","emoji":"👻"},
-    "racing":{"names":["Racing","Driving","Automobile Sim"],"label":"Racing","emoji":"🏎️"},
-    "sports":{"names":["Sports","Football","Basketball","Baseball","Soccer","Golf"],"label":"Sports","emoji":"⚽"},
-    "sandbox":{"names":["Sandbox","Open World","Exploration"],"label":"Open World","emoji":"🌍"},
-    "roguelike":{"names":["Roguelike","Roguelite","Roguevania","Procedural Generation"],"label":"Roguelike","emoji":"💀"},
-    "multiplayer":{"names":["Massively Multiplayer","MMO","MMORPG","Co-op","Multiplayer"],"label":"Multiplayer","emoji":"👥"},
-    "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game"],"label":"Casual","emoji":"🎲"},
-    "visual_novel":{"names":["Visual Novel","Dating Sim","Choose Your Own Adventure","Interactive Fiction"],"label":"Visual Novel","emoji":"📖"},
-    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":"🥊"},
+    "fps":{"names":["FPS","Shooter","First-Person Shooter","Third-Person Shooter"],"label":"FPS","emoji":"🔫"},
+    "rpg":{"names":["RPG","JRPG","Action RPG","Turn-Based RPG","CRPG","Role-Playing","Action-Adventure","Hack and Slash"],"label":"RPG","emoji":"⚔️"},
+    "sports":{"names":["Sports","Football","Basketball","Baseball","Soccer","Golf","Racing","Driving","Automobile Sim"],"label":"Sports","emoji":"⚽"},
+    "simulation":{"names":["Simulation","Life Sim","Farming Sim","Management","City Builder","Building","Sandbox","Open World","Survival","Crafting","Base Building","Open World Survival Craft"],"label":"Simulation","emoji":"🏗️"},
+    "strategy":{"names":["Strategy","Real-Time Strategy","Turn-Based Strategy","Tower Defense","RTS","4X","Grand Strategy","Puzzle","Logic","Roguelike","Roguelite"],"label":"Strategy","emoji":"🧠"},
+    "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game","Platformer","2D Platformer","3D Platformer","Visual Novel","Dating Sim","Interactive Fiction","Horror","Psychological Horror","Fighting","Martial Arts","Beat 'em up"],"label":"Casual","emoji":"🎲"},
 }
 
 def classify_game_genres(store_data):
