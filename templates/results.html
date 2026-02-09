@@ -80,7 +80,16 @@
         .info-icon{font-size:2.2rem;flex-shrink:0;line-height:1;order:1}
 
         /* Gamer DNA - TIGHTER */
-        .radar-box{display:flex;justify-content:center;margin-bottom:0}
+        .radar-box {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem auto;           /* more breathing room around it */
+    max-width: 720px;              /* prevents it from going crazy wide on ultrawide */
+}
+#radar-cv {
+    width: 100% !important;
+    height: auto !important;
+}
         .dna-toggles{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.5rem;margin-bottom:.4rem}
         .dna-btn{padding:.35rem .9rem;border-radius:50px;font-size:.75rem;font-weight:600;cursor:default;border:2px solid transparent;font-family:inherit;background:rgba(255,255,255,.04);color:#555}
         .dna-btn.active{color:#fff}
@@ -477,9 +486,9 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
         h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
 
-    // Tighter radar sizing
-    const radarSize=Math.min(460,window.innerWidth-60);
-    h+='<div class="radar-box"><canvas id="radar-cv" width="'+radarSize+'" height="'+radarSize+'" style="max-width:'+radarSize+'px;width:100%"></canvas></div>';
+// Bigger radar sizing – feels better on desktop
+const radarSize = Math.min(620, window.innerWidth - 80);   // ← increased from 460 → 620
+h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" height="' + radarSize + '" style="max-width:' + radarSize + 'px; width:100%; height:auto;"></canvas></div>';
     h+='<div class="dna-toggles">';
     if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
     if(data.played_majority)h+='<div class="dna-btn" data-layer="played">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</div>';
