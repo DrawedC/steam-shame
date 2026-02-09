@@ -437,23 +437,40 @@ def api_personality(steam_id):
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
         sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
 
-        def count_genres(game_list):
-            counts, names = {}, {}
-            for g in game_list:
-                d = sd.get(g["appid"])
-                if not d: continue
-                cats = classify_game_genres(d)
-                nm = g.get("name","Unknown")
-                for c in cats:
-                    counts[c] = counts.get(c,0)+1
-                    names.setdefault(c,[]).append(nm)
-            return counts, names
+ def count_genres(game_list, weight_by_playtime=False):
+    """
+    Count genres with optional playtime weighting
+    """
+    counts = {}
+    names = {}  # for showing example games
 
-        oc, og = count_genres(owned_sample)
-        pc, pg = count_genres(played_sample)
-        uc, ug = count_genres(unplayed_sample)
+    for g in game_list:
+        d = sd.get(g["appid"])
+        if not d:
+            continue
 
-        all_genres = sorted(set(list(oc)+list(pc)+list(uc)))
+        genres = classify_game_genres(d)
+        playtime = g.get("playtime_forever", 0) if weight_by_playtime else 1
+        weight = max(1, playtime / 60)  # hours as weight (min 1)
+
+        nm = g.get("name", "Unknown")
+        for gen in genres:
+            counts[gen] = counts.get(gen, 0) + weight
+            names.setdefault(gen, []).append(nm)
+
+    return counts, names
+
+# Then in the main function:
+oc, og = count_genres(owned_sample, weight_by_playtime=False)      # overall ownership
+pc, pg = count_genres(played_sample, weight_by_playtime=True)      # played → weight by time
+uc, ug = count_genres(unplayed_sample, weight_by_playtime=False)   # unplayed
+
+# Normalize to percentages (same as before)
+def norm(counts):
+    total = sum(counts.values()) or 1
+    return {k: round((v / total) * 100, 1) for k, v in counts.items()}
+
+# ... rest of your code (all_genres, radar data, majorities, etc.) remains the same
 
         def norm(counts):
             t = sum(counts.values()) or 1
