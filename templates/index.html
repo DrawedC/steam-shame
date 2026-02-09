@@ -3,200 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steam Shame - How bad is your backlog?</title>
+    <title>Steam Shame — How bad is your backlog?</title>
+    <meta property="og:title" content="Steam Shame — How bad is your backlog?">
+    <meta property="og:description" content="Find out how many games you own and never played. Then feel bad about it.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😬</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #1b2838 0%, #171a21 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #c7d5e0;
-        }
-        
-        .container {
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            color: #fff;
-        }
-        
-        .emoji {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        
-        .tagline {
-            font-size: 1.2rem;
-            color: #8f98a0;
-            margin-bottom: 2rem;
-        }
-        
-        .form-container {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 1rem;
-        }
-        
-        input[type="text"] {
-            flex: 1;
-            padding: 14px 18px;
-            font-size: 1rem;
-            border: 2px solid #2a475e;
-            border-radius: 8px;
-            background: #1b2838;
-            color: #fff;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        
-        input[type="text"]:focus {
-            border-color: #66c0f4;
-        }
-        
-        input[type="text"]::placeholder {
-            color: #6b7c8b;
-        }
-        
-        button {
-            padding: 14px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #4c6b22 0%, #5c7e10 100%);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.2s;
-        }
-        
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(92, 126, 16, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .help-text {
-            font-size: 0.85rem;
-            color: #6b7c8b;
-            text-align: left;
-        }
-        
-        .error {
-            background: rgba(205, 65, 65, 0.2);
-            border: 1px solid #cd4141;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            color: #ff6b6b;
-        }
-        
-        .features {
-            margin-top: 3rem;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            text-align: center;
-        }
-        
-        .feature {
-            padding: 1rem;
-        }
-        
-        .feature-emoji {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .feature-text {
-            font-size: 0.9rem;
-            color: #8f98a0;
-        }
-        
-        footer {
-            margin-top: 3rem;
-            font-size: 0.8rem;
-            color: #6b7c8b;
-        }
-        
-        footer a {
-            color: #66c0f4;
-            text-decoration: none;
-        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',-apple-system,sans-serif;background:#0a0a0c;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;color:#e5e5e5}
+        .wrap{max-width:440px;width:100%;text-align:center}
+        .logo{font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:.3rem}
+        .logo span{background:linear-gradient(135deg,#ff3366,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .tagline{font-size:1.05rem;color:#555;margin-bottom:2.5rem}
+        .form-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.75rem;margin-bottom:2rem}
+        .error{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.2);padding:.75rem 1rem;border-radius:10px;margin-bottom:1rem;color:#ff3366;font-size:.9rem}
+        .input-row{display:flex;gap:.5rem;margin-bottom:.75rem}
+        .input-row input{flex:1;padding:.75rem 1rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:.95rem;font-family:inherit;outline:none;transition:border-color .2s}
+        .input-row input:focus{border-color:rgba(255,255,255,.25)}
+        .input-row input::placeholder{color:#444}
+        .input-row button{padding:.75rem 1.5rem;background:#ff3366;border:none;border-radius:10px;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .1s,opacity .2s}
+        .input-row button:hover{opacity:.9;transform:translateY(-1px)}
+        .help{font-size:.8rem;color:#444;text-align:left;line-height:1.5}
+        .help code{color:#666;background:rgba(255,255,255,.05);padding:.1rem .3rem;border-radius:3px;font-size:.75rem}
+        .features{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:2rem}
+        .feat{padding:.75rem .5rem}
+        .feat-icon{font-size:1.5rem;margin-bottom:.35rem}
+        .feat-text{font-size:.8rem;color:#555;line-height:1.3}
+        .footer{font-size:.75rem;color:#333;line-height:1.6}
+        .footer a{color:#555;text-decoration:none}.footer a:hover{color:#888}
+        @media(max-width:480px){.features{grid-template-columns:1fr}.logo{font-size:2rem}}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="emoji">😬</div>
-        <h1>Steam Shame</h1>
+    <div class="wrap">
+        <div class="logo">Steam<span>Shame</span></div>
         <p class="tagline">How bad is your backlog, really?</p>
-        
-        <div class="form-container">
-            {% if error %}
-            <div class="error">{{ error }}</div>
-            {% endif %}
-            
+        <div class="form-box">
+            {% if error %}<div class="error">{{ error }}</div>{% endif %}
             <form action="/lookup" method="POST">
-                <div class="input-group">
-                    <input 
-                        type="text" 
-                        name="steam_input" 
-                        placeholder="Steam profile URL or username"
-                        required
-                        autocomplete="off"
-                    >
+                <div class="input-row">
+                    <input type="text" name="steam_input" placeholder="Steam URL or username" required autocomplete="off">
                     <button type="submit">Check</button>
                 </div>
-                <p class="help-text">
-                    Paste your Steam profile URL, Steam ID, or custom URL name.<br>
-                    Example: <code>https://steamcommunity.com/id/yourname</code>
-                </p>
+                <p class="help">Paste your Steam profile URL, Steam ID, or custom URL.<br>Example: <code>steamcommunity.com/id/yourname</code></p>
             </form>
         </div>
-        
         <div class="features">
-            <div class="feature">
-                <div class="feature-emoji">📊</div>
-                <div class="feature-text">See your shame score</div>
-            </div>
-            <div class="feature">
-                <div class="feature-emoji">🎮</div>
-                <div class="feature-text">Games you forgot you own</div>
-            </div>
-            <div class="feature">
-                <div class="feature-emoji">📸</div>
-                <div class="feature-text">Share your results</div>
-            </div>
+            <div class="feat"><div class="feat-icon">📊</div><div class="feat-text">Your shame score</div></div>
+            <div class="feat"><div class="feat-icon">🧬</div><div class="feat-text">Genre breakdown</div></div>
+            <div class="feat"><div class="feat-icon">🏆</div><div class="feat-text">Friends leaderboard</div></div>
         </div>
-        
-        <footer>
-            ⚠️ Your Steam profile & game details must be set to <strong>Public</strong><br>
-            <a href="https://steamcommunity.com/my/edit/settings" target="_blank">Check your privacy settings</a>
-        </footer>
+        <div class="footer">Your Steam profile and game details must be <strong style="color:#555">Public</strong><br><a href="https://steamcommunity.com/my/edit/settings" target="_blank">Check your privacy settings →</a></div>
     </div>
 </body>
 </html>

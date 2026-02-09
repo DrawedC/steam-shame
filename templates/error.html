@@ -3,70 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - Steam Shame</title>
+    <title>Error — Steam Shame</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😬</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #1b2838 0%, #171a21 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #c7d5e0;
-        }
-        
-        .container {
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .emoji {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        
-        h1 {
-            font-size: 1.8rem;
-            color: #ff6b6b;
-            margin-bottom: 1rem;
-        }
-        
-        p {
-            color: #8f98a0;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-        
-        a {
-            display: inline-block;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #4c6b22 0%, #5c7e10 100%);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-        
-        a:hover {
-            transform: translateY(-1px);
-        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',-apple-system,sans-serif;background:#0a0a0c;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;color:#e5e5e5}
+        .wrap{max-width:440px;width:100%;text-align:center}
+        .icon{font-size:3rem;margin-bottom:1rem}
+        h1{font-size:1.5rem;color:#ff3366;margin-bottom:.75rem;font-weight:700}
+        p{color:#666;line-height:1.6;margin-bottom:2rem;font-size:.95rem}
+        a.btn{display:inline-block;padding:.65rem 1.75rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#ccc;text-decoration:none;border-radius:10px;font-weight:600;font-size:.9rem;transition:all .15s}
+        a.btn:hover{background:rgba(255,255,255,.1);color:#fff}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="emoji">😕</div>
+    <div class="wrap">
+        <div class="icon">😕</div>
         <h1>{{ error }}</h1>
         <p>{{ message }}</p>
-        <a href="/">← Try Again</a>
+        <a href="/" class="btn">← Try again</a>
     </div>
 </body>
 </html>

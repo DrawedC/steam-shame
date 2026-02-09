@@ -6,281 +6,447 @@
     <title>{{ player_name }}'s Steam Shame</title>
     <meta property="og:title" content="{{ player_name }}'s Steam Shame: {{ stats.shame_score }}%">
     <meta property="og:description" content="I own {{ stats.total_games }} games and have never touched {{ stats.never_played_count }} of them.">
+    <meta property="og:image" content="{{ request.url_root }}share/{{ steam_id }}.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{{ request.url_root }}share/{{ steam_id }}.png">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😬</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',-apple-system,sans-serif;background:#0a0a0c;min-height:100vh;color:#e5e5e5;overflow-x:hidden}
-        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;background:radial-gradient(ellipse at 50% 0%,rgba(120,0,255,.15),transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(255,50,100,.1),transparent 40%),radial-gradient(ellipse at 20% 80%,rgba(0,150,255,.1),transparent 40%),#0a0a0c}
-        .player-header{display:flex;align-items:center;gap:1rem;margin-bottom:3rem;opacity:0;animation:fadeInUp .6s ease forwards}
-        .avatar{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,.2)}.player-name{font-size:1.5rem;font-weight:600;color:#fff}.player-subtitle{color:#666;font-size:.9rem;margin-top:.25rem}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',-apple-system,sans-serif;background:#0a0a0c;min-height:100vh;color:#e5e5e5;overflow-x:hidden}
+
+        /* Search bar */
+        .top-bar{position:fixed;top:0;left:0;right:0;z-index:100;padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;background:rgba(10,10,12,.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06);transition:transform .3s}
+        .top-bar.hidden{transform:translateY(-100%)}
+        .top-logo{color:#fff;font-weight:800;font-size:1rem;white-space:nowrap;text-decoration:none}
+        .top-logo span{color:#ff3366}
+        .top-search{flex:1;max-width:400px;display:flex}
+        .top-search input{flex:1;padding:.5rem .9rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px 0 0 8px;color:#fff;font-size:.85rem;font-family:inherit;outline:none}
+        .top-search input:focus{border-color:rgba(255,255,255,.25)}
+        .top-search input::placeholder{color:#555}
+        .top-search button{padding:.5rem 1rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.1);border-left:none;border-radius:0 8px 8px 0;color:#ccc;font-size:.85rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s}
+        .top-search button:hover{background:rgba(255,255,255,.15);color:#fff}
+
+        /* Hero */
+        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 2rem 3rem;position:relative;background:radial-gradient(ellipse at 50% 0%,rgba(120,0,255,.12),transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(255,50,100,.08),transparent 40%),#0a0a0c}
+        .player-header{display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;opacity:0;animation:fadeInUp .6s ease forwards}
+        .avatar{width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.15)}
+        .player-name{font-size:1.4rem;font-weight:700;color:#fff}
+        .player-subtitle{color:#555;font-size:.85rem;margin-top:.2rem}
         .shame-score-display{opacity:0;animation:fadeInUp .6s ease .2s forwards}
-        .shame-number{font-size:clamp(8rem,25vw,14rem);font-weight:900;line-height:1;background:linear-gradient(135deg,#ff3366,#ff6b35 50%,#f7c94b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
-        .shame-number::after{content:'%';font-size:.4em;position:absolute;top:.5em}
-        .shame-label{font-size:1.5rem;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.3em;margin-top:1rem}
-        .roast{max-width:500px;margin:2rem auto 0;font-size:1.25rem;color:#999;line-height:1.6;opacity:0;animation:fadeInUp .6s ease .4s forwards}
-        .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);color:#444;font-size:.85rem;opacity:0;animation:fadeInUp .6s ease .8s forwards,bounce 2s ease-in-out 1.5s infinite}.scroll-hint span{display:block;margin-top:.5rem;font-size:1.5rem}
-        .stats-section{padding:6rem 2rem;position:relative}.stats-section:nth-child(odd){background:linear-gradient(180deg,#0d0d10,#0a0a0c)}
-        .section-inner{max-width:900px;margin:0 auto}.section-header{margin-bottom:3rem}.section-title{font-size:3rem;font-weight:800;color:#fff;margin-bottom:.5rem}.section-subtitle{font-size:1.1rem;color:#666}
-        .big-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:3rem}
-        .big-stat{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:2rem;text-align:center;transition:transform .3s}.big-stat:hover{transform:translateY(-4px)}
-        .big-stat-number{font-size:3rem;font-weight:800;line-height:1}.big-stat-number.green{color:#00d26a}.big-stat-number.red{color:#ff3366}.big-stat-number.orange{color:#ff6b35}
-        .big-stat-label{font-size:.9rem;color:#666;margin-top:.5rem;font-weight:500}
-        .pie-wrap{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;margin-bottom:2rem}.pie-chart-box{width:300px;height:300px;flex-shrink:0}
-        .pie-legend{display:flex;flex-direction:column;gap:.75rem}
-        .pie-legend-item{display:flex;align-items:center;gap:.75rem;font-size:.95rem;color:#ccc;cursor:pointer;padding:.5rem .75rem;border-radius:8px;transition:all .2s;border:1px solid transparent}.pie-legend-item:hover{background:rgba(255,255,255,.08);transform:scale(1.03);border-color:rgba(255,255,255,.15)}.pie-legend-item.active{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
-        .pie-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}.pie-legend-pct{color:#888;font-size:.85rem;margin-left:auto;font-weight:600;padding-left:1rem}
-        .game-card{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;max-height:400px;overflow-y:auto}
-        .game-card::-webkit-scrollbar{width:6px}.game-card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
-        .game-row{display:flex;align-items:center;padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:.9rem}.game-row:last-child{border-bottom:none}.game-row:hover{background:rgba(255,255,255,.03)}
-        .game-name{flex:1;font-weight:500;color:#e5e5e5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:1rem}.game-hours{font-size:.85rem;color:#666;font-weight:600;white-space:nowrap}
-        .show-all-btn{display:block;width:100%;padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#ccc;font-size:.85rem;cursor:pointer;text-align:center;margin-top:.75rem;font-family:inherit}.show-all-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-        .value-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1rem}
-        .value-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:2rem;text-align:center}
-        .value-amount{font-size:2.5rem;font-weight:900;line-height:1}.value-amount.green{color:#00d26a}.value-amount.red{color:#ff3366}
-        .value-label{color:#888;margin-top:.5rem;font-size:.9rem}.value-note{color:#555;font-size:.75rem;margin-top:.5rem;font-style:italic}
-        .accuracy-row{text-align:center;margin-bottom:2rem}
-        .accuracy-btn{padding:10px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#ccc;font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .2s}.accuracy-btn:hover{background:rgba(255,255,255,.12);color:#fff}
-        .backlog-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
-        .backlog-big{font-size:2rem;font-weight:800;color:#ff6b35}.backlog-sub{color:#888;font-size:.9rem;margin-top:.25rem}
-        .suggest-card{background:linear-gradient(145deg,rgba(0,168,255,.08),rgba(0,168,255,.02));border:1px solid rgba(0,168,255,.2);border-radius:20px;padding:0;overflow:hidden;margin-bottom:2rem;text-align:center}
-        .suggest-img{width:100%;max-height:200px;object-fit:cover;display:block}.suggest-body{padding:1.5rem}
-        .suggest-label{font-size:.85rem;color:#00a8ff;text-transform:uppercase;letter-spacing:.15em;font-weight:600;margin-bottom:.5rem}.suggest-name{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:.75rem}
-        .suggest-btn{display:inline-block;padding:.6rem 1.5rem;background:#00a8ff;color:#fff;border-radius:50px;text-decoration:none;font-weight:600;font-size:.9rem;transition:transform .2s}.suggest-btn:hover{transform:translateY(-2px)}
-        .suggest-reroll{display:inline-block;margin-left:1rem;padding:.6rem 1.5rem;background:rgba(255,255,255,.08);color:#ccc;border-radius:50px;border:none;font-size:.9rem;cursor:pointer;font-family:inherit}.suggest-reroll:hover{background:rgba(255,255,255,.12);color:#fff}
-        .radar-toggles{display:flex;justify-content:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
-        .radar-toggle{padding:.75rem 1.75rem;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .25s;font-family:inherit;background:rgba(255,255,255,.06);color:#888}
-        .radar-toggle:hover{background:rgba(255,255,255,.12);transform:scale(1.05);color:#ccc}
-        .radar-toggle.active{color:#fff;transform:scale(1.05)}
-        .radar-toggle[data-layer="owned"].active{background:rgba(0,168,255,.2);border-color:#00a8ff;color:#00a8ff}
-        .radar-toggle[data-layer="played"].active{background:rgba(0,210,106,.2);border-color:#00d26a;color:#00d26a}
-        .radar-toggle[data-layer="unplayed"].active{background:rgba(255,51,102,.2);border-color:#ff3366;color:#ff3366}
-        .radar-canvas-wrap{display:flex;justify-content:center;margin-bottom:1rem}
-        .dna-summary{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;align-items:center;justify-content:center}
-        .dna-chip{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:12px;font-size:.9rem;font-weight:600}
-        .dna-chip.owned{background:rgba(0,168,255,.15);color:#00a8ff}.dna-chip.played{background:rgba(0,210,106,.15);color:#00d26a}.dna-chip.unplayed{background:rgba(255,51,102,.15);color:#ff3366}
-        .mismatch-card{background:linear-gradient(135deg,rgba(255,51,102,.12),rgba(255,51,102,.03));border:1px solid rgba(255,51,102,.25);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:2rem}
-        .mismatch-title{font-size:1.1rem;font-weight:700;color:#ff3366;margin-bottom:.25rem}.mismatch-sub{font-size:.9rem;color:#999}
-        .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:2rem}
-        .badge-card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:transform .2s}.badge-card:hover{transform:translateY(-2px)}
-        .badge-emoji{font-size:2rem;flex-shrink:0}.badge-name{font-weight:700;color:#fff;margin-bottom:.25rem}.badge-desc{font-size:.85rem;color:#888;line-height:1.4}
-        .leaderboard{background:linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:20px;overflow:hidden}
-        .leaderboard-row{display:grid;grid-template-columns:50px 1fr 70px 90px 90px;padding:1rem 1.5rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.04)}.leaderboard-row:hover{background:rgba(255,255,255,.03)}.leaderboard-row:last-child{border-bottom:none}
-        .leaderboard-row.is-user{background:rgba(0,168,255,.1);border-left:3px solid #00a8ff}
-        .lb-rank{font-weight:700;font-size:1.1rem;color:#666}.lb-rank.rank-1{color:#f7c94b}.lb-rank.rank-2{color:#c0c0c0}.lb-rank.rank-3{color:#cd7f32}
-        .lb-player{display:flex;align-items:center;gap:.75rem;min-width:0}.lb-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0}
-        .lb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e5e5e5;font-weight:500}.lb-name a{color:inherit;text-decoration:none}.lb-name a:hover{color:#00a8ff}
-        .lb-you{color:#00a8ff;font-size:.8rem;margin-left:.25rem}
-        .lb-shame{font-weight:700;text-align:center}.lb-shame.low{color:#00d26a}.lb-shame.med{color:#ff6b35}.lb-shame.high{color:#ff3366}
-        .lb-stat{color:#888;font-size:.85rem;text-align:center}
-        .roast-card{background:linear-gradient(135deg,rgba(255,51,102,.1),rgba(255,107,53,.05));border:1px solid rgba(255,51,102,.2);border-radius:20px;padding:2rem;margin:2rem 0;text-align:center}
-        .roast-card .roast-emoji{font-size:3rem;margin-bottom:.75rem}.roast-card .roast-text{font-size:1.3rem;font-weight:600;color:#fff}.roast-card .roast-subtext{font-size:.9rem;color:#888;margin-top:.5rem}
-        .loading-state{text-align:center;padding:3rem;color:#666}.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#00a8ff;border-radius:50%;margin:0 auto 1rem;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-        .share-section{text-align:center;padding:4rem 2rem}.share-title{font-size:2rem;font-weight:700;color:#fff;margin-bottom:.5rem}.share-subtitle{color:#666;margin-bottom:2rem}
-        .share-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-        .share-btn{padding:1rem 2rem;border-radius:50px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;border:none;transition:transform .2s}.share-btn:hover{transform:translateY(-2px)}.share-btn.twitter{background:#1da1f2;color:#fff}.share-btn.copy{background:rgba(255,255,255,.1);color:#fff}
-        .back-link{position:fixed;top:1.5rem;left:1.5rem;color:#666;text-decoration:none;font-size:.9rem;z-index:100}.back-link:hover{color:#fff}
-        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}.modal-overlay.active{display:flex}
-        .modal-box{background:#151518;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem;max-width:500px;width:100%;max-height:70vh;display:flex;flex-direction:column;animation:modalIn .2s ease}
-        @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-        .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}.modal-title{font-size:1.25rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:.5rem}.modal-count{font-size:.85rem;color:#666;font-weight:400}
-        .modal-close{background:rgba(255,255,255,.1);border:none;color:#999;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.modal-close:hover{background:rgba(255,255,255,.2);color:#fff}
-        .modal-list{overflow-y:auto;flex:1}.modal-list::-webkit-scrollbar{width:6px}.modal-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
-        .modal-game{padding:.65rem .75rem;border-radius:8px;color:#ccc;font-size:.9rem}.modal-game:hover{background:rgba(255,255,255,.05)}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
-        @media(max-width:700px){.big-stats{grid-template-columns:1fr}.section-title{font-size:2rem}.value-grid{grid-template-columns:1fr}.leaderboard-row{grid-template-columns:40px 1fr 60px 70px}.leaderboard-row .lb-stat:last-child{display:none}.pie-wrap{flex-direction:column}.badge-grid{grid-template-columns:1fr}.dna-summary{flex-direction:column}}
+        .shame-number{font-size:clamp(7rem,22vw,12rem);font-weight:900;line-height:1;background:linear-gradient(135deg,#ff3366,#ff6b35 50%,#f7c94b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative}
+        .shame-number::after{content:'%';font-size:.35em;position:absolute;top:.6em}
+        .shame-label{font-size:1.2rem;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.25em;margin-top:.75rem}
+        .hero-stats{display:flex;gap:2rem;margin-top:1.5rem;opacity:0;animation:fadeInUp .6s ease .3s forwards}
+        .hero-stat{text-align:center}
+        .hero-stat-val{font-size:1.1rem;font-weight:700}
+        .hero-stat-val.red{color:#ff3366}
+        .hero-stat-label{font-size:.75rem;color:#555;margin-top:.15rem;text-transform:uppercase;letter-spacing:.05em}
+        .descriptor-chip{display:inline-flex;align-items:center;gap:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:.65rem 1.5rem;margin-top:1.5rem;opacity:0;animation:fadeInUp .6s ease .45s forwards}
+        .descriptor-emoji{font-size:1.75rem}
+        .descriptor-title{font-size:1rem;font-weight:700;color:#fff}
+        .descriptor-sub{font-size:.8rem;color:#777;margin-top:.1rem}
+        .scroll-hint{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);color:#333;font-size:.8rem;opacity:0;animation:fadeInUp .6s ease .7s forwards,bounce 2s ease-in-out 1.5s infinite}
+        .scroll-hint span{display:block;margin-top:.35rem;font-size:1.2rem}
+
+        /* Sections */
+        .content-section{padding:4rem 1.5rem}
+        .content-section+.content-section{border-top:1px solid rgba(255,255,255,.04)}
+        .section-inner{max-width:860px;margin:0 auto}
+        .section-title{font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:.35rem}
+        .section-subtitle{font-size:.95rem;color:#555;margin-bottom:2rem}
+
+        /* Stat cards */
+        .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2.5rem}
+        .stat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.5rem;text-align:center;transition:transform .2s}
+        .stat-card:hover{transform:translateY(-3px)}
+        .stat-num{font-size:2.5rem;font-weight:800;line-height:1}
+        .stat-num.green{color:#00d26a}.stat-num.orange{color:#ff6b35}.stat-num.red{color:#ff3366}
+        .stat-label{font-size:.8rem;color:#555;margin-top:.4rem;font-weight:500}
+
+        /* Pie */
+        .pie-section{display:flex;align-items:center;justify-content:center;gap:2.5rem;flex-wrap:wrap;margin-bottom:2rem}
+        .pie-box{width:260px;height:260px;flex-shrink:0}
+        .legend{display:flex;flex-direction:column;gap:.6rem}
+        .legend-row{display:flex;align-items:center;gap:.6rem;padding:.45rem .7rem;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid transparent;font-size:.9rem;color:#bbb}
+        .legend-row:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);transform:translateX(4px)}
+        .legend-row.active{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
+        .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+        .legend-pct{margin-left:auto;color:#666;font-weight:600;font-size:.85rem}
+
+        /* Game lists */
+        .detail-panel{display:none;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;margin-bottom:2rem}
+        .detail-panel.open{display:block}
+        .detail-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04)}
+        .detail-title{font-weight:700;font-size:.95rem}
+        .detail-close{background:none;border:none;color:#666;font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:6px}.detail-close:hover{background:rgba(255,255,255,.1);color:#fff}
+        .detail-list{max-height:350px;overflow-y:auto}
+        .detail-list::-webkit-scrollbar{width:5px}.detail-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+        .g-row{display:flex;align-items:center;padding:.6rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.03);font-size:.85rem}
+        .g-row:last-child{border:none}.g-row:hover{background:rgba(255,255,255,.02)}
+        .g-name{flex:1;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:.75rem}
+        .g-time{color:#555;font-weight:600;font-size:.8rem;white-space:nowrap}
+        .expand-btn{display:block;width:100%;padding:.65rem;background:none;border:none;border-top:1px solid rgba(255,255,255,.04);color:#888;font-size:.8rem;cursor:pointer;font-family:inherit;transition:color .2s}.expand-btn:hover{color:#fff;background:rgba(255,255,255,.03)}
+
+        /* Value */
+        .val-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:.75rem}
+        .val-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.5rem;text-align:center}
+        .val-num{font-size:2.2rem;font-weight:800;line-height:1}.val-num.green{color:#00d26a}.val-num.red{color:#ff3366}
+        .val-label{color:#666;margin-top:.4rem;font-size:.85rem}
+        .val-note{color:#444;font-size:.7rem;margin-top:.35rem;font-style:italic}
+        .val-footer{text-align:center;margin-bottom:2.5rem}
+        .val-disclaimer{color:#444;font-size:.7rem;font-style:italic;margin-bottom:.6rem}
+        .scan-btn{padding:.5rem 1.25rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#999;font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .2s}.scan-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+
+        /* Backlog */
+        .backlog{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem;text-align:center;margin-bottom:2rem}
+        .backlog-num{font-size:1.75rem;font-weight:800;color:#ff6b35}
+        .backlog-text{color:#666;font-size:.85rem;margin-top:.2rem}
+
+        /* Suggest */
+        .suggest{background:rgba(0,168,255,.05);border:1px solid rgba(0,168,255,.15);border-radius:16px;overflow:hidden;text-align:center}
+        .suggest img{width:100%;max-height:180px;object-fit:cover;display:block}
+        .suggest-body{padding:1.25rem}
+        .suggest-eyebrow{font-size:.75rem;color:#00a8ff;text-transform:uppercase;letter-spacing:.12em;font-weight:600;margin-bottom:.4rem}
+        .suggest-title{font-size:1.2rem;font-weight:700;color:#fff;margin-bottom:.6rem}
+        .suggest-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+        .btn-steam{padding:.5rem 1.25rem;background:#00a8ff;color:#fff;border-radius:50px;text-decoration:none;font-weight:600;font-size:.85rem;transition:transform .15s;display:inline-block}.btn-steam:hover{transform:translateY(-1px)}
+        .btn-reroll{padding:.5rem 1.25rem;background:rgba(255,255,255,.06);color:#999;border-radius:50px;border:none;font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .15s}.btn-reroll:hover{background:rgba(255,255,255,.1);color:#fff}
+
+        /* Radar */
+        .dna-toggles{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin-bottom:1.5rem}
+        .dna-btn{padding:.6rem 1.4rem;border-radius:50px;font-size:.85rem;font-weight:600;cursor:pointer;border:2px solid transparent;font-family:inherit;background:rgba(255,255,255,.05);color:#666;transition:all .2s}
+        .dna-btn:hover{background:rgba(255,255,255,.1);color:#bbb;transform:scale(1.04)}
+        .dna-btn.active{color:#fff;transform:scale(1.04)}
+        .dna-btn[data-layer="owned"].active{background:rgba(0,168,255,.18);border-color:#00a8ff;color:#00a8ff}
+        .dna-btn[data-layer="played"].active{background:rgba(0,210,106,.18);border-color:#00d26a;color:#00d26a}
+        .dna-btn[data-layer="unplayed"].active{background:rgba(255,51,102,.18);border-color:#ff3366;color:#ff3366}
+        .radar-box{display:flex;justify-content:center;margin-bottom:.75rem}
+        .radar-hint{text-align:center;color:#555;font-size:.8rem;margin-bottom:2rem}
+        .mismatch{background:linear-gradient(135deg,rgba(255,51,102,.08),transparent);border:1px solid rgba(255,51,102,.18);border-radius:14px;padding:1.25rem;text-align:center;margin-bottom:1.5rem}
+        .mismatch-title{font-size:1rem;font-weight:700;color:#ff3366;margin-bottom:.2rem}
+        .mismatch-sub{font-size:.85rem;color:#888}
+
+        /* Badges */
+        .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-top:1.5rem}
+        .badge{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1rem;display:flex;align-items:flex-start;gap:.75rem;transition:transform .15s}
+        .badge:hover{transform:translateY(-2px)}
+        .badge-icon{font-size:1.75rem;flex-shrink:0;line-height:1}
+        .badge-name{font-weight:700;color:#e5e5e5;font-size:.9rem;margin-bottom:.15rem}
+        .badge-desc{font-size:.8rem;color:#777;line-height:1.35}
+        .badge.highlight{border-color:rgba(255,51,102,.2);background:linear-gradient(145deg,rgba(255,51,102,.06),transparent)}
+        .badge.highlight .badge-name{color:#ff3366}
+
+        /* Leaderboard */
+        .lb{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:16px;overflow:hidden}
+        .lb-row{display:grid;grid-template-columns:44px 1fr 65px 80px 80px;padding:.8rem 1.25rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.03);font-size:.85rem}
+        .lb-row:last-child{border:none}.lb-row:hover{background:rgba(255,255,255,.02)}
+        .lb-row.me{background:rgba(0,168,255,.07);border-left:3px solid #00a8ff}
+        .lb-rank{font-weight:700;color:#555}.lb-rank.r1{color:#f7c94b}.lb-rank.r2{color:#c0c0c0}.lb-rank.r3{color:#cd7f32}
+        .lb-player{display:flex;align-items:center;gap:.6rem;min-width:0}
+        .lb-av{width:28px;height:28px;border-radius:50%;flex-shrink:0}
+        .lb-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ccc;font-weight:500}
+        .lb-nm a{color:inherit;text-decoration:none}.lb-nm a:hover{color:#00a8ff}
+        .lb-you{color:#00a8ff;font-size:.7rem;margin-left:.2rem}
+        .lb-score{font-weight:700;text-align:center}.lb-score.lo{color:#00d26a}.lb-score.md{color:#ff6b35}.lb-score.hi{color:#ff3366}
+        .lb-meta{color:#666;font-size:.8rem;text-align:center}
+        .callout{background:linear-gradient(135deg,rgba(255,51,102,.08),rgba(255,107,53,.04));border:1px solid rgba(255,51,102,.15);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;text-align:center}
+        .callout-emoji{font-size:2.5rem;margin-bottom:.5rem}.callout-text{font-size:1.1rem;font-weight:600;color:#fff}
+        .callout.win{background:linear-gradient(135deg,rgba(0,210,106,.08),transparent);border-color:rgba(0,210,106,.2)}
+
+        /* Share */
+        .share{text-align:center;padding:4rem 1.5rem;border-top:1px solid rgba(255,255,255,.04)}
+        .share-title{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:.3rem}
+        .share-sub{color:#555;margin-bottom:1.5rem;font-size:.9rem}
+        .share-btns{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+        .s-btn{padding:.65rem 1.5rem;border-radius:50px;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;border:none;transition:transform .15s}
+        .s-btn:hover{transform:translateY(-1px)}
+        .s-btn.tw{background:#1da1f2;color:#fff}
+        .s-btn.cp{background:rgba(255,255,255,.08);color:#ccc}
+
+        /* Modal */
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}.modal-bg.on{display:flex}
+        .modal{background:#131316;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.75rem;max-width:460px;width:100%;max-height:65vh;display:flex;flex-direction:column;animation:mIn .15s ease}
+        @keyframes mIn{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
+        .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+        .modal-t{font-size:1.1rem;font-weight:700;color:#fff}.modal-cnt{font-size:.8rem;color:#555;font-weight:400;margin-left:.4rem}
+        .modal-x{background:rgba(255,255,255,.08);border:none;color:#888;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.modal-x:hover{background:rgba(255,255,255,.15);color:#fff}
+        .modal-body{overflow-y:auto;flex:1}.modal-body::-webkit-scrollbar{width:5px}.modal-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+        .modal-item{padding:.5rem .6rem;border-radius:6px;color:#bbb;font-size:.85rem}.modal-item:hover{background:rgba(255,255,255,.04)}
+
+        /* Loading */
+        .loading{text-align:center;padding:2.5rem;color:#555}
+        .spin{width:32px;height:32px;border:2px solid rgba(255,255,255,.08);border-top-color:#00a8ff;border-radius:50%;margin:0 auto .75rem;animation:sp 1s linear infinite}
+        @keyframes sp{to{transform:rotate(360deg)}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+        @keyframes bounce{0%,100%{transform:translateX(-50%)}50%{transform:translateX(-50%) translateY(-8px)}}
+
+        @media(max-width:640px){
+            .stat-row{grid-template-columns:1fr}
+            .pie-section{flex-direction:column;gap:1.5rem}
+            .pie-box{width:220px;height:220px}
+            .val-row{grid-template-columns:1fr}
+            .lb-row{grid-template-columns:36px 1fr 55px 65px}
+            .lb-row .lb-meta:last-child{display:none}
+            .badges{grid-template-columns:1fr}
+            .hero-stats{gap:1.25rem}
+            .section-title{font-size:1.3rem}
+            .top-bar{padding:.5rem 1rem}
+            .top-logo{font-size:.85rem}
+            .dna-toggles{gap:.4rem}
+            .dna-btn{padding:.5rem 1rem;font-size:.8rem}
+        }
     </style>
 </head>
 <body>
-<a href="/" class="back-link">&#8592; Check another</a>
-<section class="hero">
-    <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-subtitle">Steam Shame Report</div></div></div>
-    <div class="shame-score-display"><div class="shame-number">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
-    <div style="margin-top:1.5rem;opacity:0;animation:fadeInUp .6s ease .3s forwards"><span style="font-size:1.1rem;color:#ff3366;font-weight:700">{{ (stats.never_played_count/stats.total_games*100)|round(1) }}%</span><span style="color:#666;font-size:1rem"> of games never played</span></div>
-    <div style="margin-top:1.25rem;opacity:0;animation:fadeInUp .6s ease .5s forwards;display:inline-flex;align-items:center;gap:.75rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:.75rem 1.5rem"><span style="font-size:2rem">{{ stats.descriptor.emoji }}</span><div style="text-align:left"><div style="font-size:1.1rem;font-weight:700;color:#fff">{{ stats.descriptor.title }}</div><div style="font-size:.85rem;color:#888">{{ stats.descriptor.description }}</div></div></div>
-    <p class="roast">{% if stats.shame_score >= 50 %}You own {{ stats.total_games }} games and have played {{ stats.played_count }}. That's a graveyard.{% elif stats.shame_score >= 35 %}Steam sales broke you. {{ stats.never_played_count }} games collecting dust.{% elif stats.shame_score >= 20 %}Not terrible, but {{ stats.never_played_count }} unplayed games is too many.{% else %}You actually play your games. Impressive.{% endif %}</p>
-    <div class="scroll-hint">Scroll for the full damage report<span>&#8595;</span></div>
+
+<!-- Top search bar -->
+<div class="top-bar" id="topbar">
+    <a href="/" class="top-logo">Steam<span>Shame</span></a>
+    <form action="/lookup" method="POST" class="top-search">
+        <input type="text" name="steam_input" placeholder="Steam URL or username" autocomplete="off">
+        <button type="submit">Check</button>
+    </form>
+</div>
+
+<!-- Hero -->
+<section class="hero" style="padding-top:5rem">
+    <div class="player-header">
+        <img src="{{ avatar_url }}" alt="" class="avatar">
+        <div><div class="player-name">{{ player_name }}</div><div class="player-subtitle">Steam Shame Report</div></div>
+    </div>
+    <div class="shame-score-display">
+        <div class="shame-number">{{ stats.shame_score }}</div>
+        <div class="shame-label">Shame Score</div>
+    </div>
+    <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-val">{{ stats.total_games }}</div><div class="hero-stat-label">Games Owned</div></div>
+        <div class="hero-stat"><div class="hero-stat-val red">{{ (stats.never_played_count / stats.total_games * 100)|round(1) }}%</div><div class="hero-stat-label">Never Played</div></div>
+    </div>
+    <div class="descriptor-chip">
+        <div class="descriptor-emoji">{{ stats.descriptor.emoji }}</div>
+        <div><div class="descriptor-title">{{ stats.descriptor.title }}</div><div class="descriptor-sub">{{ stats.descriptor.description }}</div></div>
+    </div>
+    <div class="scroll-hint">Scroll for the damage<span>&#8595;</span></div>
 </section>
 
 <!-- Shame Pile -->
-<section class="stats-section"><div class="section-inner">
-    <div class="section-header"><h2 class="section-title">The Shame Pile</h2><p class="section-subtitle">{{ stats.total_games }} games in your library</p></div>
-    <div class="big-stats">
-        <div class="big-stat"><div class="big-stat-number green">{{ stats.played_count }}</div><div class="big-stat-label">Played (61+ min)</div></div>
-        <div class="big-stat"><div class="big-stat-number orange">{{ stats.abandoned_count }}</div><div class="big-stat-label">Abandoned (1-60 min)</div></div>
-        <div class="big-stat"><div class="big-stat-number red">{{ stats.never_played_count }}</div><div class="big-stat-label">Never Played</div></div>
+<section class="content-section"><div class="section-inner">
+    <div class="section-title">The Shame Pile</div>
+    <div class="section-subtitle">{{ stats.total_games }} games, broken down</div>
+    <div class="stat-row">
+        <div class="stat-card"><div class="stat-num green">{{ stats.played_count }}</div><div class="stat-label">Played (61+ min)</div></div>
+        <div class="stat-card"><div class="stat-num orange">{{ stats.abandoned_count }}</div><div class="stat-label">Abandoned (1-60 min)</div></div>
+        <div class="stat-card"><div class="stat-num red">{{ stats.never_played_count }}</div><div class="stat-label">Never Played</div></div>
     </div>
-    <div class="pie-wrap">
-        <div class="pie-chart-box"><canvas id="pie-canvas"></canvas></div>
-        <div class="pie-legend">
-            <div class="pie-legend-item" onclick="selectPie(0)"><div class="pie-dot" style="background:#00d26a"></div>Played<span class="pie-legend-pct">{{ (stats.played_count/stats.total_games*100)|round(1) }}%</span></div>
-            <div class="pie-legend-item" onclick="selectPie(1)"><div class="pie-dot" style="background:#ff6b35"></div>Abandoned<span class="pie-legend-pct">{{ (stats.abandoned_count/stats.total_games*100)|round(1) }}%</span></div>
-            <div class="pie-legend-item" onclick="selectPie(2)"><div class="pie-dot" style="background:#ff3366"></div>Never Played<span class="pie-legend-pct">{{ (stats.never_played_count/stats.total_games*100)|round(1) }}%</span></div>
+    <div class="pie-section">
+        <div class="pie-box"><canvas id="pie-canvas"></canvas></div>
+        <div class="legend">
+            <div class="legend-row" onclick="selectPie(0)"><div class="legend-dot" style="background:#00d26a"></div>Played<span class="legend-pct">{{ (stats.played_count/stats.total_games*100)|round(1) }}%</span></div>
+            <div class="legend-row" onclick="selectPie(1)"><div class="legend-dot" style="background:#ff6b35"></div>Abandoned<span class="legend-pct">{{ (stats.abandoned_count/stats.total_games*100)|round(1) }}%</span></div>
+            <div class="legend-row" onclick="selectPie(2)"><div class="legend-dot" style="background:#ff3366"></div>Never Played<span class="legend-pct">{{ (stats.never_played_count/stats.total_games*100)|round(1) }}%</span></div>
         </div>
     </div>
-    <div id="pie-detail" style="display:none"></div>
+    <div id="pie-detail" class="detail-panel"></div>
 
-    <!-- Value -->
-    <div id="value-loading" class="loading-state"><div class="spinner"></div><p>Calculating library value...</p></div>
-    <div id="value-content" style="display:none"></div>
+    <div id="val-load" class="loading"><div class="spin"></div>Calculating library value...</div>
+    <div id="val-out" style="display:none"></div>
 
-    <!-- Backlog -->
-    {% if stats.backlog_days > 0 %}<div class="backlog-card"><div class="backlog-big">{{ stats.backlog_days }} days</div><div class="backlog-sub">to clear your backlog at 1 hour/day (~10 hrs per game)</div>{% if stats.backlog_days > 365 %}<div style="color:#ff3366;font-size:.85rem;margin-top:.5rem;font-weight:600">That's {{ (stats.backlog_days/365)|round(1) }} years.</div>{% endif %}</div>{% endif %}
+    {% if stats.backlog_days > 0 %}
+    <div class="backlog">
+        <div class="backlog-num">{{ stats.backlog_days }} days</div>
+        <div class="backlog-text">to clear your backlog at 1 hour/day{% if stats.backlog_days > 365 %} &mdash; that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div>
+    </div>
+    {% endif %}
 </div></section>
 
 <!-- Gamer DNA -->
-<section class="stats-section" id="personality-section" style="padding-top:3rem"><div class="section-inner">
-    <div class="section-header" style="margin-bottom:1.5rem"><h2 class="section-title">&#x1F9EC; Gamer DNA</h2><p class="section-subtitle">What your library says about you</p></div>
-    <div id="personality-loading" class="loading-state"><div class="spinner"></div><p>Profiling your gaming habits...</p></div>
-    <div id="personality-content" style="display:none"></div>
+<section class="content-section" id="dna-section"><div class="section-inner">
+    <div class="section-title">Gamer DNA</div>
+    <div class="section-subtitle">What your library says about you</div>
+    <div id="dna-load" class="loading"><div class="spin"></div>Analyzing your genres...</div>
+    <div id="dna-out" style="display:none"></div>
 </div></section>
 
-<!-- Play Next Suggestion -->
-<section class="stats-section" style="padding-top:3rem;padding-bottom:3rem"><div class="section-inner">
-    <div id="suggest-card" style="display:none"></div>
+<!-- Play Next -->
+<section class="content-section"><div class="section-inner">
+    <div id="suggest-out" style="display:none"></div>
 </div></section>
 
 <!-- Friends -->
-<section class="stats-section" id="friends-section"><div class="section-inner">
-    <div class="section-header"><h2 class="section-title">Friends Leaderboard</h2><p class="section-subtitle">See who's the most wasteful</p></div>
-    <div id="friends-loading" class="loading-state"><div class="spinner"></div><p>Loading friends...</p></div>
-    <div id="friends-content" style="display:none"></div>
+<section class="content-section" id="lb-section"><div class="section-inner">
+    <div class="section-title">Friends Leaderboard</div>
+    <div class="section-subtitle">Who wastes the most?</div>
+    <div id="lb-load" class="loading"><div class="spin"></div>Loading friends...</div>
+    <div id="lb-out" style="display:none"></div>
 </div></section>
 
 <!-- Share -->
-<section class="share-section">
-    <h2 class="share-title">Spread the shame</h2><p class="share-subtitle">Let your friends know</p>
-    <div class="share-buttons"><a href="https://twitter.com/intent/tweet?text=Steam%20Shame%3A%20{{ stats.shame_score }}%25%20{{ stats.total_games }}%20games%2C%20{{ stats.never_played_count }}%20never%20played&url={{ request.url }}" target="_blank" class="share-btn twitter">Share on X</a><button class="share-btn copy" onclick="copyLink()">&#x1F4CB; Copy Link</button></div>
+<section class="share">
+    <div class="share-title">Spread the shame</div>
+    <div class="share-sub">Let your friends see how they compare</div>
+    <div class="share-btns">
+        <a href="https://twitter.com/intent/tweet?text=My%20Steam%20Shame%3A%20{{ stats.shame_score }}%25%20%E2%80%94%20{{ stats.total_games }}%20games%2C%20{{ stats.never_played_count }}%20never%20played&url={{ request.url }}" target="_blank" class="s-btn tw">Share on X</a>
+        <button class="s-btn cp" onclick="copyLink()">Copy Link</button>
+    </div>
 </section>
 
 <!-- Modal -->
-<div class="modal-overlay" id="game-modal" onclick="if(event.target===this)closeModal()"><div class="modal-box">
-    <div class="modal-header"><div class="modal-title" id="modal-title"></div><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
-    <div class="modal-list" id="modal-list"></div>
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <div class="modal-head"><div class="modal-t" id="modal-t"></div><button class="modal-x" onclick="closeModal()">&#x2715;</button></div>
+    <div class="modal-body" id="modal-b"></div>
 </div></div>
 
 <script>
-const steamId="{{steam_id}}";
-const seg=[
-    {label:'Played (61+ min)',color:'#00d26a',count:{{stats.played_count}},total:{{stats.played_total}},
-     games:[{% for g in stats.played_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
-    {label:'Abandoned (1-60 min)',color:'#ff6b35',count:{{stats.abandoned_count}},total:{{stats.abandoned_total}},
-     games:[{% for g in stats.abandoned_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
-    {label:'Never Played',color:'#ff3366',count:{{stats.never_played_count}},total:{{stats.unplayed_total}},
-     games:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"0m"}{% if not loop.last %},{% endif %}{% endfor %}]}
+const SID="{{steam_id}}";
+const S=[
+    {l:'Played (61+ min)',c:'#00d26a',n:{{stats.played_count}},t:{{stats.played_total}},
+     g:[{% for g in stats.played_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {l:'Abandoned (1-60 min)',c:'#ff6b35',n:{{stats.abandoned_count}},t:{{stats.abandoned_total}},
+     g:[{% for g in stats.abandoned_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {l:'Never Played',c:'#ff3366',n:{{stats.never_played_count}},t:{{stats.unplayed_total}},
+     g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]}
 ];
-let personalityData=null,radarChart=null,activeRadar='owned';
+let PD=null,RC=null,RL='owned';
 
-function openModal(t,g){document.getElementById('modal-title').innerHTML=t+' <span class="modal-count">('+g.length+')</span>';
-    let h='';g.forEach(x=>{if(typeof x==='string')h+='<div class="modal-game">'+x+'</div>';else h+='<div class="modal-game">'+x.name+(x.pt&&x.pt!=='0m'?' <span style="color:#666;font-size:.8rem">'+x.pt+'</span>':'')+'</div>'});
-    if(!g.length)h='<div class="modal-game" style="color:#555">No games</div>';
-    document.getElementById('modal-list').innerHTML=h;document.getElementById('game-modal').classList.add('active');document.body.style.overflow='hidden'}
-function closeModal(){document.getElementById('game-modal').classList.remove('active');document.body.style.overflow=''}
+// Helpers
+function show(id,h){document.getElementById(id+'-load').style.display='none';const e=document.getElementById(id+'-out');e.innerHTML=h;e.style.display='block'}
+function openModal(t,g){
+    document.getElementById('modal-t').innerHTML=t+(g.length?' <span class="modal-cnt">('+g.length+')</span>':'');
+    let h='';g.forEach(x=>{h+='<div class="modal-item">'+(typeof x==='string'?x:x.name+(x.pt&&x.pt!=='—'?' <span style="color:#555;font-size:.75rem">'+x.pt+'</span>':''))+'</div>'});
+    if(!g.length)h='<div class="modal-item" style="color:#444">Nothing here</div>';
+    document.getElementById('modal-b').innerHTML=h;document.getElementById('modal').classList.add('on');document.body.style.overflow='hidden'}
+function closeModal(){document.getElementById('modal').classList.remove('on');document.body.style.overflow=''}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-function showContent(id,h){document.getElementById(id+'-loading').style.display='none';const e=document.getElementById(id+'-content');e.innerHTML=h;e.style.display='block'}
 
-// PIE
-const pieChart=new Chart(document.getElementById('pie-canvas'),{type:'doughnut',
-    data:{labels:seg.map(s=>s.label),datasets:[{data:seg.map(s=>s.count),backgroundColor:seg.map(s=>s.color),borderColor:'#0a0a0c',borderWidth:3,hoverOffset:20}]},
-    options:{responsive:true,maintainAspectRatio:true,cutout:'40%',plugins:{legend:{display:false}},
-        onClick:(e,els)=>{if(els.length)selectPie(els[0].index)}}});
+// Top bar show/hide
+let lastY=0;
+window.addEventListener('scroll',()=>{
+    const y=window.scrollY;
+    document.getElementById('topbar').classList.toggle('hidden',y>100&&y>lastY);
+    lastY=y;
+},{passive:true});
+
+// Pie
+new Chart(document.getElementById('pie-canvas'),{type:'doughnut',
+    data:{labels:S.map(s=>s.l),datasets:[{data:S.map(s=>s.n),backgroundColor:S.map(s=>s.c),borderColor:'#0a0a0c',borderWidth:2,hoverOffset:14}]},
+    options:{responsive:true,maintainAspectRatio:true,cutout:'45%',plugins:{legend:{display:false}},
+        onClick:(e,el)=>{if(el.length)selectPie(el[0].index)}}});
+
 function selectPie(i){
-    const s=seg[i],d=document.getElementById('pie-detail');
-    let h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem"><div style="font-size:1.1rem;font-weight:700;color:'+s.color+'">'+s.label+' ('+s.count+')</div><button onclick="closePieDetail()" style="background:rgba(255,255,255,.1);border:none;color:#999;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">&#x2715;</button></div>';
-    h+='<div class="game-card">';s.games.forEach(g=>{h+='<div class="game-row"><div class="game-name">'+g.name+'</div><div class="game-hours">'+g.pt+'</div></div>'});
-    if(!s.games.length)h+='<div class="game-row"><div class="game-name" style="color:#666">No games to show</div></div>';
-    h+='</div>';if(s.total>s.games.length)h+='<button class="show-all-btn" onclick="openModal(\''+s.label.replace(/'/g,"\\'")+'\',seg['+i+'].games)">Show all '+s.total+' games</button>';
-    d.innerHTML=h;d.style.display='block';
-    document.querySelectorAll('.pie-legend-item').forEach((el,j)=>el.classList.toggle('active',j===i));
-    d.scrollIntoView({behavior:'smooth',block:'nearest'})}
-function closePieDetail(){document.getElementById('pie-detail').style.display='none';document.querySelectorAll('.pie-legend-item').forEach(el=>el.classList.remove('active'))}
+    const s=S[i],p=document.getElementById('pie-detail');
+    let h='<div class="detail-header"><div class="detail-title" style="color:'+s.c+'">'+s.l+' ('+s.n+')</div><button class="detail-close" onclick="closePie()">&#x2715;</button></div><div class="detail-list">';
+    s.g.forEach(g=>{h+='<div class="g-row"><div class="g-name">'+g.name+'</div><div class="g-time">'+g.pt+'</div></div>'});
+    if(!s.g.length)h+='<div class="g-row"><div class="g-name" style="color:#444">No games to show</div></div>';
+    h+='</div>';
+    if(s.t>s.g.length)h+='<button class="expand-btn" onclick="openModal(\''+s.l.replace(/'/g,"\\'")+'\',S['+i+'].g)">Show all '+s.t+'</button>';
+    p.innerHTML=h;p.classList.add('open');
+    document.querySelectorAll('.legend-row').forEach((el,j)=>el.classList.toggle('active',j===i));
+    p.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function closePie(){document.getElementById('pie-detail').classList.remove('open');document.querySelectorAll('.legend-row').forEach(el=>el.classList.remove('active'))}
 
-// VALUE
-function loadValue(full){
-    document.getElementById('value-loading').style.display='block';document.getElementById('value-content').style.display='none';
-    fetch('/api/value/'+steamId+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
-        if(d.error){document.getElementById('value-loading').style.display='none';return}
-        const est=d.is_estimate?'~':'',note=d.is_estimate?'Estimated from sample':'Full library scan';
-        let h='<div class="value-grid"><div class="value-card"><div class="value-amount green">'+est+'$'+d.library_value.toLocaleString()+'</div><div class="value-label">Estimated Library Value</div><div class="value-note">'+note+'</div></div>';
-        h+='<div class="value-card"><div class="value-amount red">'+est+'$'+d.unplayed_value.toLocaleString()+'</div><div class="value-label">Unplayed Game Value</div><div class="value-note">'+note+'</div></div></div>';
-        h+='<div style="text-align:center;margin-bottom:2rem"><div class="value-note" style="margin-bottom:.75rem">*Based on current MSRP. Does not reflect discounts or sale prices paid.</div>';
-        if(d.is_estimate)h+='<button class="accuracy-btn" onclick="loadValue(true)">&#x1F50D; Scan full library for more accurate values</button>';
+// Value
+function loadVal(full){
+    const loadEl=document.getElementById('val-load'),outEl=document.getElementById('val-out');
+    loadEl.style.display='block';outEl.style.display='none';
+    if(full){loadEl.innerHTML='<div class="spin"></div>Scanning full library... this takes a minute'}
+    fetch('/api/value/'+SID+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
+        if(d.error){loadEl.style.display='none';return}
+        const e=d.is_estimate?'~':'',n=d.is_estimate?'Estimated':'Full scan';
+        let h='<div class="val-row"><div class="val-card"><div class="val-num green">'+e+'$'+d.library_value.toLocaleString()+'</div><div class="val-label">Library Value</div><div class="val-note">'+n+'</div></div>';
+        h+='<div class="val-card"><div class="val-num red">'+e+'$'+d.unplayed_value.toLocaleString()+'</div><div class="val-label">Unplayed Value</div><div class="val-note">'+n+'</div></div></div>';
+        h+='<div class="val-footer"><div class="val-disclaimer">*Based on current MSRP. Does not reflect sale prices.</div>';
+        if(d.is_estimate)h+='<button class="scan-btn" onclick="loadVal(true)">Scan full library</button>';
         h+='</div>';
-        document.getElementById('value-loading').style.display='none';const el=document.getElementById('value-content');el.innerHTML=h;el.style.display='block';
-    }).catch(()=>{document.getElementById('value-loading').style.display='none'})}
-loadValue(false);
+        loadEl.style.display='none';outEl.innerHTML=h;outEl.style.display='block';
+    }).catch(()=>{loadEl.style.display='none'})}
 
-// SUGGEST
+// Suggest
 function loadSuggest(){
-    fetch('/api/suggest/'+steamId).then(r=>r.json()).then(d=>{
+    fetch('/api/suggest/'+SID).then(r=>r.json()).then(d=>{
         if(d.error||!d.appid)return;
-        const el=document.getElementById('suggest-card');
-        el.innerHTML='<div class="suggest-card"><img src="'+d.image+'" class="suggest-img" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-label">&#x1F3B2; Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><a href="'+d.store_url+'" target="_blank" class="suggest-btn">View on Steam</a><button class="suggest-reroll" onclick="loadSuggest()">&#x1F504; Pick another</button></div></div>';
+        const el=document.getElementById('suggest-out');
+        el.innerHTML='<div class="suggest"><img src="'+d.image+'" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eyebrow">Maybe play this next?</div><div class="suggest-title">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Pick another</button></div></div></div>';
         el.style.display='block';
     }).catch(()=>{})}
+
+// Staggered loading: value+suggest immediately, DNA after 200ms, friends after 500ms
+loadVal(false);
 loadSuggest();
-
-// PERSONALITY / RADAR
-fetch('/api/personality/'+steamId).then(r=>r.json()).then(data=>{
-    if(data.error){showContent('personality','<p style="text-align:center;color:#666">'+data.error+'</p>');return}
-    personalityData=data;const r=data.radar;
-    if(!r||!r.labels||!r.labels.length){showContent('personality','<p style="text-align:center;color:#666">Not enough data.</p>');return}
+setTimeout(()=>{
+// DNA / Radar
+fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
+    if(data.error){show('dna','<p style="text-align:center;color:#555">'+data.error+'</p>');return}
+    PD=data;const r=data.radar;
+    if(!r||!r.labels||!r.labels.length){show('dna','<p style="text-align:center;color:#555">Not enough genre data.</p>');return}
     let h='';
-    // Summary chips with toggle buttons
-    h+='<div class="dna-summary">';
-    if(data.overall_majority)h+='<button class="radar-toggle active" data-layer="owned" onclick="setRadar(\'owned\')">&#x1F4DA; Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</button>';
-    if(data.played_majority)h+='<button class="radar-toggle" data-layer="played" onclick="setRadar(\'played\')">&#x1F3AE; Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</button>';
-    if(data.unplayed_majority)h+='<button class="radar-toggle" data-layer="unplayed" onclick="setRadar(\'unplayed\')">&#x1F6D2; Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</button>';
-    h+='</div>';
-    // Mismatch callout
+    // Mismatch
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
-        h+='<div class="mismatch-card"><div class="mismatch-title">&#x1F6A8; You think you like '+data.unplayed_majority.label+', but you don\'t</div><div class="mismatch-sub">Your unplayed library is mostly '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+', but you actually play '+data.played_majority.emoji+' '+data.played_majority.label+'</div></div>'}
-    h+='<div class="radar-canvas-wrap"><canvas id="radar-canvas" width="600" height="600" style="max-width:600px"></canvas></div>';
-    h+='<p style="text-align:center;color:#888;font-size:.9rem;margin-top:1rem;font-weight:500">&#x1F446; Click any genre on the chart to see games in that category</p>';
-    // Mismatch badge
-    if(data.mismatch_badge){h+='<div style="margin-top:2rem;display:flex;justify-content:center"><div class="badge-card" style="max-width:400px;border-color:rgba(255,51,102,.2);background:linear-gradient(145deg,rgba(255,51,102,.08),rgba(255,51,102,.02))"><div class="badge-emoji">'+data.mismatch_badge.emoji+'</div><div><div class="badge-name" style="color:#ff3366">'+data.mismatch_badge.title+'</div><div class="badge-desc">'+data.mismatch_badge.description+'</div></div></div></div>'}
-    if(data.badges&&data.badges.length){h+='<h3 style="color:#888;font-size:1rem;margin:2rem 0 1rem;font-weight:500">&#x1F3C5; Your Badges</h3><div class="badge-grid">';
-        data.badges.forEach(b=>{h+='<div class="badge-card"><div class="badge-emoji">'+b.emoji+'</div><div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.description+'</div></div></div>'});h+='</div>'}
-    showContent('personality',h);
-    // Build radar
-    const labels=r.labels.map(l=>l.emoji+' '+l.label);
-    const C={owned:{bg:'rgba(0,168,255,0.25)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',br:'#ff3366'}};
-    const F={owned:{bg:'rgba(0,168,255,0.05)',br:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',br:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',br:'rgba(255,51,102,0.2)'}};
-    radarChart=new Chart(document.getElementById('radar-canvas'),{type:'radar',
-        data:{labels,datasets:[
-            {label:'Library',data:r.owned,backgroundColor:C.owned.bg,borderColor:C.owned.br,borderWidth:2,pointRadius:4,pointBackgroundColor:C.owned.br},
-            {label:'Played',data:r.played,backgroundColor:F.played.bg,borderColor:F.played.br,borderWidth:1,pointRadius:2,pointBackgroundColor:F.played.br},
-            {label:'Unplayed',data:r.unplayed,backgroundColor:F.unplayed.bg,borderColor:F.unplayed.br,borderWidth:1,pointRadius:2,pointBackgroundColor:F.unplayed.br}]},
-        options:{responsive:true,maintainAspectRatio:true,scales:{r:{grid:{color:'rgba(255,255,255,0.08)'},angleLines:{color:'rgba(255,255,255,0.08)'},pointLabels:{color:'#ccc',font:{size:13,weight:'500'},padding:15},ticks:{display:false},suggestedMin:0}},
-            plugins:{legend:{display:false},tooltip:{enabled:true,backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#ccc',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,padding:12,displayColors:true}},
+        h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
+    // Toggle buttons
+    h+='<div class="dna-toggles">';
+    if(data.overall_majority)h+='<button class="dna-btn active" data-layer="owned" onclick="setR(\'owned\')">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</button>';
+    if(data.played_majority)h+='<button class="dna-btn" data-layer="played" onclick="setR(\'played\')">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</button>';
+    if(data.unplayed_majority)h+='<button class="dna-btn" data-layer="unplayed" onclick="setR(\'unplayed\')">Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</button>';
+    h+='</div>';
+    h+='<div class="radar-box"><canvas id="radar-cv" width="580" height="580" style="max-width:580px;width:100%"></canvas></div>';
+    h+='<div class="radar-hint">Click any genre to see your games</div>';
+    // Mismatch badge + regular badges
+    if(data.mismatch_badge||data.badges&&data.badges.length){
+        h+='<div class="badges">';
+        if(data.mismatch_badge)h+='<div class="badge highlight"><div class="badge-icon">'+data.mismatch_badge.emoji+'</div><div><div class="badge-name">'+data.mismatch_badge.title+'</div><div class="badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
+        if(data.badges)data.badges.forEach(b=>{h+='<div class="badge"><div class="badge-icon">'+b.emoji+'</div><div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.description+'</div></div></div>'});
+        h+='</div>'}
+    show('dna',h);
+    // Radar chart
+    const lb=r.labels.map(l=>l.emoji+' '+l.label);
+    const A={owned:{bg:'rgba(0,168,255,0.22)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.22)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.22)',br:'#ff3366'}};
+    const D={owned:{bg:'rgba(0,168,255,0.04)',br:'rgba(0,168,255,0.15)'},played:{bg:'rgba(0,210,106,0.04)',br:'rgba(0,210,106,0.15)'},unplayed:{bg:'rgba(255,51,102,0.04)',br:'rgba(255,51,102,0.15)'}};
+    RC=new Chart(document.getElementById('radar-cv'),{type:'radar',
+        data:{labels:lb,datasets:[
+            {label:'Library',data:r.owned,backgroundColor:A.owned.bg,borderColor:A.owned.br,borderWidth:2,pointRadius:4,pointBackgroundColor:A.owned.br,pointHoverRadius:7},
+            {label:'Played',data:r.played,backgroundColor:D.played.bg,borderColor:D.played.br,borderWidth:1,pointRadius:2,pointBackgroundColor:D.played.br,pointHoverRadius:5},
+            {label:'Unplayed',data:r.unplayed,backgroundColor:D.unplayed.bg,borderColor:D.unplayed.br,borderWidth:1,pointRadius:2,pointBackgroundColor:D.unplayed.br,pointHoverRadius:5}]},
+        options:{responsive:true,maintainAspectRatio:true,
+            scales:{r:{grid:{color:'rgba(255,255,255,0.06)'},angleLines:{color:'rgba(255,255,255,0.06)'},pointLabels:{color:'#aaa',font:{size:12,weight:'500'},padding:12},ticks:{display:false},suggestedMin:0}},
+            plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#bbb',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:10,displayColors:true,callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}},
             interaction:{mode:'nearest',intersect:false},
-            onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default'},
-            onClick:(e,els)=>{const pts=radarChart.getElementsAtEventForMode(e,'nearest',{intersect:false},true);
-                if(pts.length){const idx=pts[0].index,gk=r.labels[idx].key,layer=activeRadar;
-                    const games=(personalityData.genre_games[gk]||{})[layer]||[];
-                    openModal(r.labels[idx].emoji+' '+r.labels[idx].label+' ('+layer+')',games)}}}});
-}).catch(()=>showContent('personality','<p style="text-align:center;color:#666">Failed to load.</p>'));
+            onHover:(e,el)=>{e.native.target.style.cursor=el.length?'pointer':'default'},
+            onClick:(e)=>{const pts=RC.getElementsAtEventForMode(e,'nearest',{intersect:false},true);
+                if(pts.length){const i=pts[0].index,gk=r.labels[i].key;
+                    openModal(r.labels[i].emoji+' '+r.labels[i].label+' ('+RL+')',(PD.genre_games[gk]||{})[RL]||[])}}}});
+}).catch(()=>show('dna','<p style="color:#555;text-align:center">Failed to load genre data.</p>'));
+},200); // end DNA stagger
 
-function setRadar(layer){
-    activeRadar=layer;document.querySelectorAll('.radar-toggle').forEach(b=>b.classList.toggle('active',b.dataset.layer===layer));
-    if(!radarChart)return;
-    const C={owned:{bg:'rgba(0,168,255,0.25)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.25)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.25)',br:'#ff3366'}};
-    const F={owned:{bg:'rgba(0,168,255,0.05)',br:'rgba(0,168,255,0.2)'},played:{bg:'rgba(0,210,106,0.05)',br:'rgba(0,210,106,0.2)'},unplayed:{bg:'rgba(255,51,102,0.05)',br:'rgba(255,51,102,0.2)'}};
-    ['owned','played','unplayed'].forEach((l,i)=>{const ds=radarChart.data.datasets[i],a=l===layer;
-        ds.backgroundColor=a?C[l].bg:F[l].bg;ds.borderColor=a?C[l].br:F[l].br;ds.borderWidth=a?2:1;ds.pointRadius=a?4:2;ds.pointBackgroundColor=a?C[l].br:F[l].br});
-    radarChart.update()}
+function setR(layer){
+    RL=layer;document.querySelectorAll('.dna-btn').forEach(b=>b.classList.toggle('active',b.dataset.layer===layer));
+    if(!RC)return;
+    const A={owned:{bg:'rgba(0,168,255,0.22)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.22)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.22)',br:'#ff3366'}};
+    const D={owned:{bg:'rgba(0,168,255,0.04)',br:'rgba(0,168,255,0.15)'},played:{bg:'rgba(0,210,106,0.04)',br:'rgba(0,210,106,0.15)'},unplayed:{bg:'rgba(255,51,102,0.04)',br:'rgba(255,51,102,0.15)'}};
+    ['owned','played','unplayed'].forEach((l,i)=>{const ds=RC.data.datasets[i],on=l===layer;
+        ds.backgroundColor=on?A[l].bg:D[l].bg;ds.borderColor=on?A[l].br:D[l].br;ds.borderWidth=on?2:1;ds.pointRadius=on?4:2;ds.pointBackgroundColor=on?A[l].br:D[l].br});
+    RC.update()}
 
-// FRIENDS
-fetch('/api/friends/'+steamId).then(r=>r.json()).then(data=>{
-    if(data.error&&!data.leaderboard){showContent('friends','<p style="text-align:center;color:#666">'+data.error+'</p>');return}
-    if(!data.leaderboard||data.leaderboard.length<=1){showContent('friends','<p style="text-align:center;color:#666">No friends with public profiles.</p>');return}
+// Friends — load last
+setTimeout(()=>{
+fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
+    if(data.error&&!data.leaderboard){show('lb','<p style="text-align:center;color:#555">'+data.error+'</p>');return}
+    if(!data.leaderboard||data.leaderboard.length<=1){show('lb','<p style="text-align:center;color:#555">No friends with public profiles found.</p>');return}
     let h='';
-    if(data.user_rank===1)h+='<div class="roast-card"><div class="roast-emoji">&#x1F451;</div><div class="roast-text">#1 most wasteful among friends</div></div>';
-    else if(data.user_rank<=3)h+='<div class="roast-card"><div class="roast-emoji">&#x1F62C;</div><div class="roast-text">#'+data.user_rank+' most wasteful</div></div>';
-    else if(data.user_rank===data.leaderboard.length)h+='<div class="roast-card" style="border-color:rgba(0,210,106,.3);background:linear-gradient(135deg,rgba(0,210,106,.1),rgba(0,210,106,.02))"><div class="roast-emoji">&#x1F3C6;</div><div class="roast-text">Least wasteful!</div></div>';
-    h+='<div class="leaderboard">';
-    data.leaderboard.forEach(e=>{h+='<div class="leaderboard-row '+(e.is_user?'is-user':'')+'"><div class="lb-rank '+(e.rank<=3?'rank-'+e.rank:'')+'">'+(e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank)+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-avatar"><span class="lb-name"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-shame '+(e.shame_score<25?'low':e.shame_score<40?'med':'high')+'">'+e.shame_score+'%</div><div class="lb-stat">'+e.total_games+' owned</div><div class="lb-stat">'+e.played_count+' played</div></div>'});
-    h+='</div>';showContent('friends',h);
-}).catch(()=>showContent('friends','<p style="text-align:center;color:#666">Failed.</p>'));
-function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.share-btn.copy');b.innerHTML='&#x2705; Copied!';setTimeout(()=>b.innerHTML='&#x1F4CB; Copy Link',2000)})}
+    if(data.user_rank===1)h+='<div class="callout"><div class="callout-emoji">&#x1F451;</div><div class="callout-text">#1 most wasteful among your friends</div></div>';
+    else if(data.user_rank<=3)h+='<div class="callout"><div class="callout-emoji">&#x1F62C;</div><div class="callout-text">#'+data.user_rank+' most wasteful among friends</div></div>';
+    else if(data.user_rank===data.leaderboard.length)h+='<div class="callout win"><div class="callout-emoji">&#x1F3C6;</div><div class="callout-text">Least wasteful among your friends</div></div>';
+    h+='<div class="lb">';
+    data.leaderboard.forEach(e=>{
+        const ri=e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
+        h+='<div class="lb-row '+(e.is_user?'me':'')+'"><div class="lb-rank '+(e.rank<=3?'r'+e.rank:'')+'">'+ri+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-av"><span class="lb-nm"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-score '+(e.shame_score<25?'lo':e.shame_score<40?'md':'hi')+'">'+e.shame_score+'%</div><div class="lb-meta">'+e.total_games+'</div><div class="lb-meta">'+e.played_count+'</div></div>'});
+    h+='</div>';show('lb',h);
+}).catch(()=>show('lb','<p style="text-align:center;color:#555">Could not load friends.</p>'));
+},500); // end friends stagger
+
+function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.s-btn.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Link',2000)})}
 </script>
 </body></html>
