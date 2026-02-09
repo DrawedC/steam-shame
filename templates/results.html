@@ -42,17 +42,16 @@
         .hero-stat-lbl{font-size:.7rem;color:#444;margin-top:.1rem;text-transform:uppercase;letter-spacing:.04em}
         .hero-stats > div{text-align:left}
 
-        /* Badges - UNIFORM sizing */
-        .hero-badges{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:1.5rem;opacity:0;animation:fadeUp .6s ease .4s forwards}
-        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.45rem .85rem;min-width:0;max-width:340px}
+        /* Badges - stack vertically */
+        .hero-badges{display:flex;flex-direction:column;align-items:center;gap:.5rem;margin-top:1.5rem;opacity:0;animation:fadeUp .6s ease .4s forwards}
+        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.45rem .85rem;min-width:0;width:100%;max-width:400px}
         .hero-badge-icon{font-size:1.15rem;flex-shrink:0}.hero-badge-text{text-align:left;min-width:0}
         .hero-badge-name{font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .hero-badge-desc{font-size:.65rem;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .hero-badge.highlight{border-color:rgba(255,51,102,.2);background:rgba(255,51,102,.04)}
         .hero-badge.highlight .hero-badge-name{color:#ff3366}
 
-        .scroll-hint{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);color:#2a2a2a;font-size:.75rem;opacity:0;animation:fadeUp .6s ease .6s forwards,bounce 2s ease-in-out 1.5s infinite}
-        .scroll-hint span{display:block;margin-top:.25rem;font-size:1rem}
+        /* (scroll hint removed) */
 
         /* Sections */
         .sec{padding:3rem 1.5rem}.sec+.sec{border-top:1px solid rgba(255,255,255,.03)}
@@ -181,8 +180,6 @@
             .share-title{font-size:1.5rem}
             .share-sub{font-size:.95rem}
             .callout-text{font-size:1.1rem}
-
-            .scroll-hint{font-size:.85rem}
         }
 
         /* ===== TABLET (641-1023px) ===== */
@@ -203,7 +200,7 @@
             .info-row{padding:.9rem 1rem}
             .info-icon{font-size:1.8rem}
             .lb-head,.lb-row{grid-template-columns:36px 1fr 50px 55px}.lb-head>*:last-child,.lb-row>*:last-child{display:none}
-            .hero-badges{gap:.35rem}.hero-badge{padding:.35rem .65rem;max-width:280px}.hero-badge-icon{font-size:1rem}
+            .hero-badges{gap:.35rem}.hero-badge{padding:.35rem .65rem;max-width:100%}.hero-badge-icon{font-size:1rem}
             .hero-stats{gap:1rem}.sec-title{font-size:1.25rem}
             .sec{padding:2rem 1rem}
             /* Suggest stacks vertically on mobile */
@@ -301,6 +298,13 @@ body {
     </style>
 </head>
 <body>
+<!-- Full page loading overlay -->
+<div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0a0a0c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .4s">
+    <div class="spin" style="width:36px;height:36px;border-width:3px"></div>
+    <div style="color:#444;font-size:.85rem">Loading your shame report...</div>
+</div>
+
+<div id="page-content" style="opacity:0;transition:opacity .4s">
 <div class="top-bar" id="topbar">
     <a href="/" class="top-logo">Steam<span>Shame</span></a>
     <form action="/lookup" method="POST" class="top-search"><input type="text" name="steam_input" placeholder="Steam URL or username" autocomplete="off"><button type="submit">Check</button></form>
@@ -320,7 +324,7 @@ body {
         {% endfor %}
         <div id="badges-slot"></div>
     </div>
-    <div class="scroll-hint">Scroll for the damage<span>&#8595;</span></div>
+    </div>
 </section>
 
 <section class="sec"><div class="sec-in">
@@ -368,6 +372,7 @@ body {
         <button class="s-btn cp" onclick="copyLink()">Copy Link</button>
     </div>
 </section>
+</div><!-- /page-content -->
 
 <div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal">
     <div class="modal-head"><div class="modal-t" id="modal-t"></div><button class="modal-x" onclick="closeModal()">&#x2715;</button></div>
@@ -437,7 +442,7 @@ function loadVal(full){
         if(d.is_estimate)h+='<button class="expand-btn" style="display:inline-block;width:auto;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.06);border-radius:8px" onclick="loadVal(true)">Scan full library for accuracy</button>';
         h+='</div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
-    }).catch(()=>{ld.style.display='none'})}
+    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
 
 // Suggest — less ad-like, no most played time
 function loadSuggest(){
@@ -504,7 +509,7 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
             scales:{r:{grid:{color:'rgba(255,255,255,0.05)'},angleLines:{color:'rgba(255,255,255,0.05)'},pointLabels:{color:'#999',font:{size:11,weight:'500',family:'Inter'},padding:8},ticks:{display:false},suggestedMin:0}},
             plugins:{legend:{display:false},datalabels:{display:false},
                 tooltip:{backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#bbb',borderColor:'rgba(255,255,255,.06)',borderWidth:1,padding:8,displayColors:true,callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}}}});
-}).catch(()=>show('dna','<p style="color:#444;text-align:center">Failed to load.</p>'));
+}).catch(()=>show('dna','<p style="color:#444;text-align:center">Failed to load.</p>')).finally(()=>{_loaded.dna=true;checkReady()});
 },200);
 
 setTimeout(()=>{
@@ -524,5 +529,67 @@ fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
 },500);
 
 function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.s-btn.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Link',2000)})}
+
+// Page reveal: track async loads, show page when key ones finish
+let _loaded={val:false,dna:false,friends:false,suggest:false};
+function checkReady(){
+    // Show page once DNA + value are done (friends can trickle in)
+    if(_loaded.dna && _loaded.val){
+        const loader=document.getElementById('page-loader');
+        const content=document.getElementById('page-content');
+        content.style.opacity='1';
+        loader.style.opacity='0';
+        setTimeout(()=>loader.style.display='none',400);
+    }
+}
+// Timeout fallback: show page after 8s no matter what
+setTimeout(()=>{
+    const loader=document.getElementById('page-loader');
+    const content=document.getElementById('page-content');
+    if(loader.style.display!=='none'){
+        content.style.opacity='1';loader.style.opacity='0';
+        setTimeout(()=>loader.style.display='none',400);
+    }
+},8000);
+
+// DNA toggle click handlers
+document.addEventListener('click',function(e){
+    const btn=e.target.closest('.dna-btn');
+    if(!btn||!RC)return;
+    const layer=btn.dataset.layer;
+    if(!layer)return;
+    const idx={owned:0,played:1,unplayed:2}[layer];
+    if(idx===undefined)return;
+    // Toggle: if active, show only this layer prominently. If clicking same, reset all.
+    const isActive=btn.classList.contains('active');
+    const btns=document.querySelectorAll('.dna-btn');
+    const A={owned:{bg:'rgba(0,168,255,0.2)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.2)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.2)',br:'#ff3366'}};
+    const layers=['owned','played','unplayed'];
+    if(isActive){
+        // Reset all to default
+        btns.forEach(b=>b.classList.remove('active'));
+        btns[0].classList.add('active');
+        RC.data.datasets.forEach((ds,i)=>{
+            const l=layers[i];
+            ds.backgroundColor=i===0?A[l].bg:'rgba('+{played:'0,210,106',unplayed:'255,51,102'}[l]+',0.05)';
+            ds.borderColor=i===0?A[l].br:'rgba('+{played:'0,210,106',unplayed:'255,51,102'}[l]+',0.2)';
+            ds.borderWidth=i===0?2:1;ds.pointRadius=i===0?3:1.5;
+        });
+    } else {
+        // Highlight selected layer
+        btns.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        RC.data.datasets.forEach((ds,i)=>{
+            const l=layers[i];
+            if(i===idx){
+                ds.backgroundColor=A[l].bg;ds.borderColor=A[l].br;ds.borderWidth=2;ds.pointRadius=3;
+            } else {
+                const rgb=l==='owned'?'0,168,255':l==='played'?'0,210,106':'255,51,102';
+                ds.backgroundColor='rgba('+rgb+',0.03)';ds.borderColor='rgba('+rgb+',0.12)';ds.borderWidth=1;ds.pointRadius=1;
+            }
+        });
+    }
+    RC.update();
+});
 </script>
 </body></html>
