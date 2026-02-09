@@ -115,21 +115,23 @@ def get_friends_list(steam_id):
         return []
 
 def get_app_details(appid):
-    """Fetch store details with cache. Returns None on failure (rate limit, timeout, etc)."""
     now = time.time()
     with _store_cache_lock:
         c = _store_cache.get(appid)
-        if c and (now - c["ts"]) < STORE_CACHE_TTL: return c["data"]
+        if c and (now - c["ts"]) < STORE_CACHE_TTL:
+            return c["data"]
     try:
-        r = requests.get(f"https://store.steampowered.com/api/appdetails?appids={appid}", timeout=10)
+        url = f"https://store.steampowered.com/api/appdetails?appids={appid}&l=english"
+        r = requests.get(url, timeout=10)
         if r.status_code == 429:
             log.warning(f"Store API rate limited on appid {appid}")
             return None
         if r.status_code == 200:
-            ad = r.json().get(str(appid),{})
+            ad = r.json().get(str(appid), {})
             if ad.get("success"):
-                result = ad.get("data",{})
-                with _store_cache_lock: _store_cache[appid] = {"data":result,"ts":now}
+                result = ad.get("data", {})
+                with _store_cache_lock:
+                    _store_cache[appid] = {"data": result, "ts": now}
                 return result
     except Exception as e:
         log.debug(f"Store API error for {appid}: {e}")
