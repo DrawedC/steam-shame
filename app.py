@@ -211,15 +211,53 @@ GENRE_CATEGORIES = {
     "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":"🥊"},
 }
 
-def classify_game_genres(store_data):
-    cats = set()
-    all_labels = [g.get("description","") for g in store_data.get("genres",[])] + \
-                 [c.get("description","") for c in store_data.get("categories",[])]
-    lower_labels = [l.lower() for l in all_labels]
-    for k, v in GENRE_CATEGORIES.items():
-        for n in v["names"]:
-            if n.lower() in lower_labels: cats.add(k); break
-    return list(cats)
+def classify_game_genres(details):
+    """
+    Improved genre classification:
+    - Uses Steam's 'genres' field
+    - Returns a list of genre names (lowercase for consistency)
+    - Prioritizes non-'Action' when multiple exist
+    - Filters out very generic ones if better alternatives present
+    """
+    if not details or 'genres' not in details:
+        return []
+
+    raw_genres = [g['description'].lower() for g in details['genres']]
+    
+    # Common broad genres we want to keep distinct
+    preferred = {
+        'action': 'action',
+        'adventure': 'adventure',
+        'rpg': 'rpg',
+        'strategy': 'strategy',
+        'simulation': 'simulation',
+        'indie': 'indie',
+        'casual': 'casual',
+        'racing': 'racing',
+        'sports': 'sports',
+        'free to play': 'free-to-play',
+        'early access': 'early access'
+    }
+
+    # If 'action' is present but there are others, prefer the others
+    result = []
+    has_action = 'action' in raw_genres
+    
+    for g in raw_genres:
+        if g in preferred:
+            result.append(preferred[g])
+        elif g in ('violent', 'gore', 'sexual content', 'nudity'):
+            continue  # skip ESRB-style tags
+        else:
+            # Keep niche genres (fighting, shooter, platformer, etc.)
+            result.append(g)
+
+    # If only 'action' was found, keep it
+    if not result and has_action:
+        result = ['action']
+
+    # Deduplicate and sort for consistency
+    return sorted(set(result))
 
 def detect_descriptor(stats):
     """Primary identity based on play habits."""
