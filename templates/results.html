@@ -23,6 +23,7 @@
         .top-search{flex:1;max-width:380px;display:flex}
         .top-search input{flex:1;padding:.45rem .8rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px 0 0 8px;color:#fff;font-size:.8rem;font-family:inherit;outline:none}.top-search input:focus{border-color:rgba(255,255,255,.2)}.top-search input::placeholder{color:#444}
         .top-search button{padding:.45rem .9rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-left:none;border-radius:0 8px 8px 0;color:#bbb;font-size:.8rem;cursor:pointer;font-family:inherit}.top-search button:hover{background:rgba(255,255,255,.12);color:#fff}
+
         .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 2rem 3rem;position:relative;background:radial-gradient(ellipse at 50% 0%,rgba(120,0,255,.1),transparent 50%),#0a0a0c}
         .player-header{display:flex;align-items:center;gap:1rem;margin-bottom:2rem;opacity:0;animation:fadeUp .6s ease forwards}
         .avatar{width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,255,255,.12)}
@@ -34,20 +35,22 @@
         .hero-stats{display:flex;gap:2rem;margin-top:1.25rem;opacity:0;animation:fadeUp .6s ease .25s forwards}
         .hero-stat-val{font-size:1.05rem;font-weight:700}.hero-stat-val.red{color:#ff3366}
         .hero-stat-lbl{font-size:.7rem;color:#444;margin-top:.1rem;text-transform:uppercase;letter-spacing:.04em}
-        .hero-badges{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin-top:1.5rem;opacity:0;animation:fadeUp .6s ease .4s forwards}
-        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.5rem 1rem}
-        .hero-badge-icon{font-size:1.3rem}.hero-badge-text{text-align:left}
-        .hero-badge-name{font-size:.85rem;font-weight:700;color:#fff}.hero-badge-desc{font-size:.7rem;color:#666}
-        .hero-badge.highlight{border-color:rgba(255,51,102,.2);background:rgba(255,51,102,.04)}
-        .hero-badge.highlight .hero-badge-name{color:#ff3366}
-        .scroll-hint{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);color:#2a2a2a;font-size:.75rem;opacity:0;animation:fadeUp .6s ease .6s forwards,bounce 2s ease-in-out 1.5s infinite}
-        .scroll-hint span{display:block;margin-top:.25rem;font-size:1rem}
+
+        /* Badges stacked vertically */
+        .hero-badges{display:flex;flex-direction:column;align-items:center;gap:.5rem;margin-top:1.5rem;opacity:0;animation:fadeUp .6s ease .4s forwards;max-width:420px}
+        .hero-badge{display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.55rem 1.1rem;width:100%}
+        .hero-badge-icon{font-size:1.3rem;flex-shrink:0}
+        .hero-badge-name{font-size:.82rem;font-weight:700;color:#fff}.hero-badge-desc{font-size:.68rem;color:#555}
+        .hero-badge.hl{border-color:rgba(255,51,102,.18);background:rgba(255,51,102,.04)}.hero-badge.hl .hero-badge-name{color:#ff3366}
+        .scroll-hint{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);color:#2a2a2a;font-size:.75rem;opacity:0;animation:fadeUp .6s ease .6s forwards,bounce 2s ease-in-out 1.5s infinite}.scroll-hint span{display:block;margin-top:.25rem;font-size:1rem}
+
         .sec{padding:3.5rem 1.5rem}.sec+.sec{border-top:1px solid rgba(255,255,255,.03)}
         .sec-in{max-width:840px;margin:0 auto}
         .sec-title{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:.25rem}
         .sec-sub{font-size:.9rem;color:#444;margin-bottom:2rem}
-        .pie-area{display:flex;align-items:center;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:2.5rem}
-        .pie-box{width:280px;height:280px;flex-shrink:0}
+
+        .pie-area{display:flex;align-items:center;justify-content:center;margin-bottom:2rem}
+        .pie-box{width:300px;height:300px;flex-shrink:0}
         .detail-panel{display:none;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:12px;overflow:hidden;margin-bottom:2rem}
         .detail-panel.open{display:block}
         .detail-header{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.03)}
@@ -56,31 +59,41 @@
         .g-row{display:flex;align-items:center;padding:.5rem 1rem;border-bottom:1px solid rgba(255,255,255,.02);font-size:.82rem}.g-row:last-child{border:none}.g-row:hover{background:rgba(255,255,255,.02)}
         .g-name{flex:1;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:.5rem}.g-time{color:#444;font-weight:600;font-size:.75rem}
         .expand-btn{display:block;width:100%;padding:.55rem;background:none;border:none;border-top:1px solid rgba(255,255,255,.03);color:#666;font-size:.78rem;cursor:pointer;font-family:inherit}.expand-btn:hover{color:#fff;background:rgba(255,255,255,.02)}
-        .info-row{display:flex;gap:1.5rem;align-items:center;margin-bottom:2rem;padding:1.5rem;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:14px}
-        .info-icon{font-size:3rem;flex-shrink:0;line-height:1}
-        .info-icon.big{font-size:3.5rem}.info-icon.huge{font-size:4rem}
+
+        /* Info rows - library/unplayed/backlog */
+        .info-row{display:flex;gap:1.5rem;align-items:center;margin-bottom:1.25rem;padding:1.25rem 1.5rem;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:14px}
+        .info-row.right{flex-direction:row-reverse;text-align:right}
+        .info-icon{font-size:2.75rem;flex-shrink:0;line-height:1}
         .info-text{flex:1}
-        .info-main{font-size:1rem;font-weight:700;color:#fff;margin-bottom:.2rem}
-        .info-main .val{font-size:1.15rem}.info-main .val.green{color:#00d26a}.info-main .val.red{color:#ff3366}.info-main .val.orange{color:#ff6b35}
-        .info-sub{font-size:.8rem;color:#555}
-        .radar-box{display:flex;justify-content:center;margin-bottom:.5rem}
-        .dna-toggles{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:1rem;margin-bottom:.75rem}
-        .dna-btn{padding:.5rem 1.2rem;border-radius:50px;font-size:.8rem;font-weight:600;cursor:default;border:2px solid transparent;font-family:inherit;background:rgba(255,255,255,.04);color:#555}
+        .info-main{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.15rem}
+        .info-main .val{font-size:1.1rem}.info-main .val.green{color:#00d26a}.info-main .val.red{color:#ff3366}.info-main .val.orange{color:#ff6b35}
+        .info-sub{font-size:.78rem;color:#555}
+
+        /* Radar / DNA */
+        .radar-box{display:flex;justify-content:center}
+        .dna-toggles{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:.75rem;margin-bottom:.5rem}
+        .dna-btn{padding:.5rem 1.2rem;border-radius:50px;font-size:.8rem;font-weight:600;cursor:pointer;border:2px solid transparent;font-family:inherit;background:rgba(255,255,255,.04);color:#555;transition:all .2s}
+        .dna-btn:hover{background:rgba(255,255,255,.08);color:#999}
         .dna-btn.active{color:#fff}
         .dna-btn[data-layer="owned"].active{background:rgba(0,168,255,.15);border-color:#00a8ff;color:#00a8ff}
         .dna-btn[data-layer="played"].active{background:rgba(0,210,106,.15);border-color:#00d26a;color:#00d26a}
         .dna-btn[data-layer="unplayed"].active{background:rgba(255,51,102,.15);border-color:#ff3366;color:#ff3366}
-        .radar-disclaimer{text-align:center;color:#333;font-size:.7rem;font-style:italic;margin-top:.5rem}
-        .suggest{background:rgba(0,168,255,.04);border:1px solid rgba(0,168,255,.12);border-radius:14px;overflow:hidden}
-        .suggest-img{width:100%;aspect-ratio:616/353;object-fit:cover;display:block}
-        .suggest-body{padding:1.25rem;text-align:center}
-        .suggest-eye{font-size:.72rem;color:#00a8ff;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:.3rem}
-        .suggest-name{font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:.6rem}
-        .suggest-actions{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:.75rem}
-        .btn-steam{padding:.45rem 1.1rem;background:#00a8ff;color:#fff;border-radius:50px;text-decoration:none;font-weight:600;font-size:.82rem;transition:transform .15s;display:inline-block}.btn-steam:hover{transform:translateY(-1px)}
-        .btn-reroll{padding:.45rem 1.1rem;background:rgba(255,255,255,.05);color:#888;border-radius:50px;border:none;font-size:.82rem;cursor:pointer;font-family:inherit}.btn-reroll:hover{background:rgba(255,255,255,.08);color:#fff}
-        .suggest-alt{font-size:.8rem;color:#444;font-style:italic}
-        .suggest-alt span{color:#888;font-style:normal}
+        .radar-disclaimer{text-align:center;color:#333;font-size:.7rem;font-style:italic;margin-top:.35rem}
+        .mismatch{background:linear-gradient(135deg,rgba(255,51,102,.06),transparent);border:1px solid rgba(255,51,102,.12);border-radius:12px;padding:1rem;text-align:center;margin-bottom:1.25rem}
+        .mismatch-title{font-size:.95rem;font-weight:700;color:#ff3366;margin-bottom:.15rem}.mismatch-sub{font-size:.8rem;color:#666}
+
+        /* Suggest - horizontal layout */
+        .suggest{display:flex;background:rgba(0,168,255,.04);border:1px solid rgba(0,168,255,.12);border-radius:14px;overflow:hidden;align-items:stretch}
+        .suggest-img{width:200px;height:auto;object-fit:cover;flex-shrink:0;display:block}
+        .suggest-body{padding:1.25rem;display:flex;flex-direction:column;justify-content:center;flex:1}
+        .suggest-eye{font-size:.7rem;color:#00a8ff;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:.25rem}
+        .suggest-name{font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:.5rem}
+        .suggest-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
+        .btn-steam{padding:.4rem 1rem;background:#00a8ff;color:#fff;border-radius:50px;text-decoration:none;font-weight:600;font-size:.78rem;transition:transform .15s;display:inline-block}.btn-steam:hover{transform:translateY(-1px)}
+        .btn-reroll{padding:.4rem 1rem;background:rgba(255,255,255,.05);color:#888;border-radius:50px;border:none;font-size:.78rem;cursor:pointer;font-family:inherit}.btn-reroll:hover{background:rgba(255,255,255,.08);color:#fff}
+        .suggest-alt{font-size:.75rem;color:#444;font-style:italic}.suggest-alt span{color:#777;font-style:normal}
+
+        /* Leaderboard */
         .lb{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:14px;overflow:hidden}
         .lb-head{display:grid;grid-template-columns:44px 1fr 65px 70px 70px;padding:.55rem 1rem;background:rgba(255,255,255,.03);font-size:.7rem;color:#333;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
         .lb-row{display:grid;grid-template-columns:44px 1fr 65px 70px 70px;padding:.65rem 1rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.02);font-size:.82rem}
@@ -96,13 +109,13 @@
         .callout{background:linear-gradient(135deg,rgba(255,51,102,.06),transparent);border:1px solid rgba(255,51,102,.12);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;text-align:center}
         .callout-emoji{font-size:2rem;margin-bottom:.35rem}.callout-text{font-size:1rem;font-weight:600;color:#fff}
         .callout.win{background:linear-gradient(135deg,rgba(0,210,106,.06),transparent);border-color:rgba(0,210,106,.15)}
-        .mismatch{background:linear-gradient(135deg,rgba(255,51,102,.06),transparent);border:1px solid rgba(255,51,102,.12);border-radius:12px;padding:1rem;text-align:center;margin-bottom:1.5rem}
-        .mismatch-title{font-size:.95rem;font-weight:700;color:#ff3366;margin-bottom:.15rem}.mismatch-sub{font-size:.8rem;color:#666}
+
         .share{text-align:center;padding:3.5rem 1.5rem;border-top:1px solid rgba(255,255,255,.03)}
         .share-title{font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:.25rem}
         .share-sub{color:#444;margin-bottom:1.25rem;font-size:.85rem}
         .share-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
         .s-btn{padding:.55rem 1.3rem;border-radius:50px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem;border:none;transition:transform .12s}.s-btn:hover{transform:translateY(-1px)}.s-btn.tw{background:#1da1f2;color:#fff}.s-btn.cp{background:rgba(255,255,255,.06);color:#bbb}
+
         .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(3px)}.modal-bg.on{display:flex}
         .modal{background:#131316;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.5rem;max-width:440px;width:100%;max-height:60vh;display:flex;flex-direction:column;animation:mIn .15s ease}
         @keyframes mIn{from{opacity:0;transform:scale(.97) translateY(6px)}to{opacity:1;transform:none}}
@@ -111,18 +124,22 @@
         .modal-x{background:rgba(255,255,255,.06);border:none;color:#666;width:30px;height:30px;border-radius:50%;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.modal-x:hover{background:rgba(255,255,255,.12);color:#fff}
         .modal-body{overflow-y:auto;flex:1}.modal-body::-webkit-scrollbar{width:4px}.modal-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
         .modal-item{padding:.4rem .5rem;border-radius:5px;color:#aaa;font-size:.82rem}.modal-item:hover{background:rgba(255,255,255,.03)}
+
         .loading{text-align:center;padding:2rem;color:#444}
         .spin{width:28px;height:28px;border:2px solid rgba(255,255,255,.06);border-top-color:#00a8ff;border-radius:50%;margin:0 auto .6rem;animation:sp .8s linear infinite}
         @keyframes sp{to{transform:rotate(360deg)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
         @keyframes bounce{0%,100%{transform:translateX(-50%)}50%{transform:translateX(-50%) translateY(-6px)}}
+
         @media(max-width:640px){
-            .pie-area{flex-direction:column;gap:1rem}.pie-box{width:240px;height:240px}
-            .info-row{flex-direction:column;text-align:center;gap:.75rem}
-            .info-icon{font-size:2.5rem}
+            .pie-box{width:240px;height:240px}
+            .info-row{flex-direction:column!important;text-align:center!important;gap:.6rem;padding:1rem}
+            .info-icon{font-size:2rem}
             .lb-head,.lb-row{grid-template-columns:36px 1fr 50px 55px}.lb-head>*:last-child,.lb-row>*:last-child{display:none}
-            .hero-badges{gap:.4rem}.hero-badge{padding:.4rem .75rem}.hero-badge-icon{font-size:1.1rem}
+            .hero-badges{max-width:100%}
             .hero-stats{gap:1rem}.sec-title{font-size:1.25rem}
+            .suggest{flex-direction:column}.suggest-img{width:100%;height:140px}
+            .sec-sub{margin-bottom:1rem}
         }
     </style>
 </head>
@@ -131,6 +148,7 @@
     <a href="/" class="top-logo">Steam<span>Shame</span></a>
     <form action="/lookup" method="POST" class="top-search"><input type="text" name="steam_input" placeholder="Steam URL or username" autocomplete="off"><button type="submit">Check</button></form>
 </div>
+
 <section class="hero" style="padding-top:4.5rem">
     <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-sub">Steam Shame Report</div></div></div>
     <div class="shame-display"><div class="shame-num">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
@@ -145,36 +163,41 @@
     <div class="scroll-hint">Scroll for the damage<span>&#8595;</span></div>
 </section>
 
+<!-- Shame Pile -->
 <section class="sec"><div class="sec-in">
     <div class="sec-title">The Shame Pile</div>
     <div class="sec-sub">{{ stats.total_games }} games, broken down</div>
-    <div class="pie-area">
-        <div class="pie-box"><canvas id="pie-cv"></canvas></div>
-    </div>
+    <div class="pie-area"><div class="pie-box"><canvas id="pie-cv"></canvas></div></div>
     <div id="pie-detail" class="detail-panel"></div>
 
     <div id="val-load" class="loading"><div class="spin"></div>Calculating library value...</div>
     <div id="val-out" style="display:none"></div>
 
-    {% if stats.backlog_days > 0 %}
+    {% if stats.backlog_hours > 0 %}
     <div class="info-row">
         <div class="info-icon">⏳</div>
-        <div class="info-text"><div class="info-main"><span class="val orange">{{ stats.backlog_days }} days</span> to clear your backlog</div><div class="info-sub">At 1 hour per day, ~10 hrs per game{% if stats.backlog_days > 365 %} — that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div></div>
+        <div class="info-text">
+            <div class="info-main"><span class="val orange">{{ "{:,}".format(stats.backlog_hours) }} hours</span> to clear your backlog</div>
+            <div class="info-sub">Assuming ~10 hours per game to complete</div>
+        </div>
     </div>
     {% endif %}
 </div></section>
 
+<!-- Gamer DNA -->
 <section class="sec" id="dna-sec"><div class="sec-in">
     <div class="sec-title">Gamer DNA</div>
-    <div class="sec-sub">What your library says about you</div>
+    <div class="sec-sub" style="margin-bottom:1rem">What your library says about you</div>
     <div id="dna-load" class="loading"><div class="spin"></div>Analyzing your genres...</div>
     <div id="dna-out" style="display:none"></div>
 </div></section>
 
+<!-- Suggestion -->
 <section class="sec"><div class="sec-in">
     <div id="suggest-out" style="display:none"></div>
 </div></section>
 
+<!-- Friends -->
 <section class="sec" id="lb-sec"><div class="sec-in">
     <div class="sec-title">Friends Leaderboard</div>
     <div class="sec-sub">Who wastes the most?</div>
@@ -182,6 +205,7 @@
     <div id="lb-out" style="display:none"></div>
 </div></section>
 
+<!-- Share -->
 <section class="share">
     <div class="share-title">Spread the shame</div>
     <div class="share-sub">Let your friends see how they compare</div>
@@ -191,6 +215,7 @@
     </div>
 </section>
 
+<!-- Modal -->
 <div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal">
     <div class="modal-head"><div class="modal-t" id="modal-t"></div><button class="modal-x" onclick="closeModal()">&#x2715;</button></div>
     <div class="modal-body" id="modal-b"></div>
@@ -207,7 +232,7 @@ const S=[
     {l:'Never Played',c:'#ff3366',n:{{stats.never_played_count}},t:{{stats.unplayed_total}},pct:'{{(stats.never_played_count/stats.total_games*100)|round(1)}}%',
      g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]}
 ];
-const MOST_PLAYED = {% if stats.most_played %}{"name":"{{stats.most_played.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{stats.most_played.playtime_fmt}}"}{% else %}null{% endif %};
+const MOST_PLAYED={% if stats.most_played %}{"name":"{{stats.most_played.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{stats.most_played.playtime_fmt}}"}{% else %}null{% endif %};
 let PD=null,RC=null,RL='owned';
 
 function show(id,h){document.getElementById(id+'-load').style.display='none';const e=document.getElementById(id+'-out');e.innerHTML=h;e.style.display='block'}
@@ -220,13 +245,13 @@ function closeModal(){document.getElementById('modal').classList.remove('on');do
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 let lastY=0;window.addEventListener('scroll',()=>{const y=window.scrollY;document.getElementById('topbar').classList.toggle('hidden',y>100&&y>lastY);lastY=y},{passive:true});
 
-// Pie with datalabels
+// Pie
 new Chart(document.getElementById('pie-cv'),{type:'doughnut',
     data:{labels:S.map(s=>s.l),datasets:[{data:S.map(s=>s.n),backgroundColor:S.map(s=>s.c),borderColor:'#0a0a0c',borderWidth:2,hoverOffset:12}]},
     options:{responsive:true,maintainAspectRatio:true,cutout:'42%',
         plugins:{legend:{display:true,position:'bottom',labels:{color:'#888',font:{size:12,family:'Inter'},padding:16,usePointStyle:true,pointStyleWidth:10}},
         datalabels:{color:'#fff',font:{weight:'700',size:13,family:'Inter'},
-            formatter:(v,ctx)=>{const t=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);const p=((v/t)*100).toFixed(1);return v>0?p+'%':''},
+            formatter:(v,ctx)=>{const t=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return v>0?((v/t)*100).toFixed(1)+'%':''},
             anchor:'center',align:'center',textShadowBlur:4,textShadowColor:'rgba(0,0,0,.6)'}},
         onClick:(e,el)=>{if(el.length)selectPie(el[0].index)}}});
 
@@ -248,8 +273,8 @@ function loadVal(full){
         if(d.error){ld.style.display='none';return}
         const e=d.is_estimate?'~':'';
         let h='<div class="info-row"><div class="info-icon">📚</div><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">'+e+'$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div></div>';
-        h+='<div class="info-row"><div class="info-icon">🕸️</div><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div></div>';
-        h+='<div style="text-align:center;margin-bottom:1.5rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div>';
+        h+='<div class="info-row right"><div class="info-icon">🕸️</div><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div></div>';
+        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.4rem">*Based on current MSRP. Does not reflect sale prices.</div>';
         if(d.is_estimate)h+='<button class="expand-btn" style="display:inline-block;width:auto;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.06);border-radius:8px" onclick="loadVal(true)">Scan full library for accuracy</button>';
         h+='</div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
@@ -265,7 +290,6 @@ function loadSuggest(){
         el.style.display='block';
     }).catch(()=>{})}
 
-// Staggered loading
 loadVal(false);loadSuggest();
 setTimeout(()=>{
 fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
@@ -275,33 +299,42 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     let h='';
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
         h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
-    h+='<div class="radar-box"><canvas id="radar-cv" width="560" height="560" style="max-width:560px;width:100%"></canvas></div>';
-    // Toggles below chart
+    h+='<div class="radar-box"><canvas id="radar-cv" width="540" height="540" style="max-width:540px;width:100%"></canvas></div>';
     h+='<div class="dna-toggles">';
-    if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
-    if(data.played_majority)h+='<div class="dna-btn" data-layer="played">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</div>';
-    if(data.unplayed_majority)h+='<div class="dna-btn" data-layer="unplayed">Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</div>';
+    if(data.overall_majority)h+='<button class="dna-btn active" data-layer="owned" onclick="setR(\'owned\')">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</button>';
+    if(data.played_majority)h+='<button class="dna-btn" data-layer="played" onclick="setR(\'played\')">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</button>';
+    if(data.unplayed_majority)h+='<button class="dna-btn" data-layer="unplayed" onclick="setR(\'unplayed\')">Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</button>';
     h+='</div>';
     h+='<div class="radar-disclaimer">Based on a sample of your library</div>';
     // Badges into hero
     let bh='';
-    if(data.mismatch_badge)bh+='<div class="hero-badge highlight"><div class="hero-badge-icon">'+data.mismatch_badge.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+data.mismatch_badge.title+'</div><div class="hero-badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
+    if(data.mismatch_badge)bh+='<div class="hero-badge hl"><div class="hero-badge-icon">'+data.mismatch_badge.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+data.mismatch_badge.title+'</div><div class="hero-badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
     if(data.badges)data.badges.forEach(b=>{bh+='<div class="hero-badge"><div class="hero-badge-icon">'+b.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+b.name+'</div><div class="hero-badge-desc">'+b.description+'</div></div></div>'});
     document.getElementById('badges-slot').innerHTML=bh;
     show('dna',h);
     const lb=r.labels.map(l=>l.emoji+' '+l.label);
     const A={owned:{bg:'rgba(0,168,255,0.2)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.2)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.2)',br:'#ff3366'}};
+    const D={owned:{bg:'rgba(0,168,255,0.04)',br:'rgba(0,168,255,0.15)'},played:{bg:'rgba(0,210,106,0.04)',br:'rgba(0,210,106,0.15)'},unplayed:{bg:'rgba(255,51,102,0.04)',br:'rgba(255,51,102,0.15)'}};
     RC=new Chart(document.getElementById('radar-cv'),{type:'radar',
         data:{labels:lb,datasets:[
             {label:'Library',data:r.owned,backgroundColor:A.owned.bg,borderColor:A.owned.br,borderWidth:2,pointRadius:3,pointBackgroundColor:A.owned.br},
-            {label:'Played',data:r.played,backgroundColor:'rgba(0,210,106,0.05)',borderColor:'rgba(0,210,106,0.2)',borderWidth:1,pointRadius:1.5,pointBackgroundColor:'rgba(0,210,106,0.2)'},
-            {label:'Unplayed',data:r.unplayed,backgroundColor:'rgba(255,51,102,0.05)',borderColor:'rgba(255,51,102,0.2)',borderWidth:1,pointRadius:1.5,pointBackgroundColor:'rgba(255,51,102,0.2)'}]},
+            {label:'Played',data:r.played,backgroundColor:D.played.bg,borderColor:D.played.br,borderWidth:1,pointRadius:1.5,pointBackgroundColor:D.played.br},
+            {label:'Unplayed',data:r.unplayed,backgroundColor:D.unplayed.bg,borderColor:D.unplayed.br,borderWidth:1,pointRadius:1.5,pointBackgroundColor:D.unplayed.br}]},
         options:{responsive:true,maintainAspectRatio:true,
-            scales:{r:{grid:{color:'rgba(255,255,255,0.05)'},angleLines:{color:'rgba(255,255,255,0.05)'},pointLabels:{color:'#999',font:{size:11,weight:'500',family:'Inter'},padding:10},ticks:{display:false},suggestedMin:0}},
+            scales:{r:{grid:{color:'rgba(255,255,255,0.05)'},angleLines:{color:'rgba(255,255,255,0.05)'},pointLabels:{color:'#bbb',font:{size:14,weight:'600',family:'Inter'},padding:14},ticks:{display:false},suggestedMin:0}},
             plugins:{legend:{display:false},datalabels:{display:false},
                 tooltip:{backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#bbb',borderColor:'rgba(255,255,255,.06)',borderWidth:1,padding:8,displayColors:true,callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}}}});
 }).catch(()=>show('dna','<p style="color:#444;text-align:center">Failed to load.</p>'));
 },200);
+
+function setR(layer){
+    RL=layer;document.querySelectorAll('.dna-btn').forEach(b=>b.classList.toggle('active',b.dataset.layer===layer));
+    if(!RC)return;
+    const A={owned:{bg:'rgba(0,168,255,0.2)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.2)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.2)',br:'#ff3366'}};
+    const D={owned:{bg:'rgba(0,168,255,0.04)',br:'rgba(0,168,255,0.15)'},played:{bg:'rgba(0,210,106,0.04)',br:'rgba(0,210,106,0.15)'},unplayed:{bg:'rgba(255,51,102,0.04)',br:'rgba(255,51,102,0.15)'}};
+    ['owned','played','unplayed'].forEach((l,i)=>{const ds=RC.data.datasets[i],on=l===layer;
+        ds.backgroundColor=on?A[l].bg:D[l].bg;ds.borderColor=on?A[l].br:D[l].br;ds.borderWidth=on?2:1;ds.pointRadius=on?3:1.5;ds.pointBackgroundColor=on?A[l].br:D[l].br});
+    RC.update()}
 
 setTimeout(()=>{
 fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
