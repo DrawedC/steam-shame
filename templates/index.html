@@ -14,9 +14,7 @@
         body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(30,50,80,.4),transparent 60%),radial-gradient(ellipse at 80% 70%,rgba(40,20,30,.3),transparent 50%);pointer-events:none;z-index:0}
 
         .page{position:relative;z-index:1;width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
-        .logo-img{width:180px;height:auto;margin-bottom:.75rem;filter:drop-shadow(0 4px 24px rgba(0,100,200,.3))}
-        .title{font-size:clamp(3.5rem,10vw,8rem);font-weight:900;letter-spacing:.04em;line-height:.95;text-align:center;color:#fff;text-shadow:0 0 60px rgba(100,160,255,.15),0 2px 0 rgba(0,0,0,.3);margin-bottom:2rem;user-select:none}
-        .title span{display:inline-block;background:linear-gradient(180deg,#ffffff 0%,#8ebbdb 60%,#3a6d94 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .logo-img{width:clamp(360px,50vw,600px);height:auto;margin-bottom:2rem;filter:drop-shadow(0 4px 30px rgba(0,100,200,.25))}
 
         .form-area{position:relative;z-index:10;width:100%;max-width:620px;margin-bottom:1.5rem}
         .error{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.2);padding:.75rem 1rem;border-radius:10px;margin-bottom:1rem;color:#ff3366;font-size:.9rem;text-align:center}
@@ -37,22 +35,20 @@
         .footer{font-size:.75rem;color:#333;line-height:1.6;text-align:center;margin-top:1rem}
         .footer a{color:#555;text-decoration:none}.footer a:hover{color:#888}
 
-        .shame-woman{position:fixed;bottom:0;right:2%;z-index:2;pointer-events:none;height:55vh;max-height:500px;object-fit:contain;opacity:.85;filter:drop-shadow(-4px 0 20px rgba(0,0,0,.5))}
+        .shame-woman{position:fixed;bottom:0;right:3%;z-index:2;pointer-events:none;height:35vh;max-height:320px;object-fit:contain;opacity:.7;filter:drop-shadow(-4px 0 20px rgba(0,0,0,.5))}
 
         @media(min-width:1024px){
-            .title{font-size:clamp(5rem,9vw,9rem)}
-            .logo-img{width:220px}
+            .logo-img{width:clamp(420px,45vw,650px)}
             .form-area{max-width:640px}
         }
         @media(max-width:1023px) and (min-width:641px){
-            .shame-woman{height:40vh;right:0}
+            .shame-woman{height:28vh;right:1%}
         }
         @media(max-width:640px){
             .page{padding:1.5rem 1rem;justify-content:center}
-            .logo-img{width:120px}
-            .title{font-size:clamp(2.5rem,12vw,4rem);margin-bottom:1.5rem}
+            .logo-img{width:clamp(260px,70vw,360px)}
             .features{gap:1rem}
-            .shame-woman{height:28vh;right:-2%;opacity:.5}
+            .shame-woman{height:22vh;right:-2%;opacity:.4}
             .input-row button{padding:.9rem 1.3rem;font-size:.9rem}
         }
     </style>
@@ -60,7 +56,6 @@
 <body>
     <div class="page">
         <img src="/static/steam_shame_logo.png" alt="Steam Shame" class="logo-img">
-        <div class="title"><span>STEAM SHAME</span></div>
         <div class="form-area">
             {% if error %}<div class="error">{{ error }}</div>{% endif %}
             <form action="/lookup" method="POST">
