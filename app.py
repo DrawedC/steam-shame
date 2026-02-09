@@ -27,6 +27,58 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("steam-shame")
 
 # ============== Steam API ==============
+
+# Genre grouping to make DNA radar more meaningful and less noisy
+GENRE_GROUPS = {
+    # Action family → group into one main bucket
+    'action': 'action',
+    'shooter': 'action',
+    'fps': 'action',
+    'third person shooter': 'action',
+    'hack and slash': 'action',
+    'beat \'em up': 'action',
+    'fighting': 'action',
+    'platformer': 'action',
+    'metroidvania': 'action',  # many consider these action-adventure, but group here
+    'roguelike': 'action',     # often action-heavy
+
+    # Adventure family
+    'adventure': 'adventure',
+    'visual novel': 'adventure',
+    'point & click': 'adventure',
+    'walking simulator': 'adventure',
+
+    # RPG family
+    'rpg': 'rpg',
+    'jrpg': 'rpg',
+    'role-playing': 'rpg',
+
+    # Strategy / turn-based
+    'strategy': 'strategy',
+    'turn-based strategy': 'strategy',
+    '4x': 'strategy',
+    'tower defense': 'strategy',
+    'real time strategy': 'strategy',
+
+    # Simulation / management
+    'simulation': 'simulation',
+    'management': 'simulation',
+    'building': 'simulation',
+    'farming sim': 'simulation',
+
+    # Other common groups
+    'indie': 'indie',
+    'casual': 'casual',
+    'racing': 'racing',
+    'sports': 'sports',
+    'puzzle': 'puzzle',
+    'horror': 'horror',
+    'survival': 'survival',
+    'open world': 'open world',
+
+    # Catch-all for anything not grouped
+    # (you can leave unmapped genres as-is or group them into 'other')
+}
 def get_owned_games(steam_id):
     """Fetch owned games with short-term cache to avoid redundant calls."""
     now = time.time()
@@ -213,52 +265,26 @@ GENRE_CATEGORIES = {
 
 def classify_game_genres(details):
     """
-    Improved genre classification:
-    - Uses Steam's 'genres' field
-    - Returns a list of genre names (lowercase for consistency)
-    - Prioritizes non-'Action' when multiple exist
-    - Filters out very generic ones if better alternatives present
+    Extract and group Steam genres into broader categories
+    Returns a list of grouped genre names (lowercase)
     """
     if not details or 'genres' not in details:
         return []
 
-    raw_genres = [g['description'].lower() for g in details['genres']]
-    
-    # Common broad genres we want to keep distinct
-    preferred = {
-        'action': 'action',
-        'adventure': 'adventure',
-        'rpg': 'rpg',
-        'strategy': 'strategy',
-        'simulation': 'simulation',
-        'indie': 'indie',
-        'casual': 'casual',
-        'racing': 'racing',
-        'sports': 'sports',
-        'free to play': 'free-to-play',
-        'early access': 'early access'
-    }
+    raw_genres = [g['description'].lower() for g in details.get('genres', [])]
 
-    # If 'action' is present but there are others, prefer the others
-    result = []
-    has_action = 'action' in raw_genres
-    
-    for g in raw_genres:
-        if g in preferred:
-            result.append(preferred[g])
-        elif g in ('violent', 'gore', 'sexual content', 'nudity'):
-            continue  # skip ESRB-style tags
-        else:
-            # Keep niche genres (fighting, shooter, platformer, etc.)
-            result.append(g)
+    grouped = set()  # use set to avoid duplicates
 
-    # If only 'action' was found, keep it
-    if not result and has_action:
-        result = ['action']
+    for genre in raw_genres:
+        # Get the grouped name, or keep original if not in map
+        grouped_name = GENRE_GROUPS.get(genre, genre)
+        grouped.add(grouped_name)
 
-    # Deduplicate and sort for consistency
-    return sorted(set(result))
+    # Optional: if nothing useful, fall back to 'action' if present
+    if not grouped and 'action' in raw_genres:
+        grouped.add('action')
 
+    return sorted(list(grouped))
 def detect_descriptor(stats):
     """Primary identity based on play habits."""
     played_pct = (stats["played_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
