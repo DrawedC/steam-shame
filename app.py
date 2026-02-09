@@ -162,6 +162,13 @@ def analyze_library(games):
         pick = random.choice(unplayed)
         suggest = {"name": pick.get("name","Unknown"), "appid": pick.get("appid")}
 
+    # Most played game
+    most_played = None
+    if played:
+        top = played[0]
+        most_played = {"name": top.get("name","Unknown"), "appid": top.get("appid"),
+                       "playtime_fmt": format_playtime(top.get("playtime_forever",0))}
+
     result = {
         "total_games": total,
         "played_count": len(raw_played), "abandoned_count": len(raw_abandoned),
@@ -172,7 +179,7 @@ def analyze_library(games):
         "unplayed_games": gl(random.sample(unplayed, min(30, len(unplayed))) if unplayed else [], 30),
         "played_total": len(played), "abandoned_total": len(abandoned), "unplayed_total": len(unplayed),
         "shame_score": shame, "verdict": verdict, "backlog_days": backlog_days,
-        "suggest": suggest,
+        "suggest": suggest, "most_played": most_played,
     }
     result["descriptor"] = detect_descriptor(result)
     return result
@@ -350,8 +357,8 @@ def api_suggest(steam_id):
         pick = random.choice(unplayed)
         appid = pick["appid"]
         name = pick.get("name","Unknown")
-        # Steam header image URL pattern
-        img = f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg"
+        # Steam capsule image — better aspect ratio than header.jpg
+        img = f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/capsule_616x353.jpg"
         store_url = f"https://store.steampowered.com/app/{appid}"
         return jsonify({"name":name,"appid":appid,"image":img,"store_url":store_url})
     except Exception as e: return jsonify({"error":str(e)}), 500
@@ -519,49 +526,55 @@ def share_image(steam_id):
         stats = analyze_library(games)
 
         W, H = 1200, 630
-        img = Image.new('RGB', (W, H), '#0a0a0c')
+        img = Image.new('RGB', (W, H), (10, 10, 12))
         draw = ImageDraw.Draw(img)
 
-        # Background gradient feel with shapes
+        # Subtle gradient background
         for i in range(H):
-            a = int(15 * (1 - i/H))
-            draw.line([(0,i),(W,i)], fill=(a, 0, a+5))
+            r = int(10 + 8 * (i/H))
+            draw.line([(0,i),(W,i)], fill=(r, r-2, r+2))
 
-        # Accent circle
-        draw.ellipse([W//2-200, -100, W//2+200, 200], fill=(40, 0, 60))
+        # Small accent glow at top center
+        for r_size in range(150, 0, -1):
+            alpha = int(25 * (r_size / 150))
+            draw.ellipse([W//2-r_size, -r_size//2, W//2+r_size, r_size//2+20],
+                        fill=(alpha+20, 0, alpha+30))
 
-        # Use default font at different sizes
         try:
-            font_huge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 140)
-            font_big = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-            font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
-            font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20)
+            font_huge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 160)
+            font_big = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42)
+            font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
+            font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
+            font_brand = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
         except:
             font_huge = ImageFont.load_default()
-            font_big = font_med = font_sm = font_huge
+            font_big = font_med = font_sm = font_brand = font_huge
 
         name = p.get("personaname", "Unknown")
         score = str(stats["shame_score"])
 
-        # Player name
-        draw.text((W//2, 80), name, fill='#ffffff', font=font_big, anchor='mt')
+        # Player name at top
+        draw.text((W//2, 60), name, fill=(255,255,255), font=font_big, anchor='mt')
 
-        # Score
-        draw.text((W//2, 180), score + "%", fill='#ff3366', font=font_huge, anchor='mt')
+        # Big score number
+        draw.text((W//2, 140), score + "%", fill=(255,51,102), font=font_huge, anchor='mt')
 
         # Label
-        draw.text((W//2, 360), "SHAME SCORE", fill='#555555', font=font_med, anchor='mt')
+        draw.text((W//2, 340), "SHAME SCORE", fill=(100,100,100), font=font_med, anchor='mt')
 
-        # Stats line
+        # Divider line
+        draw.line([(W//2-120, 390), (W//2+120, 390)], fill=(50,50,55), width=2)
+
+        # Stats
         stat_text = f"{stats['total_games']} games  ·  {stats['played_count']} played  ·  {stats['never_played_count']} never touched"
-        draw.text((W//2, 420), stat_text, fill='#888888', font=font_sm, anchor='mt')
+        draw.text((W//2, 420), stat_text, fill=(160,160,160), font=font_sm, anchor='mt')
 
         # Descriptor
         desc = stats["descriptor"]
-        draw.text((W//2, 470), f"{desc['title']}", fill='#aaaaaa', font=font_med, anchor='mt')
+        draw.text((W//2, 470), desc['title'], fill=(200,200,200), font=font_med, anchor='mt')
 
-        # Branding
-        draw.text((W//2, 570), "SteamShame", fill='#333333', font=font_big, anchor='mt')
+        # Branding at bottom
+        draw.text((W//2, 570), "SteamShame", fill=(60,60,65), font=font_brand, anchor='mt')
 
         buf = io.BytesIO()
         img.save(buf, format='PNG', optimize=True)
