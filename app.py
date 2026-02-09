@@ -177,6 +177,9 @@ def analyze_library(games):
         "played_games": gl(played, 30),
         "abandoned_games": gl(abandoned, 30),
         "unplayed_games": gl(random.sample(unplayed, min(30, len(unplayed))) if unplayed else [], 30),
+        "all_played": gl(played, 9999),
+        "all_abandoned": gl(abandoned, 9999),
+        "all_unplayed": gl(sorted(unplayed, key=lambda x: x.get("name","").lower()), 9999),
         "played_total": len(played), "abandoned_total": len(abandoned), "unplayed_total": len(unplayed),
         "shame_score": shame, "verdict": verdict, "backlog_days": backlog_days,
         "suggest": suggest, "most_played": most_played,
@@ -232,47 +235,51 @@ def detect_descriptor(stats):
                 "description": "You buy games like they're going out of style. They're not."}
 
 
-def detect_badges(stats, store_details, games):
+def detect_badges_instant(stats, games):
+    """Badges computable instantly without store API calls."""
     badges = []
 
-    # No unplayed games â€” pristine
     if stats["never_played_count"] == 0:
-        badges.append({"name": "Pristine Library", "emoji": "âœ¨",
+        badges.append({"name": "Pristine Library", "emoji": "✨",
                        "description": "Zero unplayed games. You're either disciplined or just got here."})
 
-    # 100+ unplayed
     if stats["never_played_count"] >= 100:
-        badges.append({"name": "Humble Bundle Victim", "emoji": "ðŸ“¦",
+        badges.append({"name": "Humble Bundle Victim", "emoji": "📦",
                        "description": f"{stats['never_played_count']} unplayed games. Those bundles got you good."})
 
-    # 30+ abandoned
     if stats["abandoned_count"] >= 30:
-        badges.append({"name": "Acquired Tastes", "emoji": "ðŸ·",
+        badges.append({"name": "Acquired Tastes", "emoji": "🍷",
                        "description": f"{stats['abandoned_count']} games abandoned under an hour. Very particular."})
 
-    # One-trick pony
     tm = sum(g.get("playtime_forever", 0) for g in games)
     if tm > 0:
         tg = max(games, key=lambda g: g.get("playtime_forever", 0))
         tp = (tg["playtime_forever"] / tm) * 100
         if tp > 50:
-            badges.append({"name": "One-Trick Pony", "emoji": "ðŸ´",
+            badges.append({"name": "One-Trick Pony", "emoji": "🐴",
                            "description": f"{tp:.0f}% of your time in {tg.get('name', 'one game')}."})
 
-    # Early access addict
-    ea = sum(1 for d in store_details.values()
-             if "early access" in [g.get("description", "").lower() for g in d.get("genres", [])])
-    if ea >= 5:
-        badges.append({"name": "Early Access Addict", "emoji": "ðŸš§",
-                       "description": f"{ea} Early Access games. You love paying to beta test."})
-
-    # Speed abandoner
     qa = len([g for g in games if 0 < g.get("playtime_forever", 0) < 10])
     if qa >= 15:
-        badges.append({"name": "10-Minute Rule", "emoji": "â±ï¸",
+        badges.append({"name": "10-Minute Rule", "emoji": "⏱️",
                        "description": f"{qa} games with under 10 minutes. Harsh critic."})
 
     return badges[:6]
+
+
+def detect_badges(stats, store_details, games):
+    """Full badge detection including store-dependent badges."""
+    badges = detect_badges_instant(stats, games)
+
+    # Early access addict (needs store data)
+    ea = sum(1 for d in store_details.values()
+             if "early access" in [g.get("description", "").lower() for g in d.get("genres", [])])
+    if ea >= 5:
+        badges.append({"name": "Early Access Addict", "emoji": "🚧",
+                       "description": f"{ea} Early Access games. You love paying to beta test."})
+
+    return badges[:6]
+
 
 # ============== Routes ==============
 @app.route("/")
@@ -313,8 +320,10 @@ def results(steam_id):
         if not stats["any_playtime"] and stats["total_games"] > 2:
             return render_template("error.html", error="Game details appear private",
                 message="We can see your games but not your playtime. Please set Game Details to Public in your Steam Privacy Settings.")
+        # Compute instant badges (no store API needed)
+        instant_badges = detect_badges_instant(stats, games)
         return render_template("results.html", player_name=p.get("personaname","Unknown"),
-            avatar_url=p.get("avatarfull",""), steam_id=steam_id, stats=stats)
+            avatar_url=p.get("avatarfull",""), steam_id=steam_id, stats=stats, instant_badges=instant_badges)
     except Exception as e:
         return render_template("error.html", error="Something went wrong", message=str(e))
 
