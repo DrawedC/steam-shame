@@ -513,7 +513,7 @@ def api_personality(steam_id):
             if not effective: return None
             top_key = max(effective, key=effective.get)
             total = sum(effective.values()) or 1
-            i = GENRE_CATEGORIES.get(top_key, {}) if top_key != "misc" else {"label": "Misc", "emoji":"}
+            i = GENRE_CATEGORIES.get(top_key, {}) if top_key != "misc" else {"label": "Misc", "emoji":""}
             return {
                 "key": top_key,
                 "label": i.get("label", top_key.capitalize()),
