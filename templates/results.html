@@ -398,6 +398,8 @@ body {
 </div></div>
 
 <script>
+// === REPLACE EVERYTHING IN <script> after Chart.register(ChartDataLabels); ===
+
 Chart.register(ChartDataLabels);
 const SID="{{steam_id}}";
 const S=[
@@ -409,13 +411,24 @@ const S=[
      g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]}
 ];
 const MOST_PLAYED = {% if stats.most_played %}{"name":"{{stats.most_played.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{stats.most_played.playtime_fmt}}"}{% else %}null{% endif %};
-// Full lists for "Show all" modal
 const FULL=[
     [{% for g in stats.all_played %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
     [{% for g in stats.all_abandoned %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
     [{% for g in stats.all_unplayed %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]
 ];
 let PD=null,RC=null,RL='owned';
+
+// Declare _loaded BEFORE any usage
+let _loaded={val:false,dna:false,friends:false,suggest:false};
+function checkReady(){
+    if(_loaded.dna && _loaded.val){
+        const loader=document.getElementById('page-loader');
+        const content=document.getElementById('page-content');
+        content.style.opacity='1';
+        loader.style.opacity='0';
+        setTimeout(()=>loader.style.display='none',400);
+    }
+}
 
 function show(id,h){document.getElementById(id+'-load').style.display='none';const e=document.getElementById(id+'-out');e.innerHTML=h;e.style.display='block'}
 function openModal(t,g){
@@ -446,21 +459,20 @@ function selectPie(i){
     p.innerHTML=h;p.classList.add('open');p.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function closePie(){document.getElementById('pie-detail').classList.remove('open')}
 
-// Value — emoji on far right
-function loadVal(full){
+// Value — simplified, no full scan
+function loadVal(){
     const ld=document.getElementById('val-load'),out=document.getElementById('val-out');
     ld.style.display='block';out.style.display='none';
-    if(full)ld.innerHTML='<div class="spin"></div>Scanning full library...';
-    fetch('/api/value/'+SID+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
+    fetch('/api/value/'+SID).then(r=>r.json()).then(d=>{
         if(d.error){ld.style.display='none';return}
-        const e=d.is_estimate?'~':'';
+        const e='~';
         let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">'+e+'$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon">📚</div></div>';
         h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon">🕸️</div></div>';
-       h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div></div>';
+        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div></div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
     }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
 
-// Suggest — less ad-like, no most played time
+// Suggest
 function loadSuggest(){
     fetch('/api/suggest/'+SID).then(r=>r.json()).then(d=>{
         if(d.error||!d.appid)return;
@@ -469,15 +481,28 @@ function loadSuggest(){
         el.style.display='block';
     }).catch(()=>{})}
 
-// Staggered loading
-loadVal(false);loadSuggest();
-setTimeout(()=>{
+// Fire all requests immediately (no setTimeout delays)
+loadVal();
+loadSuggest();
+
+// Personality/DNA — fire immediately, inject badges FIRST before radar
 fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.error){show('dna','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
-    PD=data;const r=data.radar;
+    PD=data;
+
+    // === INJECT BADGES IMMEDIATELY ===
+    let bh='';
+    if(data.mismatch_badge)bh+='<div class="hero-badge highlight"><div class="hero-badge-icon">'+data.mismatch_badge.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+data.mismatch_badge.title+'</div><div class="hero-badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
+    if(data.badges){
+        const instantNames=new Set([{% for b in instant_badges %}"{{b.name}}",{% endfor %}]);
+        data.badges.forEach(b=>{if(!instantNames.has(b.name))bh+='<div class="hero-badge"><div class="hero-badge-icon">'+b.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+b.name+'</div><div class="hero-badge-desc">'+b.description+'</div></div></div>'});
+    }
+    document.getElementById('badges-slot').innerHTML=bh;
+
+    // === NOW BUILD RADAR ===
+    const r=data.radar;
     if(!r||!r.labels||!r.labels.length){show('dna','<p style="text-align:center;color:#444">Not enough genre data.</p>');return}
 
-    // FILTER: only show genres that have data (any non-zero value across owned/played/unplayed)
     const validIdx=[];
     for(let i=0;i<r.labels.length;i++){
         if(r.owned[i]>0||r.played[i]>0||r.unplayed[i]>0)validIdx.push(i);
@@ -493,9 +518,8 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
         h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
 
-// Bigger radar sizing – feels better on desktop
-const radarSize = Math.min(620, window.innerWidth - 80);   // ← increased from 460 → 620
-h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" height="' + radarSize + '" style="max-width:' + radarSize + 'px; width:100%; height:auto;"></canvas></div>';
+    const radarSize = Math.min(620, window.innerWidth - 80);
+    h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" height="' + radarSize + '" style="max-width:' + radarSize + 'px; width:100%; height:auto;"></canvas></div>';
     h+='<div class="dna-toggles">';
     if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
     if(data.played_majority)h+='<div class="dna-btn" data-layer="played">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</div>';
@@ -503,15 +527,6 @@ h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" hei
     h+='</div>';
     h+='<div class="radar-disclaimer">Based on a sample of your library</div>';
 
-    // Async badges: only mismatch + early access (instant badges already rendered server-side)
-    let bh='';
-    if(data.mismatch_badge)bh+='<div class="hero-badge highlight"><div class="hero-badge-icon">'+data.mismatch_badge.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+data.mismatch_badge.title+'</div><div class="hero-badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
-    if(data.badges){
-        // Only add badges not already rendered (Early Access Addict is the async one)
-        const instantNames=new Set([{% for b in instant_badges %}"{{b.name}}",{% endfor %}]);
-        data.badges.forEach(b=>{if(!instantNames.has(b.name))bh+='<div class="hero-badge"><div class="hero-badge-icon">'+b.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+b.name+'</div><div class="hero-badge-desc">'+b.description+'</div></div></div>'});
-    }
-    document.getElementById('badges-slot').innerHTML=bh;
     show('dna',h);
 
     const lb=fLabels.map(l=>l.emoji+' '+l.label);
@@ -526,9 +541,8 @@ h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" hei
             plugins:{legend:{display:false},datalabels:{display:false},
                 tooltip:{backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#bbb',borderColor:'rgba(255,255,255,.06)',borderWidth:1,padding:8,displayColors:true,callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}}}});
 }).catch(()=>show('dna','<p style="color:#444;text-align:center">Failed to load.</p>')).finally(()=>{_loaded.dna=true;checkReady()});
-},200);
 
-setTimeout(()=>{
+// Friends — fire immediately too
 fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
     if(data.error&&!data.leaderboard){show('lb','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
     if(!data.leaderboard||data.leaderboard.length<=1){show('lb','<p style="text-align:center;color:#444">No friends with public profiles found.</p>');return}
@@ -542,22 +556,9 @@ fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
         h+='<div class="lb-row '+(e.is_user?'me':'')+'"><div class="lb-rank '+(e.rank<=3?'r'+e.rank:'')+'">'+ri+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-av"><span class="lb-nm"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-score '+(e.shame_score<25?'lo':e.shame_score<40?'md':'hi')+'">'+e.shame_score+'%</div><div class="lb-meta">'+e.total_games+'</div><div class="lb-meta">'+e.never_played+'</div></div>'});
     h+='</div>';show('lb',h);
 }).catch(()=>show('lb','<p style="text-align:center;color:#444">Could not load friends.</p>'));
-},500);
 
 function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.s-btn.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Link',2000)})}
 
-// Page reveal: track async loads, show page when key ones finish
-let _loaded={val:false,dna:false,friends:false,suggest:false};
-function checkReady(){
-    // Show page once DNA + value are done (friends can trickle in)
-    if(_loaded.dna && _loaded.val){
-        const loader=document.getElementById('page-loader');
-        const content=document.getElementById('page-content');
-        content.style.opacity='1';
-        loader.style.opacity='0';
-        setTimeout(()=>loader.style.display='none',400);
-    }
-}
 // Timeout fallback: show page after 8s no matter what
 setTimeout(()=>{
     const loader=document.getElementById('page-loader');
@@ -576,13 +577,11 @@ document.addEventListener('click',function(e){
     if(!layer)return;
     const idx={owned:0,played:1,unplayed:2}[layer];
     if(idx===undefined)return;
-    // Toggle: if active, show only this layer prominently. If clicking same, reset all.
     const isActive=btn.classList.contains('active');
     const btns=document.querySelectorAll('.dna-btn');
     const A={owned:{bg:'rgba(0,168,255,0.2)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.2)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.2)',br:'#ff3366'}};
     const layers=['owned','played','unplayed'];
     if(isActive){
-        // Reset all to default
         btns.forEach(b=>b.classList.remove('active'));
         btns[0].classList.add('active');
         RC.data.datasets.forEach((ds,i)=>{
@@ -592,7 +591,6 @@ document.addEventListener('click',function(e){
             ds.borderWidth=i===0?2:1;ds.pointRadius=i===0?3:1.5;
         });
     } else {
-        // Highlight selected layer
         btns.forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         RC.data.datasets.forEach((ds,i)=>{
@@ -607,5 +605,3 @@ document.addEventListener('click',function(e){
     }
     RC.update();
 });
-</script>
-</body></html>
