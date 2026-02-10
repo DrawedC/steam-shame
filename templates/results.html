@@ -270,7 +270,7 @@ function loadVal(){
         if(d.error){ld.style.display='none';return}
         let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} Games, estimated value <span class="val green">$'+d.library_value.toLocaleString()+'*</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon"></div></div>';
         h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} Games collecting dust, worth <span class="val red">$'+d.unplayed_value.toLocaleString()+'*</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon"></div></div>';
-        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic">*Estimate is Based on current MSRP. Does not reflect sale prices.</div></div>';
+        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic">*Estimate derived from sampled selection, based on current MSRP.</div></div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
     }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
 
