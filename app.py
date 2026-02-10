@@ -14,16 +14,16 @@ STEAM_API_KEY = os.environ.get("STEAM_API_KEY", "")
 # Caches
 _store_cache = {}
 _store_cache_lock = threading.Lock()
-STORE_CACHE_TTL = 86400  # 24 hours — genres rarely change
+STORE_CACHE_TTL = 86400  # 24 hours
 
 _games_cache = {}
 _games_cache_lock = threading.Lock()
-GAMES_CACHE_TTL = 300  # 5 min — avoids re-fetching for async endpoints
+GAMES_CACHE_TTL = 300  # 5 min
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("steam-shame")
 
-# Genre grouping to make DNA radar more meaningful and less noisy
+# Genre grouping
 GENRE_GROUPS = {
     'action': 'action',
     'shooter': 'action',
@@ -77,11 +77,8 @@ def get_owned_games(steam_id):
         with _games_cache_lock:
             _games_cache[steam_id] = {"data":data,"ts":now}
         return data
-    except requests.exceptions.HTTPError as e:
-        log.warning(f"Steam API error for {steam_id}: {e}")
-        raise
-    except requests.exceptions.Timeout:
-        log.warning(f"Steam API timeout for {steam_id}")
+    except Exception as e:
+        log.warning(f"Owned games fetch failed: {e}")
         raise
 
 def get_player_summary(steam_id):
@@ -114,12 +111,12 @@ def get_app_details(appid):
         if c and (now - c["ts"]) < STORE_CACHE_TTL:
             return c["data"]
     try:
-        # Force English to avoid localized genre names
         url = f"https://store.steampowered.com/api/appdetails?appids={appid}&l=english"
         r = requests.get(url, timeout=10)
         if r.status_code == 429:
-            log.warning(f"Store API rate limited on appid {appid}")
-            return None
+            log.warning(f"Rate limited on appid {appid}, waiting 10s")
+            time.sleep(10)
+            r = requests.get(url, timeout=10)  # retry once
         if r.status_code == 200:
             ad = r.json().get(str(appid), {})
             if ad.get("success"):
@@ -127,14 +124,15 @@ def get_app_details(appid):
                 with _store_cache_lock:
                     _store_cache[appid] = {"data": result, "ts": now}
                 return result
+        return None
     except Exception as e:
         log.debug(f"Store API error for {appid}: {e}")
-    return None
+        return None
 
-def get_app_details_batch(appids, max_workers=4, delay=0.5):
+def get_app_details_batch(appids, max_workers=4, delay=0.8):
     results = {}
     def fetch(aid):
-        time.sleep(random.uniform(0.2, delay))
+        time.sleep(random.uniform(0.3, delay))
         return aid, get_app_details(aid)
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         for f in as_completed({ex.submit(fetch, a): a for a in appids}):
@@ -186,10 +184,10 @@ def analyze_library(games):
     unplayed = [g for g in raw_unplayed if not is_recent(g)]
 
     shame = calculate_shame_score(len(raw_unplayed), len(raw_abandoned), total)
-    if shame > 55: verdict = "You have a problem. Stop buying games."
-    elif shame > 40: verdict = "Steam sales have claimed another victim."
-    elif shame > 25: verdict = "Not bad, but that backlog isn't clearing itself."
-    else: verdict = "Impressive restraint. Or new account."
+    verdict = "You have a problem. Stop buying games." if shame > 55 else \
+              "Steam sales have claimed another victim." if shame > 40 else \
+              "Not bad, but that backlog isn't clearing itself." if shame > 25 else \
+              "Impressive restraint. Or new account."
 
     def gl(lst, limit=30):
         return [{"name":g.get("name","Unknown"),"appid":g.get("appid"),
@@ -357,15 +355,19 @@ def results(steam_id):
 # ============== Async API ==============
 @app.route("/api/value/<steam_id>")
 def api_value(steam_id):
-    full = request.args.get("full","0") == "1"
     try:
         games = get_owned_games(steam_id).get("response",{}).get("games",[])
         if not games: return jsonify({"error":"No games"}), 404
+
         played = [g for g in games if g.get("playtime_forever",0) > 0]
         unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
-        sp = played if full else (random.sample(played, min(25, len(played))) if played else [])
-        su = unplayed if full else (random.sample(unplayed, min(25, len(unplayed))) if unplayed else [])
-        sd = get_app_details_batch([g["appid"] for g in sp+su], max_workers=5, delay=0.35)
+
+        # Always use sampled estimate (no full scan)
+        sp = random.sample(played, min(40, len(played))) if played else []
+        su = random.sample(unplayed, min(40, len(unplayed))) if unplayed else []
+
+        sd = get_app_details_batch([g["appid"] for g in sp+su], max_workers=5, delay=0.8)
+
         pp, up = [], []
         for g in sp:
             d = sd.get(g["appid"])
@@ -375,14 +377,32 @@ def api_value(steam_id):
             d = sd.get(g["appid"])
             pr = extract_usd_price(d)
             if pr: up.append(pr)
-        if full:
-            tpv, tuv, ie = sum(pp), sum(up), False
-        else:
-            ap = (sum(pp)/len(pp)) if pp else 0
-            au = (sum(up)/len(up)) if up else 0
-            tpv, tuv, ie = ap*len(played), au*len(unplayed), True
-        return jsonify({"library_value":round(tpv+tuv),"unplayed_value":round(tuv),"is_estimate":ie})
-    except Exception as e: return jsonify({"error":str(e)}), 500
+
+        ap = (sum(pp)/len(pp)) if pp else 0
+        au = (sum(up)/len(up)) if up else 0
+
+        total_value = round(ap * len(played))
+        unplayed_value = round(au * len(unplayed))
+
+        # Rate limit / incomplete data check
+        fetched_ratio = len(sd) / max(1, len(sp) + len(su))
+        if fetched_ratio < 0.6:
+            return jsonify({
+                "library_value": total_value,
+                "unplayed_value": unplayed_value,
+                "is_estimate": True,
+                "warning": "Experiencing heavy traffic, please try again later for more accurate values."
+            })
+
+        return jsonify({
+            "library_value": total_value,
+            "unplayed_value": unplayed_value,
+            "is_estimate": True
+        })
+
+    except Exception as e:
+        log.error(f"Value error: {e}")
+        return jsonify({"error": "Experiencing heavy traffic, please try again later"}), 503
 
 @app.route("/api/suggest/<steam_id>")
 def api_suggest(steam_id):
@@ -410,12 +430,13 @@ def api_personality(steam_id):
 
         random.seed(int(steam_id))
 
-        owned_sample = random.sample(games, min(120, len(games)))
-        played_sample = random.sample(all_played, min(80, len(all_played))) if all_played else []
-        unplayed_sample = random.sample(all_unplayed, min(80, len(all_unplayed))) if all_unplayed else []
+        # Lower sample sizes to reduce API load
+        owned_sample = random.sample(games, min(60, len(games)))
+        played_sample = random.sample(all_played, min(40, len(all_played))) if all_played else []
+        unplayed_sample = random.sample(all_unplayed, min(40, len(all_unplayed))) if all_unplayed else []
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
-        sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
+        sd = get_app_details_batch(all_appids, max_workers=5, delay=0.8)
 
         def count_genres(game_list, weight_by_playtime=False):
             counts = {}
@@ -437,7 +458,6 @@ def api_personality(steam_id):
         pc, pg = count_genres(played_sample, weight_by_playtime=True)
         uc, ug = count_genres(unplayed_sample, weight_by_playtime=False)
 
-        # Normalize
         def norm(counts):
             total = sum(counts.values()) or 1
             return {k: round((v / total) * 100, 1) for k, v in counts.items()}
@@ -446,32 +466,27 @@ def api_personality(steam_id):
         pn = norm(pc)
         un = norm(uc)
 
-        # === 5% threshold + Misc grouping ===
+        # 5% threshold + Misc grouping
         MIN_THRESHOLD = 5.0
 
-        # Find max % for each genre across all three
         genre_max_pct = {}
         all_possible = set(on) | set(pn) | set(un)
         for k in all_possible:
             max_pct = max(on.get(k, 0), pn.get(k, 0), un.get(k, 0))
             genre_max_pct[k] = max_pct
 
-        # Split major / minor
         major_genres = [k for k, pct in genre_max_pct.items() if pct >= MIN_THRESHOLD]
         minor_genres = [k for k, pct in genre_max_pct.items() if pct < MIN_THRESHOLD]
 
-        # Misc sums
         misc_owned    = sum(on.get(k, 0) for k in minor_genres)
         misc_played   = sum(pn.get(k, 0) for k in minor_genres)
         misc_unplayed = sum(un.get(k, 0) for k in minor_genres)
 
-        # Display order
         display_genres = sorted(major_genres)
         has_misc = bool(minor_genres)
         if has_misc:
             display_genres.append("misc")
 
-        # Build labels
         labels = []
         for k in display_genres:
             if k == "misc":
@@ -484,7 +499,6 @@ def api_personality(steam_id):
                     "emoji": info.get("emoji", "🎮")
                 })
 
-        # Radar data
         radar = {
             "labels": labels,
             "owned":   [on.get(k, 0) if k != "misc" else misc_owned    for k in display_genres],
@@ -492,7 +506,6 @@ def api_personality(steam_id):
             "unplayed": [un.get(k, 0) if k != "misc" else misc_unplayed for k in display_genres]
         }
 
-        # genre_games with Misc combined
         genre_games = {}
         for k in major_genres:
             genre_games[k] = {
@@ -508,7 +521,6 @@ def api_personality(steam_id):
                 misc_games["unplayed"].extend(ug.get(k, []))
             genre_games["misc"] = misc_games
 
-        # Majority with Misc support
         def maj(counts, misc_sum=0):
             if not counts: return None
             effective = counts.copy()
@@ -539,7 +551,13 @@ def api_personality(steam_id):
             mismatch_badge = {"emoji": "🤔", "title": f"Thinks They Like {um['label']}",
                               "description": f"Your unplayed library is full of {um['emoji']} {um['label']} games, but that's not what you actually play."}
 
-        return jsonify({
+        # Rate limit warning if store data is incomplete
+        fetched_ratio = len(sd) / max(1, len(all_appids))
+        warning = None
+        if fetched_ratio < 0.6:
+            warning = "Experiencing heavy traffic, please try again later for more accurate DNA."
+
+        response = {
             "radar": radar,
             "genre_games": genre_games,
             "overall_majority": om,
@@ -548,168 +566,14 @@ def api_personality(steam_id):
             "show_unplayed_mismatch": mismatch,
             "mismatch_badge": mismatch_badge,
             "badges": badges
-        })
+        }
+        if warning:
+            response["warning"] = warning
+
+        return jsonify(response)
 
     except Exception as e:
         log.error(f"Personality error: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Experiencing heavy traffic, please try again later"}), 503
 
-@app.route("/api/friends/<steam_id>")
-def api_friends(steam_id):
-    try:
-        pd = get_player_summary(steam_id)
-        ps = pd.get("response",{}).get("players",[])
-        if not ps or ps[0].get("communityvisibilitystate")!=3: return jsonify({"error":"Profile not accessible"}),403
-        friends = get_friends_list(steam_id)
-        if not friends: return jsonify({"leaderboard":[],"user_rank":None,"error":"No friends found"})
-        aids = [steam_id]+[f["steamid"] for f in friends[:15]]
-        aps = []
-        for i in range(0,len(aids),100):
-            bd = get_player_summary(",".join(aids[i:i+100]))
-            aps.extend(bd.get("response",{}).get("players",[]))
-        def fetch_friend(p):
-            pid = p.get("steamid")
-            if p.get("communityvisibilitystate")!=3: return None
-            try:
-                gl = get_owned_games(pid).get("response",{}).get("games",[])
-                if not gl: return None
-                s = analyze_library(gl)
-                if not s["any_playtime"]: return None
-                if s["shame_score"] >= 99.9: return None
-                return {"steam_id":pid,"name":p.get("personaname","Unknown"),"avatar":p.get("avatar",""),
-                    "shame_score":s["shame_score"],"total_games":s["total_games"],
-                    "played_count":s["played_count"],"never_played":s["never_played_count"],"is_user":pid==steam_id}
-            except: return None
-        lb = []
-        with ThreadPoolExecutor(max_workers=4) as ex:
-            for result in ex.map(fetch_friend, aps):
-                if result: lb.append(result)
-        lb.sort(key=lambda x: x["shame_score"], reverse=True)
-        ur = None
-        for i,e in enumerate(lb): e["rank"]=i+1; ur = i+1 if e["is_user"] else ur
-        return jsonify({"leaderboard":lb[:10],"total_friends":len(lb)-1,"user_rank":ur})
-    except Exception as e: return jsonify({"error":str(e)}),500
-
-@app.route("/friends/<steam_id>")
-def friends_leaderboard(steam_id):
-    try:
-        pd = get_player_summary(steam_id)
-        ps = pd.get("response",{}).get("players",[])
-        if not ps: return render_template("error.html",error="Not found",message="Profile not found.")
-        p = ps[0]
-        if p.get("communityvisibilitystate")!=3: return render_template("error.html",error="Private",message="Profile needs to be public.")
-        friends = get_friends_list(steam_id)
-        if not friends: return render_template("error.html",error="No friends",message="Friends list is private or empty.")
-        aids = [steam_id]+[f["steamid"] for f in friends]
-        aps = []
-        for i in range(0,len(aids),100):
-            bd = get_player_summary(",".join(aids[i:i+100]))
-            aps.extend(bd.get("response",{}).get("players",[]))
-        lb = []
-        for pl in aps:
-            pid = pl.get("steamid")
-            if pl.get("communityvisibilitystate")!=3: continue
-            try:
-                gl = get_owned_games(pid).get("response",{}).get("games",[])
-                if not gl: continue
-                s = analyze_library(gl)
-                if not s["any_playtime"]: continue
-                lb.append({"steam_id":pid,"name":pl.get("personaname","Unknown"),"avatar":pl.get("avatar",""),
-                    "shame_score":s["shame_score"],"total_games":s["total_games"],
-                    "played_count":s["played_count"],"never_played":s["never_played_count"],"is_user":pid==steam_id})
-            except: continue
-        lb.sort(key=lambda x: x["shame_score"], reverse=True)
-        for i,e in enumerate(lb): e["rank"]=i+1
-        ur = next((e["rank"] for e in lb if e["is_user"]),None)
-        return render_template("friends.html",player_name=p.get("personaname","Unknown"),
-            avatar_url=p.get("avatarfull",""),steam_id=steam_id,leaderboard=lb,user_rank=ur,total_friends=len(lb)-1)
-    except Exception as e: return render_template("error.html",error="Error",message=str(e))
-
-@app.route("/share/<steam_id>.png")
-def share_image(steam_id):
-    try:
-        pd = get_player_summary(steam_id)
-        players = pd.get("response", {}).get("players", [])
-        if not players:
-            return "Not found", 404
-        p = players[0]
-        games = get_owned_games(steam_id).get("response", {}).get("games", [])
-        if not games:
-            return "No games", 404
-        stats = analyze_library(games)
-
-        W, H = 1200, 630
-        img = Image.new('RGB', (W, H), (10, 10, 18))
-        draw = ImageDraw.Draw(img)
-
-        center_x, center_y = W//2, H//3
-        for r in range(400, 0, -2):
-            alpha = int(40 * (1 - r/400))
-            draw.ellipse(
-                (center_x - r, center_y - r*0.7, center_x + r, center_y + r*0.7),
-                fill=(30 + alpha//3, 20 + alpha//4, 80 + alpha//2)
-            )
-
-        font_path_inter = "static/fonts/Inter-Bold.ttf"
-        font_path_orbitron = "static/fonts/Orbitron-Bold.ttf"
-        try:
-            font_huge   = ImageFont.truetype(font_path_orbitron, 220)
-            font_large  = ImageFont.truetype(font_path_inter, 80)
-            font_med    = ImageFont.truetype(font_path_inter, 48)
-            font_sm     = ImageFont.truetype(font_path_inter, 36)
-        except Exception:
-            font_huge = font_large = font_med = font_sm = ImageFont.load_default()
-
-        name = p.get("personaname", "Player")
-        score_str = f"{stats['shame_score']:.1f}"
-
-        glow = Image.new('RGBA', (W, H), (0,0,0,0))
-        glow_draw = ImageDraw.Draw(glow)
-        for offset, color, size in [
-            (18, (255, 80, 180, 60), 240),
-            (12, (255, 120, 100, 100), 230),
-            (6,  (255, 160, 80,  140), 225)
-        ]:
-            glow_draw.text((W//2 + offset, 100 + offset), score_str, fill=color, font=font_huge, anchor="mm")
-        glow = glow.filter(ImageFilter.GaussianBlur(12))
-        img.paste(glow, (0,0), glow)
-
-        for dx, dy, color in [(-3,-3,(255,140,60)), (3,3,(255,60,140)), (0,0,(255,100,100))]:
-            draw.text((W//2 + dx, 100 + dy), score_str, fill=color, font=font_huge, anchor="mm")
-
-        pct_x = W//2 + font_huge.getlength(score_str) // 2 + 20
-        draw.text((pct_x, 100 + 60), "%", fill=(255, 180, 120), font=font_med, anchor="lm")
-
-        draw.text((W//2, 260), "SHAME SCORE", fill=(160, 160, 200), font=font_med, anchor="mm")
-
-        stats_line = f"{stats['total_games']} GAMES OWNED • {stats['never_played_count']} NEVER PLAYED"
-        draw.text((W//2, 340), stats_line, fill=(200, 200, 220), font=font_sm, anchor="mm")
-
-        draw.text((W//2, 420), name.upper(), fill=(220, 220, 255), font=font_large, anchor="mm")
-
-        draw.text((W//2, H - 40), "SteamShame • steam-shame.up.railway.app", fill=(100, 100, 140), font=font_sm, anchor="mm")
-
-        try:
-            av_url = p.get("avatarfull", "")
-            if av_url:
-                av_resp = requests.get(av_url, timeout=5)
-                av_img = Image.open(io.BytesIO(av_resp.content)).convert("RGBA")
-                av_img = av_img.resize((120, 120), Image.LANCZOS)
-                mask = Image.new("L", (120, 120), 0)
-                ImageDraw.Draw(mask).ellipse((0,0,120,120), fill=255)
-                img.paste(av_img, (W - 160, 40), mask)
-        except:
-            pass
-
-        buf = io.BytesIO()
-        img.save(buf, format='PNG', optimize=True, quality=95)
-        buf.seek(0)
-        return send_file(buf, mimetype='image/png', download_name=f"steam-shame-{steam_id}.png")
-
-    except Exception as e:
-        log.error(f"Share image error: {e}")
-        return "Error generating image", 500
-
-if __name__ == "__main__":
-    if not STEAM_API_KEY: print("Warning: STEAM_API_KEY not set!")
-    app.run(debug=os.environ.get("FLASK_ENV")=="development",host="0.0.0.0",port=int(os.environ.get("PORT",5000)))
+# ... (the rest of your file remains unchanged: api_friends, friends_leaderboard, share_image, if __name__ == "__main__")
