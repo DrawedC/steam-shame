@@ -470,7 +470,7 @@ function loadSuggest(){
         el.innerHTML='<div class="suggest"><img src="'+d.image+'" class="suggest-img" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eye">Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Pick another</button></div></div></div>';
         el.style.display='block';
     }).catch(()=>{})}
-
+let _loaded={val:false,dna:false,friends:false,suggest:false};
 // Staggered loading
 _loaded.val=true;loadSuggest();
 setTimeout(()=>{
@@ -549,7 +549,7 @@ fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
 function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.s-btn.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Link',2000)})}
 
 // Page reveal: track async loads, show page when key ones finish
-let _loaded={val:false,dna:false,friends:false,suggest:false};
+
 function checkReady(){
     // Show page once DNA + value are done (friends can trickle in)
     if(_loaded.dna && _loaded.val){
