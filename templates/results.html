@@ -19,7 +19,7 @@
     <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="{{ request.url_root }}share/{{ steam_id }}.png">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ðŸ””</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔔</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
@@ -226,9 +226,9 @@
             .suggest-img{width:100%;aspect-ratio:616/353}
         }
 
-        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-/* Improvements â€“ add these at the END of <style>   */
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        /* ──────────────────────────────────────────────── */
+/* Improvements – add these at the END of <style>   */
+/* ──────────────────────────────────────────────── */
 
 /* Bigger & more comfortable typography on desktop */
 html {
@@ -353,13 +353,13 @@ body {
     </div>
     <div id="pie-detail" class="detail-panel"></div>
 
-    <div id="val-load" class="loading" style="display:none"><div class="spin"></div>Calculating library value...</div>
+    <div id="val-load" class="loading"><div class="spin"></div>Calculating library value...</div>
     <div id="val-out" style="display:none"></div>
 
     {% if stats.backlog_days > 0 %}
     <div class="info-row">
-        <div class="info-text"><div class="info-main"><span class="val orange">{{ stats.backlog_days }} days</span> to clear your backlog</div><div class="info-sub">At 1 hour per day, ~10 hrs per game{% if stats.backlog_days > 365 %} â€” that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div></div>
-        <div class="info-icon">â³</div>
+        <div class="info-text"><div class="info-main"><span class="val orange">{{ stats.backlog_days }} days</span> to clear your backlog</div><div class="info-sub">At 1 hour per day, ~10 hrs per game{% if stats.backlog_days > 365 %} — that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div></div>
+        <div class="info-icon">⏳</div>
     </div>
     {% endif %}
 </div></section>
@@ -406,21 +406,21 @@ const S=[
     {l:'Abandoned',c:'#ff6b35',n:{{stats.abandoned_count}},t:{{stats.abandoned_total}},pct:'{{(stats.abandoned_count/stats.total_games*100)|round(1)}}%',
      g:[{% for g in stats.abandoned_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
     {l:'Never Played',c:'#ff3366',n:{{stats.never_played_count}},t:{{stats.unplayed_total}},pct:'{{(stats.never_played_count/stats.total_games*100)|round(1)}}%',
-     g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"â€”"}{% if not loop.last %},{% endif %}{% endfor %}]}
+     g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]}
 ];
 const MOST_PLAYED = {% if stats.most_played %}{"name":"{{stats.most_played.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{stats.most_played.playtime_fmt}}"}{% else %}null{% endif %};
 // Full lists for "Show all" modal
 const FULL=[
     [{% for g in stats.all_played %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
     [{% for g in stats.all_abandoned %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
-    [{% for g in stats.all_unplayed %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"â€”"}{% if not loop.last %},{% endif %}{% endfor %}]
+    [{% for g in stats.all_unplayed %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]
 ];
 let PD=null,RC=null,RL='owned';
 
 function show(id,h){document.getElementById(id+'-load').style.display='none';const e=document.getElementById(id+'-out');e.innerHTML=h;e.style.display='block'}
 function openModal(t,g){
     document.getElementById('modal-t').innerHTML=t+(g.length?' <span class="modal-cnt">('+g.length+')</span>':'');
-    let h='';g.forEach(x=>{h+='<div class="modal-item">'+(typeof x==='string'?x:x.name+(x.pt&&x.pt!=='â€”'?' <span style="color:#444;font-size:.7rem">'+x.pt+'</span>':''))+'</div>'});
+    let h='';g.forEach(x=>{h+='<div class="modal-item">'+(typeof x==='string'?x:x.name+(x.pt&&x.pt!=='—'?' <span style="color:#444;font-size:.7rem">'+x.pt+'</span>':''))+'</div>'});
     if(!g.length)h='<div class="modal-item" style="color:#333">Nothing here</div>';
     document.getElementById('modal-b').innerHTML=h;document.getElementById('modal').classList.add('on');document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('modal').classList.remove('on');document.body.style.overflow=''}
@@ -439,30 +439,30 @@ new Chart(document.getElementById('pie-cv'),{type:'doughnut',
 
 function selectPie(i){
     const s=S[i],p=document.getElementById('pie-detail');
-    let h='<div class="detail-header"><div class="detail-title" style="color:'+s.c+'">'+s.l+' â€” '+s.n+' games ('+s.pct+')</div><button class="detail-close" onclick="closePie()">&#x2715;</button></div><div class="detail-list">';
+    let h='<div class="detail-header"><div class="detail-title" style="color:'+s.c+'">'+s.l+' — '+s.n+' games ('+s.pct+')</div><button class="detail-close" onclick="closePie()">&#x2715;</button></div><div class="detail-list">';
     s.g.forEach(g=>{h+='<div class="g-row"><div class="g-name">'+g.name+'</div><div class="g-time">'+g.pt+'</div></div>'});
     if(!s.g.length)h+='<div class="g-row"><div class="g-name" style="color:#333">No games to show</div></div>';
     h+='</div>';if(s.t>s.g.length)h+='<button class="expand-btn" onclick="openModal(\''+s.l.replace(/'/g,"\\'")+'\',FULL['+i+'])">Show all '+s.t+'</button>';
     p.innerHTML=h;p.classList.add('open');p.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function closePie(){document.getElementById('pie-detail').classList.remove('open')}
 
-// Value â€” emoji on far right
-/*function loadVal(full){
+// Value — emoji on far right
+function loadVal(full){
     const ld=document.getElementById('val-load'),out=document.getElementById('val-out');
     ld.style.display='block';out.style.display='none';
     if(full)ld.innerHTML='<div class="spin"></div>Scanning full library...';
     fetch('/api/value/'+SID+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
         if(d.error){ld.style.display='none';return}
         const e=d.is_estimate?'~':'';
-        let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">'+e+'$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon">ðŸ“š</div></div>';
-        h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon">ðŸ•¸ï¸</div></div>';
+        let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">'+e+'$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon">📚</div></div>';
+        h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon">🕸️</div></div>';
         h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div>';
         if(d.is_estimate)h+='<button class="expand-btn" style="display:inline-block;width:auto;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.06);border-radius:8px" onclick="loadVal(true)">Scan full library for accuracy</button>';
         h+='</div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
-    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}*/
+    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
 
-// Suggest â€” less ad-like, no most played time
+// Suggest — less ad-like, no most played time
 function loadSuggest(){
     fetch('/api/suggest/'+SID).then(r=>r.json()).then(d=>{
         if(d.error||!d.appid)return;
@@ -470,10 +470,9 @@ function loadSuggest(){
         el.innerHTML='<div class="suggest"><img src="'+d.image+'" class="suggest-img" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eye">Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Pick another</button></div></div></div>';
         el.style.display='block';
     }).catch(()=>{})}
-let _loaded={val:false,dna:false,friends:false,suggest:false};
-// Staggered loading
-_loaded.val=true;loadSuggest();
 
+// Staggered loading
+loadVal(false);loadSuggest();
 setTimeout(()=>{
 fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.error){show('dna','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
@@ -496,8 +495,8 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
         h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
 
-// Bigger radar sizing â€“ feels better on desktop
-const radarSize = Math.min(620, window.innerWidth - 80);   // â† increased from 460 â†’ 620
+// Bigger radar sizing – feels better on desktop
+const radarSize = Math.min(620, window.innerWidth - 80);   // ← increased from 460 → 620
 h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" height="' + radarSize + '" style="max-width:' + radarSize + 'px; width:100%; height:auto;"></canvas></div>';
     h+='<div class="dna-toggles">';
     if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
@@ -550,7 +549,7 @@ fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
 function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.s-btn.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Link',2000)})}
 
 // Page reveal: track async loads, show page when key ones finish
-
+let _loaded={val:false,dna:false,friends:false,suggest:false};
 function checkReady(){
     // Show page once DNA + value are done (friends can trickle in)
     if(_loaded.dna && _loaded.val){
