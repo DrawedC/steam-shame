@@ -456,9 +456,7 @@ function loadVal(full){
         const e=d.is_estimate?'~':'';
         let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">'+e+'$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon">📚</div></div>';
         h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon">🕸️</div></div>';
-        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div>';
-        if(d.is_estimate)h+='<button class="expand-btn" style="display:inline-block;width:auto;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.06);border-radius:8px" onclick="loadVal(true)">Scan full library for accuracy</button>';
-        h+='</div>';
+       h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div></div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
     }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
 
