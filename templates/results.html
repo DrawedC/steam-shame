@@ -1,31 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-        <!-- Google tag (gtag.js) -->
-
+    <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DPV3KP9K6G"></script>
-
 <script>
-
   window.dataLayer = window.dataLayer || [];
-
   function gtag(){dataLayer.push(arguments);}
-
   gtag('js', new Date());
 
   gtag('config', 'G-DPV3KP9K6G');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ player_name }}'s Steam Shame</title>
     <meta property="og:title" content="{{ player_name }}'s Steam Shame: {{ stats.shame_score }}%">
     <meta property="og:description" content="I own {{ stats.total_games }} games and have never touched {{ stats.never_played_count }} of them.">
     <meta property="og:image" content="{{ request.url_root }}share/{{ steam_id }}.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="{{ request.url_root }}share/{{ steam_id }}.png">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔔</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
@@ -36,7 +30,7 @@
         /* Top bar */
         .top-bar{position:fixed;top:0;left:0;right:0;z-index:100;padding:.65rem 1.5rem;display:flex;align-items:center;gap:1rem;background:rgba(10,10,12,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.05);transition:transform .3s}
         .top-bar.hidden{transform:translateY(-100%)}
-        .top-logo{color:#fff;font-weight:800;font-size:1rem;white-space:nowrap;text-decoration:none}.top-logo span{color:#ff3366}
+        .top-logo{color:#fff;font-weight:800;font-size:1rem;white-space:nowrap;text-decoration:none}.top-logo span{color:#66c0f4}
         .top-search{flex:1;max-width:380px;display:flex}
         .top-search input{flex:1;padding:.45rem .8rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px 0 0 8px;color:#fff;font-size:.8rem;font-family:inherit;outline:none}.top-search input:focus{border-color:rgba(255,255,255,.2)}.top-search input::placeholder{color:#444}
         .top-search button{padding:.45rem .9rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-left:none;border-radius:0 8px 8px 0;color:#bbb;font-size:.8rem;cursor:pointer;font-family:inherit}.top-search button:hover{background:rgba(255,255,255,.12);color:#fff}
@@ -61,127 +55,559 @@
         .hero-badges{display:flex;flex-direction:column;align-items:center;gap:.5rem;margin-top:1.5rem;opacity:0;animation:fadeUp .6s ease .4s forwards}
         .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.45rem .85rem;min-width:0;width:100%;max-width:400px}
         .hero-badge-icon{font-size:1.15rem;flex-shrink:0}.hero-badge-text{text-align:left;min-width:0}
+        .hero-badge-name{font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .hero-badge-desc{font-size:.65rem;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .hero-badge.highlight{border-color:rgba(255,51,102,.2);background:rgba(255,51,102,.04)}
+        .hero-badge.highlight .hero-badge-name{color:#ff3366}
 
-        /* Value card (updated - no scan button) */
-        .value-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            text-align: center;
-            max-width: 400px;
-        }
-        .value-card h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-        #value-display {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #ffcc66;
-        }
-        #value-warning {
-            color: #ff6666;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
+        /* (scroll hint removed) */
+
+        /* Sections */
+        .sec{padding:3rem 1.5rem}.sec+.sec{border-top:1px solid rgba(255,255,255,.03)}
+        .sec-in{max-width:900px;margin:0 auto}
+        .sec-title{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:.25rem}
+        .sec-sub{font-size:.9rem;color:#444;margin-bottom:1.5rem}
+
+        /* Pie */
+        .pie-area{display:flex;align-items:center;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:2rem}
+        .pie-box{width:280px;height:280px;flex-shrink:0}
+        .detail-panel{display:none;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+        .detail-panel.open{display:block}
+        .detail-header{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.03)}
+        .detail-title{font-weight:700;font-size:.9rem}.detail-close{background:none;border:none;color:#555;cursor:pointer;padding:4px 8px;border-radius:6px;font-size:1rem}.detail-close:hover{color:#fff;background:rgba(255,255,255,.08)}
+        .detail-list{max-height:320px;overflow-y:auto}.detail-list::-webkit-scrollbar{width:4px}.detail-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+        .g-row{display:flex;align-items:center;padding:.5rem 1rem;border-bottom:1px solid rgba(255,255,255,.02);font-size:.82rem}.g-row:last-child{border:none}.g-row:hover{background:rgba(255,255,255,.02)}
+        .g-name{flex:1;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:.5rem}.g-time{color:#444;font-weight:600;font-size:.75rem}
+        .expand-btn{display:block;width:100%;padding:.55rem;background:none;border:none;border-top:1px solid rgba(255,255,255,.03);color:#666;font-size:.78rem;cursor:pointer;font-family:inherit}.expand-btn:hover{color:#fff;background:rgba(255,255,255,.02)}
+
+        /* Info rows - emoji on FAR RIGHT */
+        .info-row{display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem;padding:1.15rem 1.25rem;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:14px;flex-direction:row}
+        .info-text{flex:1;min-width:0}
+        .info-main{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.15rem}
+        .info-main .val{font-size:1.05rem}.info-main .val.green{color:#00d26a}.info-main .val.red{color:#ff3366}.info-main .val.orange{color:#ff6b35}
+        .info-sub{font-size:.78rem;color:#555}
+        .info-icon{font-size:2.2rem;flex-shrink:0;line-height:1;order:1}
+
+        /* Gamer DNA - TIGHTER */
+        .radar-box {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem auto;           /* more breathing room around it */
+    max-width: 720px;              /* prevents it from going crazy wide on ultrawide */
+}
+#radar-cv {
+    width: 100% !important;
+    height: auto !important;
+}
+        .dna-toggles{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.5rem;margin-bottom:.4rem}
+        .dna-btn{padding:.35rem .9rem;border-radius:50px;font-size:.75rem;font-weight:600;cursor:default;border:2px solid transparent;font-family:inherit;background:rgba(255,255,255,.04);color:#555}
+        .dna-btn.active{color:#fff}
+        .dna-btn[data-layer="owned"].active{background:rgba(0,168,255,.15);border-color:#00a8ff;color:#00a8ff}
+        .dna-btn[data-layer="played"].active{background:rgba(0,210,106,.15);border-color:#00d26a;color:#00d26a}
+        .dna-btn[data-layer="unplayed"].active{background:rgba(255,51,102,.15);border-color:#ff3366;color:#ff3366}
+        .radar-disclaimer{text-align:center;color:#333;font-size:.65rem;font-style:italic;margin-top:.25rem}
+        .mismatch{background:linear-gradient(135deg,rgba(255,51,102,.06),transparent);border:1px solid rgba(255,51,102,.12);border-radius:12px;padding:.85rem;text-align:center;margin-bottom:1rem}
+        .mismatch-title{font-size:.9rem;font-weight:700;color:#ff3366;margin-bottom:.1rem}.mismatch-sub{font-size:.75rem;color:#666}
+
+        /* Suggest - LESS ad-like, more subtle */
+        .suggest{display:flex;align-items:stretch;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden}
+        .suggest-img{width:240px;aspect-ratio:616/353;object-fit:cover;display:block;flex-shrink:0}
+        .suggest-body{padding:1.25rem;display:flex;flex-direction:column;justify-content:center;flex:1}
+        .suggest-eye{font-size:.7rem;color:#666;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:.35rem}
+        .suggest-name{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:.75rem}
+        .suggest-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+        .btn-steam{padding:.4rem 1rem;background:rgba(0,168,255,.15);color:#00a8ff;border:1px solid rgba(0,168,255,.2);border-radius:8px;text-decoration:none;font-weight:600;font-size:.8rem;transition:all .15s;display:inline-block}.btn-steam:hover{background:rgba(0,168,255,.25)}
+        .btn-reroll{padding:.4rem 1rem;background:rgba(255,255,255,.04);color:#666;border-radius:8px;border:1px solid rgba(255,255,255,.06);font-size:.8rem;cursor:pointer;font-family:inherit}.btn-reroll:hover{background:rgba(255,255,255,.08);color:#fff}
+
+        /* Leaderboard */
+        .lb{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:14px;overflow:hidden}
+        .lb-head{display:grid;grid-template-columns:44px 1fr 65px 70px 70px;padding:.55rem 1rem;background:rgba(255,255,255,.03);font-size:.7rem;color:#333;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+        .lb-row{display:grid;grid-template-columns:44px 1fr 65px 70px 70px;padding:.65rem 1rem;align-items:center;border-bottom:1px solid rgba(255,255,255,.02);font-size:.82rem}
+        .lb-row:last-child{border:none}.lb-row:hover{background:rgba(255,255,255,.015)}
+        .lb-row.me{background:rgba(0,168,255,.05);border-left:3px solid #00a8ff}
+        .lb-rank{font-weight:700;color:#444;text-align:center}.lb-rank.r1{color:#f7c94b}.lb-rank.r2{color:#c0c0c0}.lb-rank.r3{color:#cd7f32}
+        .lb-player{display:flex;align-items:center;gap:.5rem;min-width:0}
+        .lb-av{width:26px;height:26px;border-radius:50%;flex-shrink:0}
+        .lb-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#bbb;font-weight:500}.lb-nm a{color:inherit;text-decoration:none}.lb-nm a:hover{color:#00a8ff}
+        .lb-you{color:#00a8ff;font-size:.65rem;margin-left:.15rem}
+        .lb-score{font-weight:700;text-align:center}.lb-score.lo{color:#00d26a}.lb-score.md{color:#ff6b35}.lb-score.hi{color:#ff3366}
+        .lb-meta{color:#555;font-size:.78rem;text-align:center}
+        .callout{background:linear-gradient(135deg,rgba(255,51,102,.06),transparent);border:1px solid rgba(255,51,102,.12);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;text-align:center}
+        .callout-emoji{font-size:2rem;margin-bottom:.35rem}.callout-text{font-size:1rem;font-weight:600;color:#fff}
+        .callout.win{background:linear-gradient(135deg,rgba(0,210,106,.06),transparent);border-color:rgba(0,210,106,.15)}
+
+        /* Share */
+        .share{text-align:center;padding:3rem 1.5rem;border-top:1px solid rgba(255,255,255,.03)}
+        .share-title{font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:.25rem}
+        .share-sub{color:#444;margin-bottom:1.25rem;font-size:.85rem}
+        .share-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+        .s-btn{padding:.55rem 1.3rem;border-radius:50px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem;border:none;transition:transform .12s}.s-btn:hover{transform:translateY(-1px)}.s-btn.tw{background:#1da1f2;color:#fff}.s-btn.cp{background:rgba(255,255,255,.06);color:#bbb}
+
+        /* Modal */
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(3px)}.modal-bg.on{display:flex}
+        .modal{background:#131316;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.5rem;max-width:440px;width:100%;max-height:60vh;display:flex;flex-direction:column;animation:mIn .15s ease}
+        @keyframes mIn{from{opacity:0;transform:scale(.97) translateY(6px)}to{opacity:1;transform:none}}
+        .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+        .modal-t{font-size:1rem;font-weight:700;color:#fff}.modal-cnt{font-size:.75rem;color:#444;margin-left:.3rem}
+        .modal-x{background:rgba(255,255,255,.06);border:none;color:#666;width:30px;height:30px;border-radius:50%;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center}.modal-x:hover{background:rgba(255,255,255,.12);color:#fff}
+        .modal-body{overflow-y:auto;flex:1}.modal-body::-webkit-scrollbar{width:4px}.modal-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+        .modal-item{padding:.4rem .5rem;border-radius:5px;color:#aaa;font-size:.82rem}.modal-item:hover{background:rgba(255,255,255,.03)}
+
+        .loading{text-align:center;padding:1.5rem;color:#444}
+        .spin{width:28px;height:28px;border:2px solid rgba(255,255,255,.06);border-top-color:#00a8ff;border-radius:50%;margin:0 auto .6rem;animation:sp .8s linear infinite}
+        @keyframes sp{to{transform:rotate(360deg)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+        @keyframes bounce{0%,100%{transform:translateX(-50%)}50%{transform:translateX(-50%) translateY(-6px)}}
+
+        /* ===== DESKTOP OPTIMIZED (>=1024px) ===== */
+        @media(min-width:1024px){
+            .sec-in{max-width:960px}
+            .hero{min-height:100vh}
+            .shame-num{font-size:12rem}
+            .shame-label{font-size:1.3rem;letter-spacing:.25em}
+            .player-name{font-size:1.6rem}
+            .hero-stat-val{font-size:1.3rem}
+            .hero-stat-lbl{font-size:.8rem}
+            .hero-badge-name{font-size:.9rem}
+            .hero-badge-desc{font-size:.75rem}
+            .hero-badge-icon{font-size:1.3rem}
+            .hero-badge{padding:.5rem 1rem}
+
+            .sec-title{font-size:1.75rem}
+            .sec-sub{font-size:1rem}
+            .info-main{font-size:1.1rem}
+            .info-main .val{font-size:1.2rem}
+            .info-sub{font-size:.85rem}
+            .info-icon{font-size:2.5rem}
+
+            .pie-box{width:320px;height:320px}
+
+            /* Gamer DNA tighter on desktop */
+            .dna-grid{display:grid;grid-template-columns:1fr;gap:0}
+            .radar-box canvas{max-width:480px!important}
+
+            /* Suggest horizontal */
+            .suggest-img{width:280px}
+            .suggest-name{font-size:1.25rem}
+            .suggest-eye{font-size:.8rem}
+
+            /* Leaderboard wider */
+            .lb-head,.lb-row{grid-template-columns:50px 1fr 80px 80px 80px}
+            .lb-row{font-size:.9rem}
+
+            .share-title{font-size:1.5rem}
+            .share-sub{font-size:.95rem}
+            .callout-text{font-size:1.1rem}
         }
 
-        /* ... rest of your existing styles (DNA chart, leaderboard, etc.) ... */
+        /* ===== TABLET (641-1023px) ===== */
+        @media(min-width:641px) and (max-width:1023px){
+            .sec-in{max-width:720px}
+            .suggest-img{width:200px}
+            .shame-num{font-size:9rem}
+            .player-name{font-size:1.4rem}
+            .hero-stat-val{font-size:1.15rem}
+            .sec-title{font-size:1.6rem}
+            .info-main{font-size:1rem}
+            .pie-box{width:300px;height:300px}
+        }
+
+        /* ===== MOBILE (<=640px) ===== */
+        @media(max-width:640px){
+            .pie-area{flex-direction:column;gap:1rem}.pie-box{width:240px;height:240px}
+            .info-row{padding:.9rem 1rem}
+            .info-icon{font-size:1.8rem}
+            .lb-head,.lb-row{grid-template-columns:36px 1fr 50px 55px}.lb-head>*:last-child,.lb-row>*:last-child{display:none}
+            .hero-badges{gap:.35rem}.hero-badge{padding:.35rem .65rem;max-width:100%}.hero-badge-icon{font-size:1rem}
+            .hero-stats{gap:1rem}.sec-title{font-size:1.25rem}
+            .sec{padding:2rem 1rem}
+            /* Suggest stacks vertically on mobile */
+            .suggest{flex-direction:column}
+            .suggest-img{width:100%;aspect-ratio:616/353}
+        }
+
+        /* ──────────────────────────────────────────────── */
+/* Improvements – add these at the END of <style>   */
+/* ──────────────────────────────────────────────── */
+
+/* Bigger & more comfortable typography on desktop */
+html {
+    font-size: 16px;
+}
+@media (min-width: 900px)  { html { font-size: 16.8px; } }
+@media (min-width: 1024px) { html { font-size: 17.8px; } }
+@media (min-width: 1280px) { html { font-size: 18.8px; } }
+@media (min-width: 1440px) { html { font-size: 19.5px; } }
+
+body {
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* Make DNA buttons look & feel clickable */
+.dna-btn {
+    cursor: pointer !important;
+    transition: all 0.18s ease;
+}
+.dna-btn:hover {
+    background: rgba(255,255,255,0.14) !important;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.dna-btn.active {
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.12) !important;
+}
+
+/* Reduce excessive vertical breathing room */
+.hero {
+    padding: 4.5rem 1.5rem 3rem !important;
+    min-height: auto !important;
+}
+.sec {
+    padding: 2.8rem 1.5rem !important;
+}
+.sec + .sec {
+    margin-top: -1px;
+}
+.hero-stats  { margin-top: 1rem !important; }
+.hero-badges { margin-top: 1.2rem !important; }
+.pie-area    { margin-bottom: 1.6rem !important; }
+.info-row    { margin-bottom: 1rem !important; }
+.dna-toggles { margin: 0.8rem 0 1.4rem !important; }
+.share       { padding: 2.8rem 1.5rem !important; }
+
+/* Slightly larger key numbers & titles on desktop */
+@media (min-width: 1024px) {
+    .shame-num {
+        font-size: clamp(10rem, 18vw, 14rem) !important;
+    }
+    .sec-title {
+        font-size: 2.1rem !important;
+    }
+    .hero-stat-val {
+        font-size: 1.65rem !important;
+    }
+    .pie-box {
+        width: 340px !important;
+        height: 340px !important;
+    }
+    .info-main {
+        font-size: 1.25rem !important;
+    }
+    .info-main .val {
+        font-size: 1.45rem !important;
+    }
+    .dna-btn {
+        font-size: 1rem !important;
+        padding: 0.6rem 1.4rem !important;
+    }
+}
+
+/* Mobile still comfortable */
+@media (max-width: 640px) {
+    .shame-num {
+        font-size: clamp(6.5rem, 21vw, 11rem) !important;
+    }
+    .hero {
+        padding-top: 4.2rem !important;
+    }
+}
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <a href="/" class="top-logo">Steam<span class="text-[#66c0f4]">Shame</span></a>
-        <div class="top-search flex-1 max-w-[380px] flex">
-            <input type="text" placeholder="Steam URL or username" />
-            <button>Check</button>
-        </div>
+<!-- Full page loading overlay -->
+<div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0a0a0c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .4s">
+    <div class="spin" style="width:36px;height:36px;border-width:3px"></div>
+    <div style="color:#444;font-size:.85rem">Judging your backlog...</div>
+</div>
+
+<div id="page-content" style="opacity:0;transition:opacity .4s">
+<div class="top-bar" id="topbar">
+    <a href="/" class="top-logo">STEAM<span>SHAME</span></a>
+    <form action="/lookup" method="POST" class="top-search"><input type="text" name="steam_input" placeholder="Steam URL or username" autocomplete="off"><button type="submit">Check</button></form>
+</div>
+
+<section class="hero" style="padding-top:4.5rem">
+    <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-sub">Steam Shame Report</div></div></div>
+    <div class="shame-display"><div class="shame-num">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
+    <div class="hero-stats">
+        <div><div class="hero-stat-val">{{ stats.total_games }}</div><div class="hero-stat-lbl">Games Owned</div></div>
+        <div><div class="hero-stat-val red">{{ stats.never_played_count }}</div><div class="hero-stat-lbl">Never Played</div></div>
     </div>
-
-    <div class="hero">
-        <div class="player-header">
-            <img src="{{ avatar_url }}" class="avatar" alt="{{ player_name }}">
-            <div>
-                <div class="player-name">{{ player_name }}</div>
-                <div class="player-sub">Steam ID: {{ steam_id }}</div>
-            </div>
-        </div>
-
-        <div class="shame-display">
-            <div class="shame-num">{{ stats.shame_score }}</div>
-            <div class="shame-label">SHAME SCORE</div>
-        </div>
-
-        <div class="hero-stats">
-            <div>
-                <div class="hero-stat-val">{{ stats.total_games }}</div>
-                <div class="hero-stat-lbl">Games Owned</div>
-            </div>
-            <div>
-                <div class="hero-stat-val red">{{ stats.never_played_count }}</div>
-                <div class="hero-stat-lbl">Never Played</div>
-            </div>
-        </div>
-
-        <!-- Value card (no scan button) -->
-        <div class="value-card">
-            <h3>Estimated Library Value</h3>
-            <p id="value-display">Calculating estimate...</p>
-            <p id="value-warning" style="color: #ff6666; font-size: 0.9rem;"></p>
-        </div>
-
-        <!-- Badges -->
-        <div class="hero-badges">
-            {% for badge in instant_badges %}
-            <div class="hero-badge">
-                <span class="hero-badge-icon">{{ badge.emoji }}</span>
-                <div class="hero-badge-text">
-                    <strong>{{ badge.name }}</strong><br>
-                    <small>{{ badge.description }}</small>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+    <div class="hero-badges">
+        <div class="hero-badge"><div class="hero-badge-icon">{{ stats.descriptor.emoji }}</div><div class="hero-badge-text"><div class="hero-badge-name">{{ stats.descriptor.title }}</div><div class="hero-badge-desc">{{ stats.descriptor.description }}</div></div></div>
+        {% for b in instant_badges %}
+        <div class="hero-badge"><div class="hero-badge-icon">{{ b.emoji }}</div><div class="hero-badge-text"><div class="hero-badge-name">{{ b.name }}</div><div class="hero-badge-desc">{{ b.description }}</div></div></div>
+        {% endfor %}
+        <div id="badges-slot"></div>
     </div>
-
-    <!-- DNA Section (example placeholder - adjust as needed) -->
-    <div id="dna-section">
-        <h2>Gamer DNA</h2>
-        <div id="radar-chart"></div>
-        <div id="dna-warning"></div>
     </div>
+</section>
 
-    <!-- ... rest of your page (leaderboard, friends, etc.) ... -->
+<section class="sec"><div class="sec-in">
+    <div class="sec-title">The Shame Pile</div>
+    <div class="sec-sub">{{ stats.total_games }} games, broken down</div>
+    <div class="pie-area">
+        <div class="pie-box"><canvas id="pie-cv"></canvas></div>
+    </div>
+    <div id="pie-detail" class="detail-panel"></div>
 
-    <script>
-        const steamId = "{{ steam_id }}";
+    <div id="val-load" class="loading"><div class="spin"></div>Calculating library value...</div>
+    <div id="val-out" style="display:none"></div>
 
-        // Load value estimate
-        fetch(`/api/value/${steamId}`)
-            .then(r => r.json())
-            .then(data => {
-                document.getElementById('value-display').textContent = 
-                    `$${data.library_value} total • $${data.unplayed_value} unplayed (estimate)`;
-                if (data.warning) {
-                    document.getElementById('value-warning').textContent = data.warning;
-                }
-            })
-            .catch(() => {
-                document.getElementById('value-display').textContent = "Error loading value";
-            });
+    {% if stats.backlog_days > 0 %}
+    <div class="info-row">
+        <div class="info-text"><div class="info-main"><span class="val orange">{{ stats.backlog_days }} days</span> to clear your backlog</div><div class="info-sub">At 1 hour per day, ~10 hrs per game{% if stats.backlog_days > 365 %} — that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div></div>
+        <div class="info-icon">⏳</div>
+    </div>
+    {% endif %}
+</div></section>
 
-        // Load DNA (example - adjust selectors as needed)
-        fetch(`/api/personality/${steamId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.warning) {
-                    document.getElementById('dna-warning').textContent = data.warning;
-                }
-                // ... your Chart.js radar setup here ...
-            });
+<section class="sec" id="dna-sec"><div class="sec-in">
+    <div class="sec-title">Gamer DNA</div>
+    <div class="sec-sub">What your library says about you</div>
+    <div id="dna-load" class="loading"><div class="spin"></div>Analyzing your genres...</div>
+    <div id="dna-out" style="display:none"></div>
+</div></section>
 
-        // ... rest of your JS ...
-    </script>
-</body>
-</html>
+<section class="sec"><div class="sec-in">
+    <div id="suggest-out" style="display:none"></div>
+</div></section>
+
+<section class="sec" id="lb-sec"><div class="sec-in">
+    <div class="sec-title">Friends Leaderboard</div>
+    <div class="sec-sub">Who wastes the most?</div>
+    <div id="lb-load" class="loading"><div class="spin"></div>Loading friends...</div>
+    <div id="lb-out" style="display:none"></div>
+</div></section>
+
+<section class="share">
+    <div class="share-title">Spread the shame</div>
+    <div class="share-sub">Let your friends see how they compare</div>
+    <div class="share-btns">
+        <a href="https://twitter.com/intent/tweet?text=My%20Steam%20Shame%3A%20{{ stats.shame_score }}%25%20%E2%80%94%20{{ stats.total_games }}%20games%2C%20{{ stats.never_played_count }}%20never%20played&url={{ request.url }}" target="_blank" class="s-btn tw">Share on X</a>
+        <button class="s-btn cp" onclick="copyLink()">Copy Link</button>
+    </div>
+</section>
+</div><!-- /page-content -->
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <div class="modal-head"><div class="modal-t" id="modal-t"></div><button class="modal-x" onclick="closeModal()">&#x2715;</button></div>
+    <div class="modal-body" id="modal-b"></div>
+</div></div>
+
+<script>
+Chart.register(ChartDataLabels);
+const SID="{{steam_id}}";
+const S=[
+    {l:'Played',c:'#00d26a',n:{{stats.played_count}},t:{{stats.played_total}},pct:'{{(stats.played_count/stats.total_games*100)|round(1)}}%',
+     g:[{% for g in stats.played_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {l:'Abandoned',c:'#ff6b35',n:{{stats.abandoned_count}},t:{{stats.abandoned_total}},pct:'{{(stats.abandoned_count/stats.total_games*100)|round(1)}}%',
+     g:[{% for g in stats.abandoned_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}]},
+    {l:'Never Played',c:'#ff3366',n:{{stats.never_played_count}},t:{{stats.unplayed_total}},pct:'{{(stats.never_played_count/stats.total_games*100)|round(1)}}%',
+     g:[{% for g in stats.unplayed_games %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]}
+];
+const MOST_PLAYED = {% if stats.most_played %}{"name":"{{stats.most_played.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{stats.most_played.playtime_fmt}}"}{% else %}null{% endif %};
+// Full lists for "Show all" modal
+const FULL=[
+    [{% for g in stats.all_played %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
+    [{% for g in stats.all_abandoned %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"{{g.playtime_fmt}}"}{% if not loop.last %},{% endif %}{% endfor %}],
+    [{% for g in stats.all_unplayed %}{"name":"{{g.name|replace('\\','\\\\')|replace('"','\\"')}}","pt":"—"}{% if not loop.last %},{% endif %}{% endfor %}]
+];
+let PD=null,RC=null,RL='owned';
+
+function show(id,h){document.getElementById(id+'-load').style.display='none';const e=document.getElementById(id+'-out');e.innerHTML=h;e.style.display='block'}
+function openModal(t,g){
+    document.getElementById('modal-t').innerHTML=t+(g.length?' <span class="modal-cnt">('+g.length+')</span>':'');
+    let h='';g.forEach(x=>{h+='<div class="modal-item">'+(typeof x==='string'?x:x.name+(x.pt&&x.pt!=='—'?' <span style="color:#444;font-size:.7rem">'+x.pt+'</span>':''))+'</div>'});
+    if(!g.length)h='<div class="modal-item" style="color:#333">Nothing here</div>';
+    document.getElementById('modal-b').innerHTML=h;document.getElementById('modal').classList.add('on');document.body.style.overflow='hidden'}
+function closeModal(){document.getElementById('modal').classList.remove('on');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+let lastY=0;window.addEventListener('scroll',()=>{const y=window.scrollY;document.getElementById('topbar').classList.toggle('hidden',y>100&&y>lastY);lastY=y},{passive:true});
+
+// Pie
+new Chart(document.getElementById('pie-cv'),{type:'doughnut',
+    data:{labels:S.map(s=>s.l),datasets:[{data:S.map(s=>s.n),backgroundColor:S.map(s=>s.c),borderColor:'#0a0a0c',borderWidth:2,hoverOffset:12}]},
+    options:{responsive:true,maintainAspectRatio:true,cutout:'42%',
+        plugins:{legend:{display:true,position:'bottom',labels:{color:'#888',font:{size:12,family:'Inter'},padding:16,usePointStyle:true,pointStyleWidth:10}},
+        datalabels:{color:'#fff',font:{weight:'700',size:13,family:'Inter'},
+            formatter:(v,ctx)=>{const t=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);const p=((v/t)*100).toFixed(1);return v>0?p+'%':''},
+            anchor:'center',align:'center',textShadowBlur:4,textShadowColor:'rgba(0,0,0,.6)'}},
+        onClick:(e,el)=>{if(el.length)selectPie(el[0].index)}}});
+
+function selectPie(i){
+    const s=S[i],p=document.getElementById('pie-detail');
+    let h='<div class="detail-header"><div class="detail-title" style="color:'+s.c+'">'+s.l+' — '+s.n+' games ('+s.pct+')</div><button class="detail-close" onclick="closePie()">&#x2715;</button></div><div class="detail-list">';
+    s.g.forEach(g=>{h+='<div class="g-row"><div class="g-name">'+g.name+'</div><div class="g-time">'+g.pt+'</div></div>'});
+    if(!s.g.length)h+='<div class="g-row"><div class="g-name" style="color:#333">No games to show</div></div>';
+    h+='</div>';if(s.t>s.g.length)h+='<button class="expand-btn" onclick="openModal(\''+s.l.replace(/'/g,"\\'")+'\',FULL['+i+'])">Show all '+s.t+'</button>';
+    p.innerHTML=h;p.classList.add('open');p.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function closePie(){document.getElementById('pie-detail').classList.remove('open')}
+
+// Value — emoji on far right
+function loadVal(full){
+    const ld=document.getElementById('val-load'),out=document.getElementById('val-out');
+    ld.style.display='block';out.style.display='none';
+    if(full)ld.innerHTML='<div class="spin"></div>Scanning full library...';
+    fetch('/api/value/'+SID+(full?'?full=1':'')).then(r=>r.json()).then(d=>{
+        if(d.error){ld.style.display='none';return}
+        const e=d.is_estimate?'~':'';
+        let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">'+e+'$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon">📚</div></div>';
+        h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">'+e+'$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon">🕸️</div></div>';
+        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic;margin-bottom:.5rem">*Based on current MSRP. Does not reflect sale prices.</div>';
+        if(d.is_estimate)h+='<button class="expand-btn" style="display:inline-block;width:auto;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.06);border-radius:8px" onclick="loadVal(true)">Scan full library for accuracy</button>';
+        h+='</div>';
+        ld.style.display='none';out.innerHTML=h;out.style.display='block';
+    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
+
+// Suggest — less ad-like, no most played time
+function loadSuggest(){
+    fetch('/api/suggest/'+SID).then(r=>r.json()).then(d=>{
+        if(d.error||!d.appid)return;
+        const el=document.getElementById('suggest-out');
+        el.innerHTML='<div class="suggest"><img src="'+d.image+'" class="suggest-img" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eye">Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Pick another</button></div></div></div>';
+        el.style.display='block';
+    }).catch(()=>{})}
+
+// Staggered loading
+loadVal(false);loadSuggest();
+setTimeout(()=>{
+fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
+    if(data.error){show('dna','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
+    PD=data;const r=data.radar;
+    if(!r||!r.labels||!r.labels.length){show('dna','<p style="text-align:center;color:#444">Not enough genre data.</p>');return}
+
+    // FILTER: only show genres that have data (any non-zero value across owned/played/unplayed)
+    const validIdx=[];
+    for(let i=0;i<r.labels.length;i++){
+        if(r.owned[i]>0||r.played[i]>0||r.unplayed[i]>0)validIdx.push(i);
+    }
+    const fLabels=validIdx.map(i=>r.labels[i]);
+    const fOwned=validIdx.map(i=>r.owned[i]);
+    const fPlayed=validIdx.map(i=>r.played[i]);
+    const fUnplayed=validIdx.map(i=>r.unplayed[i]);
+
+    if(!fLabels.length){show('dna','<p style="text-align:center;color:#444">Not enough genre data.</p>');return}
+
+    let h='';
+    if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
+        h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
+
+// Bigger radar sizing – feels better on desktop
+const radarSize = Math.min(620, window.innerWidth - 80);   // ← increased from 460 → 620
+h += '<div class="radar-box"><canvas id="radar-cv" width="' + radarSize + '" height="' + radarSize + '" style="max-width:' + radarSize + 'px; width:100%; height:auto;"></canvas></div>';
+    h+='<div class="dna-toggles">';
+    if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
+    if(data.played_majority)h+='<div class="dna-btn" data-layer="played">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</div>';
+    if(data.unplayed_majority)h+='<div class="dna-btn" data-layer="unplayed">Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</div>';
+    h+='</div>';
+    h+='<div class="radar-disclaimer">Based on a sample of your library</div>';
+
+    // Async badges: only mismatch + early access (instant badges already rendered server-side)
+    let bh='';
+    if(data.mismatch_badge)bh+='<div class="hero-badge highlight"><div class="hero-badge-icon">'+data.mismatch_badge.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+data.mismatch_badge.title+'</div><div class="hero-badge-desc">'+data.mismatch_badge.description+'</div></div></div>';
+    if(data.badges){
+        // Only add badges not already rendered (Early Access Addict is the async one)
+        const instantNames=new Set([{% for b in instant_badges %}"{{b.name}}",{% endfor %}]);
+        data.badges.forEach(b=>{if(!instantNames.has(b.name))bh+='<div class="hero-badge"><div class="hero-badge-icon">'+b.emoji+'</div><div class="hero-badge-text"><div class="hero-badge-name">'+b.name+'</div><div class="hero-badge-desc">'+b.description+'</div></div></div>'});
+    }
+    document.getElementById('badges-slot').innerHTML=bh;
+    show('dna',h);
+
+    const lb=fLabels.map(l=>l.emoji+' '+l.label);
+    const A={owned:{bg:'rgba(0,168,255,0.2)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.2)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.2)',br:'#ff3366'}};
+    RC=new Chart(document.getElementById('radar-cv'),{type:'radar',
+        data:{labels:lb,datasets:[
+            {label:'Library',data:fOwned,backgroundColor:A.owned.bg,borderColor:A.owned.br,borderWidth:2,pointRadius:3,pointBackgroundColor:A.owned.br},
+            {label:'Played',data:fPlayed,backgroundColor:'rgba(0,210,106,0.05)',borderColor:'rgba(0,210,106,0.2)',borderWidth:1,pointRadius:1.5,pointBackgroundColor:'rgba(0,210,106,0.2)'},
+            {label:'Unplayed',data:fUnplayed,backgroundColor:'rgba(255,51,102,0.05)',borderColor:'rgba(255,51,102,0.2)',borderWidth:1,pointRadius:1.5,pointBackgroundColor:'rgba(255,51,102,0.2)'}]},
+        options:{responsive:true,maintainAspectRatio:true,
+            scales:{r:{grid:{color:'rgba(255,255,255,0.05)'},angleLines:{color:'rgba(255,255,255,0.05)'},pointLabels:{color:'#999',font:{size:11,weight:'500',family:'Inter'},padding:8},ticks:{display:false},suggestedMin:0}},
+            plugins:{legend:{display:false},datalabels:{display:false},
+                tooltip:{backgroundColor:'#1a1a1e',titleColor:'#fff',bodyColor:'#bbb',borderColor:'rgba(255,255,255,.06)',borderWidth:1,padding:8,displayColors:true,callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}}}});
+}).catch(()=>show('dna','<p style="color:#444;text-align:center">Failed to load.</p>')).finally(()=>{_loaded.dna=true;checkReady()});
+},200);
+
+setTimeout(()=>{
+fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
+    if(data.error&&!data.leaderboard){show('lb','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
+    if(!data.leaderboard||data.leaderboard.length<=1){show('lb','<p style="text-align:center;color:#444">No friends with public profiles found.</p>');return}
+    let h='';
+    if(data.user_rank===1)h+='<div class="callout"><div class="callout-emoji">&#x1F451;</div><div class="callout-text">#1 most wasteful among your friends</div></div>';
+    else if(data.user_rank<=3)h+='<div class="callout"><div class="callout-emoji">&#x1F62C;</div><div class="callout-text">#'+data.user_rank+' most wasteful among friends</div></div>';
+    else if(data.user_rank===data.leaderboard.length)h+='<div class="callout win"><div class="callout-emoji">&#x1F3C6;</div><div class="callout-text">Least wasteful among your friends</div></div>';
+    h+='<div class="lb"><div class="lb-head"><div></div><div>Name</div><div>Shame</div><div>Games</div><div>Unplayed</div></div>';
+    data.leaderboard.forEach(e=>{
+        const ri=e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
+        h+='<div class="lb-row '+(e.is_user?'me':'')+'"><div class="lb-rank '+(e.rank<=3?'r'+e.rank:'')+'">'+ri+'</div><div class="lb-player"><img src="'+e.avatar+'" class="lb-av"><span class="lb-nm"><a href="/results/'+e.steam_id+'">'+e.name+'</a>'+(e.is_user?'<span class="lb-you">(you)</span>':'')+'</span></div><div class="lb-score '+(e.shame_score<25?'lo':e.shame_score<40?'md':'hi')+'">'+e.shame_score+'%</div><div class="lb-meta">'+e.total_games+'</div><div class="lb-meta">'+e.never_played+'</div></div>'});
+    h+='</div>';show('lb',h);
+}).catch(()=>show('lb','<p style="text-align:center;color:#444">Could not load friends.</p>'));
+},500);
+
+function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const b=document.querySelector('.s-btn.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Link',2000)})}
+
+// Page reveal: track async loads, show page when key ones finish
+let _loaded={val:false,dna:false,friends:false,suggest:false};
+function checkReady(){
+    // Show page once DNA + value are done (friends can trickle in)
+    if(_loaded.dna && _loaded.val){
+        const loader=document.getElementById('page-loader');
+        const content=document.getElementById('page-content');
+        content.style.opacity='1';
+        loader.style.opacity='0';
+        setTimeout(()=>loader.style.display='none',400);
+    }
+}
+// Timeout fallback: show page after 8s no matter what
+setTimeout(()=>{
+    const loader=document.getElementById('page-loader');
+    const content=document.getElementById('page-content');
+    if(loader.style.display!=='none'){
+        content.style.opacity='1';loader.style.opacity='0';
+        setTimeout(()=>loader.style.display='none',400);
+    }
+},8000);
+
+// DNA toggle click handlers
+document.addEventListener('click',function(e){
+    const btn=e.target.closest('.dna-btn');
+    if(!btn||!RC)return;
+    const layer=btn.dataset.layer;
+    if(!layer)return;
+    const idx={owned:0,played:1,unplayed:2}[layer];
+    if(idx===undefined)return;
+    // Toggle: if active, show only this layer prominently. If clicking same, reset all.
+    const isActive=btn.classList.contains('active');
+    const btns=document.querySelectorAll('.dna-btn');
+    const A={owned:{bg:'rgba(0,168,255,0.2)',br:'#00a8ff'},played:{bg:'rgba(0,210,106,0.2)',br:'#00d26a'},unplayed:{bg:'rgba(255,51,102,0.2)',br:'#ff3366'}};
+    const layers=['owned','played','unplayed'];
+    if(isActive){
+        // Reset all to default
+        btns.forEach(b=>b.classList.remove('active'));
+        btns[0].classList.add('active');
+        RC.data.datasets.forEach((ds,i)=>{
+            const l=layers[i];
+            ds.backgroundColor=i===0?A[l].bg:'rgba('+{played:'0,210,106',unplayed:'255,51,102'}[l]+',0.05)';
+            ds.borderColor=i===0?A[l].br:'rgba('+{played:'0,210,106',unplayed:'255,51,102'}[l]+',0.2)';
+            ds.borderWidth=i===0?2:1;ds.pointRadius=i===0?3:1.5;
+        });
+    } else {
+        // Highlight selected layer
+        btns.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        RC.data.datasets.forEach((ds,i)=>{
+            const l=layers[i];
+            if(i===idx){
+                ds.backgroundColor=A[l].bg;ds.borderColor=A[l].br;ds.borderWidth=2;ds.pointRadius=3;
+            } else {
+                const rgb=l==='owned'?'0,168,255':l==='played'?'0,210,106':'255,51,102';
+                ds.backgroundColor='rgba('+rgb+',0.03)';ds.borderColor='rgba('+rgb+',0.12)';ds.borderWidth=1;ds.pointRadius=1;
+            }
+        });
+    }
+    RC.update();
+});
+</script>
+</body></html>
