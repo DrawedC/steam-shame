@@ -689,8 +689,9 @@ def share_image(steam_id):
             av_url = p.get("avatarfull", "")
             if av_url:
                 av_resp = requests.get(av_url, timeout=5)
-                av_img = Image.open(io.BytesIO(av_resp.content)).convert("RGBA")
-                av_img = av_img.resize((120, 120), Image.LANCZOS)
+                av_img = Image.open(io.BytesIO(av_resp.content))
+                av_img.seek(0)
+                av_img = av_img.copy().convert("RGBA")
                 mask = Image.new("L", (120, 120), 0)
                 ImageDraw.Draw(mask).ellipse((0,0,120,120), fill=255)
                 img.paste(av_img, (W - 160, 40), mask)
