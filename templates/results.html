@@ -164,22 +164,22 @@
     </div>
 </section>
 <section class="sec"><div class="sec-in">
-    <div class="sec-title">The Shame Pile</div>
-    <div class="sec-sub">{{ stats.total_games }} games, broken down</div>
+    <div class="sec-title">Your Backlog of Shame</div>
+    <div class="sec-sub">{{ stats.total_games }} games</div>
     <div class="pie-area"><div class="pie-box"><canvas id="pie-cv"></canvas></div></div>
     <div id="pie-detail" class="detail-panel"></div>
     <div id="val-load" class="loading"><div class="spin"></div>Calculating library value...</div>
     <div id="val-out" style="display:none"></div>
     {% if stats.backlog_days > 0 %}
     <div class="info-row">
-        <div class="info-text"><div class="info-main"><span class="val orange">{{ stats.backlog_days }} days</span> to clear your backlog</div><div class="info-sub">At 1 hour per day, ~10 hrs per game{% if stats.backlog_days > 365 %} — that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div></div>
-        <div class="info-icon">⏳</div>
+        <div class="info-text"><div class="info-main"><span class="val orange">{{ stats.backlog_days }} days</span> to clear your backlog</div><div class="info-sub">1 hour per day, 10 hours per game{% if stats.backlog_days > 365 %} — that's {{ (stats.backlog_days/365)|round(1) }} years{% endif %}</div></div>
+        <div class="info-icon"></div>
     </div>
     {% endif %}
 </div></section>
 <section class="sec" id="dna-sec"><div class="sec-in">
     <div class="sec-title">Gamer DNA</div>
-    <div class="sec-sub">What your library says about you</div>
+    <div class="sec-sub">What kind of games do you own? What games do you actually play?**</div>
     <div id="dna-load" class="loading"><div class="spin"></div>Analyzing your genres...</div>
     <div id="dna-out" style="display:none"></div>
 </div></section>
@@ -188,7 +188,7 @@
 </div></section>
 <section class="sec" id="lb-sec"><div class="sec-in">
     <div class="sec-title">Friends Leaderboard</div>
-    <div class="sec-sub">Who wastes the most?</div>
+    <div class="sec-sub">Who's library is the most shameful?</div>
     <div id="lb-load" class="loading"><div class="spin"></div>Loading friends...</div>
     <div id="lb-out" style="display:none"></div>
 </div></section>
@@ -269,9 +269,9 @@ function loadVal(){
     ld.style.display='block';out.style.display='none';
     fetch('/api/value/'+SID).then(r=>r.json()).then(d=>{
         if(d.error){ld.style.display='none';return}
-        let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} titles, estimated value <span class="val green">~$'+d.library_value.toLocaleString()+'</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon">📚</div></div>';
-        h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} titles collecting dust, worth <span class="val red">~$'+d.unplayed_value.toLocaleString()+'</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon">🕸️</div></div>';
-        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic">*Based on current MSRP. Does not reflect sale prices.</div></div>';
+        let h='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.total_games}} Games, estimated value <span class="val green">$'+d.library_value.toLocaleString()+'*</span></div><div class="info-sub">Your complete Steam library at current store prices</div></div><div class="info-icon"></div></div>';
+        h+='<div class="info-row"><div class="info-text"><div class="info-main">{{stats.never_played_count}} Games collecting dust, worth <span class="val red">$'+d.unplayed_value.toLocaleString()+'*</span></div><div class="info-sub">Games purchased that remain completely unplayed</div></div><div class="info-icon"></div></div>';
+        h+='<div style="text-align:center;margin-bottom:1rem"><div style="color:#333;font-size:.7rem;font-style:italic">*Estimate is Based on current MSRP. Does not reflect sale prices.</div></div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
     }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
 
@@ -279,7 +279,7 @@ function loadSuggest(){
     fetch('/api/suggest/'+SID).then(r=>r.json()).then(d=>{
         if(d.error||!d.appid)return;
         const el=document.getElementById('suggest-out');
-        el.innerHTML='<div class="suggest"><img src="'+d.image+'" class="suggest-img" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eye">Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Pick another</button></div></div></div>';
+        el.innerHTML='<div class="suggest"><img src="'+d.image+'" class="suggest-img" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eye">From your unplayed games, play this next?</div><div class="suggest-name">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Next Game</button></div></div></div>';
         el.style.display='block';
     }).catch(()=>{})}
 
@@ -312,14 +312,14 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
 
     let h='';
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
-        h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed library tells a different story than your playtime</div></div>'}
+        h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' Games but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed games tells a different story than your playtime</div></div>'}
     const radarSize=Math.min(620,window.innerWidth-80);
     h+='<div class="radar-box"><canvas id="radar-cv" width="'+radarSize+'" height="'+radarSize+'" style="max-width:'+radarSize+'px;width:100%;height:auto;"></canvas></div>';
     h+='<div class="dna-toggles">';
     if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
     if(data.played_majority)h+='<div class="dna-btn" data-layer="played">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</div>';
     if(data.unplayed_majority)h+='<div class="dna-btn" data-layer="unplayed">Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</div>';
-    h+='</div><div class="radar-disclaimer">Based on a sample of your library</div>';
+    h+='</div><div class="radar-disclaimer">**Based on a sample of your library</div>';
     show('dna',h);
 
     const lb=fLabels.map(l=>l.emoji+' '+l.label);
@@ -339,9 +339,9 @@ fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
     if(data.error&&!data.leaderboard){show('lb','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
     if(!data.leaderboard||data.leaderboard.length<=1){show('lb','<p style="text-align:center;color:#444">No friends with public profiles found.</p>');return}
     let h='';
-    if(data.user_rank===1)h+='<div class="callout"><div class="callout-emoji">&#x1F451;</div><div class="callout-text">#1 most wasteful among your friends</div></div>';
-    else if(data.user_rank<=3)h+='<div class="callout"><div class="callout-emoji">&#x1F62C;</div><div class="callout-text">#'+data.user_rank+' most wasteful among friends</div></div>';
-    else if(data.user_rank===data.leaderboard.length)h+='<div class="callout win"><div class="callout-emoji">&#x1F3C6;</div><div class="callout-text">Least wasteful among your friends</div></div>';
+    if(data.user_rank===1)h+='<div class="callout"><div class="callout-emoji">&#x1F451;</div><div class="callout-text">Worst shame score among your friends</div></div>';
+    else if(data.user_rank<=3)h+='<div class="callout"><div class="callout-emoji">&#x1F62C;</div><div class="callout-text">#'+data.user_rank+' most shameful among friends</div></div>';
+    else if(data.user_rank===data.leaderboard.length)h+='<div class="callout win"><div class="callout-emoji">&#x1F3C6;</div><div class="callout-text">Least shameful among your friends</div></div>';
     h+='<div class="lb"><div class="lb-head"><div></div><div>Name</div><div>Shame</div><div>Games</div><div>Unplayed</div></div>';
     data.leaderboard.forEach(e=>{
         const ri=e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
