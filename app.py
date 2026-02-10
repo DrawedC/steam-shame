@@ -265,13 +265,13 @@ def detect_descriptor(stats):
     abandoned_pct = (stats["abandoned_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
     unplayed_pct = (stats["never_played_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
     if played_pct > 50:
-        return {"type": "player", "emoji", "title": "Plays the Games they Buy",
+        return {"type": "player", "emoji":"", "title": "Plays the Games they Buy",
                 "description": "You actually play the majority of your games."}
     elif abandoned_pct > played_pct and abandoned_pct > unplayed_pct:
-        return {"type": "sampler", "emoji", "title": "Taste Tester",
+        return {"type": "sampler", "emoji":"", "title": "Taste Tester",
                 "description": "You try everything but commit to nothing."}
     else:
-        return {"type": "collector", "emoji", "title": "The Collector",
+        return {"type": "collector", "emoji":"", "title": "The Collector",
                 "description": "You buy games just to buy them."}
 
 def detect_badges_instant(stats, games):
