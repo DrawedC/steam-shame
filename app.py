@@ -532,7 +532,7 @@ def api_personality(steam_id):
 
         mismatch_badge = None
         if mismatch and um:
-            mismatch_badge = {"emoji": "", "title": f"Thinks They Like {um['label']} games",
+            mismatch_badge = {"emoji": "", "title": f"Likes the idea of {um['label']} games",
                               "description": f"Your unplayed library is full of {um['emoji']} {um['label']} games."}
 
         return jsonify({
