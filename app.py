@@ -245,7 +245,7 @@ GENRE_CATEGORIES = {
     "multiplayer":{"names":["Massively Multiplayer","MMO","MMORPG","Co-op","Multiplayer"],"label":"Multiplayer","emoji":""},
     "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game"],"label":"Casual","emoji":""},
     "visual_novel":{"names":["Visual Novel","Dating Sim","Choose Your Own Adventure","Interactive Fiction"],"label":"Visual Novel","emoji":""},
-    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":""}
+    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":""},
 }
 
 def classify_game_genres(details):
@@ -277,24 +277,24 @@ def detect_descriptor(stats):
 def detect_badges_instant(stats, games):
     badges = []
     if stats["never_played_count"] == 0:
-        badges.append({"name": "No Shame Detected", "emoji",""
+        badges.append({"name": "No Shame Detected", "emoji","",
                        "description": "You've played all of your games."})
     if stats["never_played_count"] >= 100:
-        badges.append({"name": "Humble Bundle Buddy", "emoji",""
+        badges.append({"name": "Humble Bundle Buddy", "emoji","",
                        "description": f"{stats['never_played_count']} unplayed games. You don't need to purchase bundles."})
     if stats["abandoned_count"] >= 30:
-        badges.append({"name": "Acquired Tastes", "emoji",""
+        badges.append({"name": "Acquired Tastes", "emoji","",
                        "description": f"{stats['abandoned_count']} games abandoned under an hour."})
     tm = sum(g.get("playtime_forever", 0) for g in games)
     if tm > 0:
         tg = max(games, key=lambda g: g.get("playtime_forever", 0))
         tp = (tg["playtime_forever"] / tm) * 100
         if tp > 50:
-            badges.append({"name": "One-Trick Pony", "emoji",""
+            badges.append({"name": "One-Trick Pony", "emoji","",
                            "description": f"{tp:.0f}% of your time in {tg.get('name', 'one game')}."})
     qa = len([g for g in games if 0 < g.get("playtime_forever", 0) < 10])
     if qa >= 15:
-        badges.append({"name": "Speed Running Abandoner", "emoji",""
+        badges.append({"name": "Speed Running Abandoner", "emoji","",
                        "description": f"{qa} games with under 10 minutes."})
     return badges[:6]
 
@@ -303,7 +303,7 @@ def detect_badges(stats, store_details, games):
     ea = sum(1 for d in store_details.values()
              if "early access" in [g.get("description", "").lower() for g in d.get("genres", [])])
     if ea >= 5:
-        badges.append({"name": "Half Baked", "emoji",""
+        badges.append({"name": "Half Baked", "emoji","",
                        "description": f"{ea} Early Access games. You love paying to beta test."})
     return badges[:6]
 
@@ -477,7 +477,7 @@ def api_personality(steam_id):
                 labels.append({
                     "key": k,
                     "label": info.get("label", k.capitalize()),
-                    "emoji": info.get("emoji",)
+                    "emoji": info.get("emoji","")
                 })
 
         # Radar data
