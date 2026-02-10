@@ -357,14 +357,13 @@ def results(steam_id):
 # ============== Async API ==============
 @app.route("/api/value/<steam_id>")
 def api_value(steam_id):
-    full = request.args.get("full","0") == "1"
     try:
         games = get_owned_games(steam_id).get("response",{}).get("games",[])
         if not games: return jsonify({"error":"No games"}), 404
         played = [g for g in games if g.get("playtime_forever",0) > 0]
         unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
-        sp = played if full else (random.sample(played, min(25, len(played))) if played else [])
-        su = unplayed if full else (random.sample(unplayed, min(25, len(unplayed))) if unplayed else [])
+        sp = random.sample(played, min(15, len(played))) if played else []
+        su = random.sample(unplayed, min(15, len(unplayed))) if unplayed else []
         sd = get_app_details_batch([g["appid"] for g in sp+su], max_workers=5, delay=0.35)
         pp, up = [], []
         for g in sp:
@@ -375,13 +374,10 @@ def api_value(steam_id):
             d = sd.get(g["appid"])
             pr = extract_usd_price(d)
             if pr: up.append(pr)
-        if full:
-            tpv, tuv, ie = sum(pp), sum(up), False
-        else:
-            ap = (sum(pp)/len(pp)) if pp else 0
-            au = (sum(up)/len(up)) if up else 0
-            tpv, tuv, ie = ap*len(played), au*len(unplayed), True
-        return jsonify({"library_value":round(tpv+tuv),"unplayed_value":round(tuv),"is_estimate":ie})
+        ap = (sum(pp)/len(pp)) if pp else 0
+        au = (sum(up)/len(up)) if up else 0
+        tpv, tuv = ap*len(played), au*len(unplayed)
+        return jsonify({"library_value":round(tpv+tuv),"unplayed_value":round(tuv),"is_estimate":True})
     except Exception as e: return jsonify({"error":str(e)}), 500
 
 @app.route("/api/suggest/<steam_id>")
@@ -410,9 +406,9 @@ def api_personality(steam_id):
 
         random.seed(int(steam_id))
 
-        owned_sample = random.sample(games, min(120, len(games)))
-        played_sample = random.sample(all_played, min(80, len(all_played))) if all_played else []
-        unplayed_sample = random.sample(all_unplayed, min(80, len(all_unplayed))) if all_unplayed else []
+        owned_sample = random.sample(games, min(60, len(games)))
+        played_sample = random.sample(all_played, min(40, len(all_played))) if all_played else []
+        unplayed_sample = random.sample(all_unplayed, min(40, len(all_unplayed))) if all_unplayed else []
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
         sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
