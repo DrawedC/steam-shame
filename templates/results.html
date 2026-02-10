@@ -447,7 +447,7 @@ function selectPie(i){
 function closePie(){document.getElementById('pie-detail').classList.remove('open')}
 
 // Value — emoji on far right
-function loadVal(full){
+/*function loadVal(full){
     const ld=document.getElementById('val-load'),out=document.getElementById('val-out');
     ld.style.display='block';out.style.display='none';
     if(full)ld.innerHTML='<div class="spin"></div>Scanning full library...';
@@ -460,7 +460,7 @@ function loadVal(full){
         if(d.is_estimate)h+='<button class="expand-btn" style="display:inline-block;width:auto;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.06);border-radius:8px" onclick="loadVal(true)">Scan full library for accuracy</button>';
         h+='</div>';
         ld.style.display='none';out.innerHTML=h;out.style.display='block';
-    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
+    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}*/
 
 // Suggest — less ad-like, no most played time
 function loadSuggest(){
