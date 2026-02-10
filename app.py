@@ -229,23 +229,23 @@ def analyze_library(games):
 
 # ============== Genre ==============
 GENRE_CATEGORIES = {
-    "fps_shooter":{"names":["FPS","Shooter","First-Person Shooter","Third-Person Shooter"],"label":"Shooter","emoji":"🔫"},
-    "rpg":{"names":["RPG","JRPG","Action RPG","Turn-Based RPG","CRPG","Role-Playing"],"label":"RPG","emoji":"⚔️"},
-    "strategy":{"names":["Strategy","Real-Time Strategy","Turn-Based Strategy","Tower Defense","RTS","4X","Grand Strategy"],"label":"Strategy","emoji":"🧠"},
-    "survival":{"names":["Survival","Survival Horror","Crafting","Base Building","Open World Survival Craft"],"label":"Survival","emoji":"🏕️"},
-    "simulation":{"names":["Simulation","Life Sim","Farming Sim","Management","City Builder","Building"],"label":"Simulation","emoji":"🏗️"},
-    "action":{"names":["Action","Hack and Slash","Beat 'em up","Action-Adventure"],"label":"Action","emoji":"💥"},
-    "puzzle":{"names":["Puzzle","Logic","Hidden Object"],"label":"Puzzle","emoji":"🧩"},
-    "platformer":{"names":["Platformer","2D Platformer","3D Platformer","Precision Platformer"],"label":"Platformer","emoji":"🏄"},
-    "horror":{"names":["Horror","Psychological Horror","Survival Horror"],"label":"Horror","emoji":"👻"},
-    "racing":{"names":["Racing","Driving","Automobile Sim"],"label":"Racing","emoji":"🏎️"},
-    "sports":{"names":["Sports","Football","Basketball","Baseball","Soccer","Golf"],"label":"Sports","emoji":"⚽"},
-    "sandbox":{"names":["Sandbox","Open World","Exploration"],"label":"Open World","emoji":"🌍"},
-    "roguelike":{"names":["Roguelike","Roguelite","Roguevania","Procedural Generation"],"label":"Roguelike","emoji":"💀"},
-    "multiplayer":{"names":["Massively Multiplayer","MMO","MMORPG","Co-op","Multiplayer"],"label":"Multiplayer","emoji":"👥"},
-    "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game"],"label":"Casual","emoji":"🎲"},
-    "visual_novel":{"names":["Visual Novel","Dating Sim","Choose Your Own Adventure","Interactive Fiction"],"label":"Visual Novel","emoji":"📖"},
-    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":"🥊"},
+    "fps_shooter":{"names":["FPS","Shooter","First-Person Shooter","Third-Person Shooter"],"label":"Shooter","emoji"},
+    "rpg":{"names":["RPG","JRPG","Action RPG","Turn-Based RPG","CRPG","Role-Playing"],"label":"RPG","emoji"},
+    "strategy":{"names":["Strategy","Real-Time Strategy","Turn-Based Strategy","Tower Defense","RTS","4X","Grand Strategy"],"label":"Strategy","emoji"},
+    "survival":{"names":["Survival","Survival Horror","Crafting","Base Building","Open World Survival Craft"],"label":"Survival","emoji"},
+    "simulation":{"names":["Simulation","Life Sim","Farming Sim","Management","City Builder","Building"],"label":"Simulation","emoji"},
+    "action":{"names":["Action","Hack and Slash","Beat 'em up","Action-Adventure"],"label":"Action","emojii"},
+    "puzzle":{"names":["Puzzle","Logic","Hidden Object"],"label":"Puzzle","emoji"},
+    "platformer":{"names":["Platformer","2D Platformer","3D Platformer","Precision Platformer"],"label":"Platformer","emoji"},
+    "horror":{"names":["Horror","Psychological Horror","Survival Horror"],"label":"Horror","emoji"},
+    "racing":{"names":["Racing","Driving","Automobile Sim"],"label":"Racing","emoji"},
+    "sports":{"names":["Sports","Football","Basketball","Baseball","Soccer","Golf"],"label":"Sports","emoji"},
+    "sandbox":{"names":["Sandbox","Open World","Exploration"],"label":"Open World","emoji"},
+    "roguelike":{"names":["Roguelike","Roguelite","Roguevania","Procedural Generation"],"label":"Roguelike","emoji",
+    "multiplayer":{"names":["Massively Multiplayer","MMO","MMORPG","Co-op","Multiplayer"],"label":"Multiplayer","emoji"},
+    "casual":{"names":["Casual","Clicker","Idle","Card Game","Board Game"],"label":"Casual","emoji"},
+    "visual_novel":{"names":["Visual Novel","Dating Sim","Choose Your Own Adventure","Interactive Fiction"],"label":"Visual Novel","emoji"},
+    "fighting":{"names":["Fighting","Martial Arts"],"label":"Fighting","emoji":},
 }
 
 def classify_game_genres(details):
@@ -265,37 +265,37 @@ def detect_descriptor(stats):
     abandoned_pct = (stats["abandoned_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
     unplayed_pct = (stats["never_played_count"] / stats["total_games"] * 100) if stats["total_games"] else 0
     if played_pct > 50:
-        return {"type": "player", "emoji": "🎮", "title": "The Player",
-                "description": "You actually play your games. A rare breed."}
+        return {"type": "player", "emoji", "title": "Plays the Games they Buy",
+                "description": "You actually play the majority of your games."}
     elif abandoned_pct > played_pct and abandoned_pct > unplayed_pct:
-        return {"type": "sampler", "emoji": "🧪", "title": "The Sampler",
+        return {"type": "sampler", "emoji", "title": "Taste Tester",
                 "description": "You try everything but commit to nothing."}
     else:
-        return {"type": "collector", "emoji": "🏛️", "title": "The Collector",
-                "description": "You buy games like they're going out of style. They're not."}
+        return {"type": "collector", "emoji", "title": "The Collector",
+                "description": "You buy games just to buy them."}
 
 def detect_badges_instant(stats, games):
     badges = []
     if stats["never_played_count"] == 0:
-        badges.append({"name": "Pristine Library", "emoji": "✨",
-                       "description": "Zero unplayed games. You're either disciplined or just got here."})
+        badges.append({"name": "No Shame Detected", "emoji",
+                       "description": "You've played all of your games."})
     if stats["never_played_count"] >= 100:
-        badges.append({"name": "Humble Bundle Victim", "emoji": "📦",
-                       "description": f"{stats['never_played_count']} unplayed games. Those bundles got you good."})
+        badges.append({"name": "Humble Bundle Buddy", "emoji",
+                       "description": f"{stats['never_played_count']} unplayed games. You don't need to purchase bundles."})
     if stats["abandoned_count"] >= 30:
-        badges.append({"name": "Acquired Tastes", "emoji": "🍷",
-                       "description": f"{stats['abandoned_count']} games abandoned under an hour. Very particular."})
+        badges.append({"name": "Acquired Tastes", "emoji",
+                       "description": f"{stats['abandoned_count']} games abandoned under an hour."})
     tm = sum(g.get("playtime_forever", 0) for g in games)
     if tm > 0:
         tg = max(games, key=lambda g: g.get("playtime_forever", 0))
         tp = (tg["playtime_forever"] / tm) * 100
         if tp > 50:
-            badges.append({"name": "One-Trick Pony", "emoji": "🐴",
+            badges.append({"name": "One-Trick Pony", "emoji",
                            "description": f"{tp:.0f}% of your time in {tg.get('name', 'one game')}."})
     qa = len([g for g in games if 0 < g.get("playtime_forever", 0) < 10])
     if qa >= 15:
-        badges.append({"name": "10-Minute Rule", "emoji": "⏱️",
-                       "description": f"{qa} games with under 10 minutes. Harsh critic."})
+        badges.append({"name": "Speed Running Abandoner", "emoji",
+                       "description": f"{qa} games with under 10 minutes."})
     return badges[:6]
 
 def detect_badges(stats, store_details, games):
@@ -303,7 +303,7 @@ def detect_badges(stats, store_details, games):
     ea = sum(1 for d in store_details.values()
              if "early access" in [g.get("description", "").lower() for g in d.get("genres", [])])
     if ea >= 5:
-        badges.append({"name": "Early Access Addict", "emoji": "🚧",
+        badges.append({"name": "Half Baked", "emoji",
                        "description": f"{ea} Early Access games. You love paying to beta test."})
     return badges[:6]
 
@@ -477,7 +477,7 @@ def api_personality(steam_id):
                 labels.append({
                     "key": k,
                     "label": info.get("label", k.capitalize()),
-                    "emoji": info.get("emoji", "🎮")
+                    "emoji": info.get("emoji",)
                 })
 
         # Radar data
@@ -517,7 +517,7 @@ def api_personality(steam_id):
             return {
                 "key": top_key,
                 "label": i.get("label", top_key.capitalize()),
-                "emoji": i.get("emoji", "🎮"),
+                "emoji": i.get("emoji",),
                 "pct": round((effective[top_key] / total) * 100, 1)
             }
 
