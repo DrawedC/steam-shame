@@ -470,9 +470,10 @@ function loadSuggest(){
         el.innerHTML='<div class="suggest"><img src="'+d.image+'" class="suggest-img" alt="" onerror="this.style.display=\'none\'"><div class="suggest-body"><div class="suggest-eye">Maybe play this next?</div><div class="suggest-name">'+d.name+'</div><div class="suggest-actions"><a href="'+d.store_url+'" target="_blank" class="btn-steam">View on Steam</a><button class="btn-reroll" onclick="loadSuggest()">Pick another</button></div></div></div>';
         el.style.display='block';
     }).catch(()=>{})}
-let _loaded={val:false,dna:false,friends:false,suggest:false};
+
 // Staggered loading
 _loaded.val=true;loadSuggest();
+let _loaded={val:false,dna:false,friends:false,suggest:false};
 setTimeout(()=>{
 fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.error){show('dna','<p style="text-align:center;color:#444">'+data.error+'</p>');return}
