@@ -311,7 +311,7 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
 
     let h='';
     if(data.show_unplayed_mismatch&&data.unplayed_majority&&data.played_majority){
-        h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' Games but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Your unplayed games tells a different story than your playtime</div></div>'}
+        h+='<div class="mismatch"><div class="mismatch-title">You buy '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' Games but play '+data.played_majority.emoji+' '+data.played_majority.label+'</div><div class="mismatch-sub">Maybe you should buy games you actually play?</div></div>'}
     const radarSize=Math.min(620,window.innerWidth-80);
     h+='<div class="radar-box"><canvas id="radar-cv" width="'+radarSize+'" height="'+radarSize+'" style="max-width:'+radarSize+'px;width:100%;height:auto;"></canvas></div>';
     h+='<div class="dna-toggles">';
