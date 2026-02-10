@@ -283,7 +283,7 @@ def detect_badges_instant(stats, games):
         badges.append({"name": "Humble Bundle Buddy", "emoji":"",
                        "description": f"{stats['never_played_count']} unplayed games. You don't need to purchase bundles."})
     if stats["abandoned_count"] >= 30:
-        badges.append({"name": "Acquired Tastes", "emoji":"",
+        badges.append({"name": "Abandoner", "emoji":"",
                        "description": f"{stats['abandoned_count']} games abandoned under an hour."})
     tm = sum(g.get("playtime_forever", 0) for g in games)
     if tm > 0:
@@ -532,7 +532,7 @@ def api_personality(steam_id):
 
         mismatch_badge = None
         if mismatch and um:
-            mismatch_badge = {"emoji": "", "title": f"Thinks They Like {um['label']}",
+            mismatch_badge = {"emoji": "", "title": f"Thinks They Like {um['label']} games",
                               "description": f"Your unplayed library is full of {um['emoji']} {um['label']} games."}
 
         return jsonify({
