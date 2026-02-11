@@ -674,8 +674,9 @@ def share_image(steam_id):
         pct_x = W//2 + font_huge.getlength(score_str) // 2 + 20
         draw.text((pct_x, 100 + 60), "%", fill=(255, 180, 120), font=font_med, anchor="lm")
 
-draw.text((W//2, 260), "UNPLAYED %", fill=(160, 160, 200), font=font_med, anchor="mm")
-stats_line = f"{stats['total_games']} GAMES OWNED • {stats['never_played_count']} UNPLAYED"
+        draw.text((W//2, 260), "SHAME SCORE", fill=(160, 160, 200), font=font_med, anchor="mm")
+
+        stats_line = f"{stats['total_games']} GAMES OWNED • {stats['never_played_count']} NEVER PLAYED"
         draw.text((W//2, 340), stats_line, fill=(200, 200, 220), font=font_sm, anchor="mm")
 
         draw.text((W//2, 420), name.upper(), fill=(220, 220, 255), font=font_large, anchor="mm")
