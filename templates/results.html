@@ -262,22 +262,6 @@ function selectPie(i){
     p.innerHTML=h;p.classList.add('open');p.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function closePie(){document.getElementById('pie-detail').classList.remove('open')}
 
-```
-
-And on each of the three card divs, change:
-```
-flex:1;min-width:160px;max-width:240px;
-```
-to:
-```
-flex:1;min-width:0;
-        h+='<div onclick="selectPie(0)" style="cursor:pointer;flex:1;min-width:160px;max-width:240px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background=\'rgba(255,255,255,.06)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'"><div style="font-size:2rem;font-weight:800;color:#00d26a">'+S[0].n+'</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Played</div></div>';
-        h+='<div onclick="selectPie(1)" style="cursor:pointer;flex:1;min-width:160px;max-width:240px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background=\'rgba(255,255,255,.06)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'"><div style="font-size:2rem;font-weight:800;color:#ff6b35">'+S[1].n+'</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Abandoned</div></div>';
-        h+='<div onclick="selectPie(2)" style="cursor:pointer;flex:1;min-width:160px;max-width:240px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background=\'rgba(255,255,255,.06)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'"><div style="font-size:2rem;font-weight:800;color:#ff3366">'+S[2].n+'</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Unplayed</div></div>';
-        h+='</div>';
-        ld.style.display='none';out.innerHTML=h;out.style.display='block';
-    }).catch(()=>{ld.style.display='none'}).finally(()=>{_loaded.val=true;checkReady()})}
-
 function loadSuggest(){
     fetch('/api/suggest/'+SID).then(r=>r.json()).then(d=>{
         if(d.error||!d.appid)return;
