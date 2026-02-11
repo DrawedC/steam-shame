@@ -129,9 +129,9 @@ def get_app_details(appid):
         # Force English to avoid localized genre names
         url = f"https://store.steampowered.com/api/appdetails?appids={appid}&l=english"
         r = requests.get(url, timeout=10)
-        if r.status_code == 429:
-            log.warning(f"Store API rate limited on appid {appid}")
-            return None
+if r.status_code == 429:
+    log.warning(f"Store API rate limited on appid {appid}")
+    raise Exception("rate_limited")
         if r.status_code == 200:
             ad = r.json().get(str(appid), {})
             if ad.get("success"):
@@ -145,6 +145,7 @@ def get_app_details(appid):
 
 def get_app_details_batch(appids, max_workers=4, delay=0.5):
     results = {}
+    rate_limited = False
     def fetch(aid):
         time.sleep(random.uniform(0.2, delay))
         return aid, get_app_details(aid)
@@ -153,9 +154,11 @@ def get_app_details_batch(appids, max_workers=4, delay=0.5):
             try:
                 aid, d = f.result()
                 if d: results[aid] = d
-            except: pass
+            except Exception as e:
+                if "rate_limited" in str(e):
+                    rate_limited = True
     log.info(f"Store batch: {len(results)}/{len(appids)} fetched")
-    return results
+    return results, rate_limited
 
 def extract_usd_price(details):
     if not details: return None
@@ -376,7 +379,7 @@ def api_value(steam_id):
         unplayed = [g for g in games if g.get("playtime_forever",0) == 0]
         sp = random.sample(played, min(15, len(played))) if played else []
         su = random.sample(unplayed, min(15, len(unplayed))) if unplayed else []
-        sd = get_app_details_batch([g["appid"] for g in sp+su], max_workers=5, delay=0.35)
+        sd, _ = get_app_details_batch([g["appid"] for g in sp+su], max_workers=5, delay=0.35)
         pp, up = [], []
         for g in sp:
             d = sd.get(g["appid"])
@@ -423,7 +426,9 @@ def api_personality(steam_id):
         unplayed_sample = random.sample(all_unplayed, min(40, len(all_unplayed))) if all_unplayed else []
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
-        sd = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
+        sd, rate_limited = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
+if rate_limited and not sd:
+    return jsonify({"error": "rate_limited"})
 
         def count_genres(game_list, weight_by_playtime=False):
             counts = {}
