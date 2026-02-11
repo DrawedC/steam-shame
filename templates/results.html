@@ -166,8 +166,7 @@
     <div class="sec-title">Your Backlog of Shame</div>
     <div class="sec-sub">{{ stats.total_games }} games</div>
     <div class="pie-area"><div class="pie-box"><canvas id="pie-cv"></canvas></div></div>
-    <div id="val-load" class="loading"><div class="spin"></div>Calculating library value...</div>
-    <div id="val-out" style="display:none"></div>
+    <div style="display:flex;gap:1rem;margin-bottom:1rem"><div onclick="selectPie(0)" style="cursor:pointer;flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background='rgba(255,255,255,.06)'" onmouseleave="this.style.background='rgba(255,255,255,.03)'"><div style="font-size:2rem;font-weight:800;color:#00d26a">{{ stats.played_count }}</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Played</div></div><div onclick="selectPie(1)" style="cursor:pointer;flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background='rgba(255,255,255,.06)'" onmouseleave="this.style.background='rgba(255,255,255,.03)'"><div style="font-size:2rem;font-weight:800;color:#ff6b35">{{ stats.abandoned_count }}</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Abandoned</div></div><div onclick="selectPie(2)" style="cursor:pointer;flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background='rgba(255,255,255,.06)'" onmouseleave="this.style.background='rgba(255,255,255,.03)'"><div style="font-size:2rem;font-weight:800;color:#ff3366">{{ stats.never_played_count }}</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Unplayed</div></div></div>
     <div id="pie-detail" class="detail-panel"></div>
     {% if stats.backlog_days > 0 %}
     <div class="info-row">
@@ -224,9 +223,9 @@ const FULL=[
 let PD=null,RC=null,RL='owned';
 
 // Page reveal — declared early so all callbacks can reference it
-let _loaded={val:false,dna:false};
+let _loaded={dna:false};
 function checkReady(){
-    if(_loaded.dna && _loaded.val){
+    if(_loaded.dna){{
         const loader=document.getElementById('page-loader');
         const content=document.getElementById('page-content');
         content.style.opacity='1';
@@ -263,12 +262,6 @@ function selectPie(i){
     p.innerHTML=h;p.classList.add('open');p.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function closePie(){document.getElementById('pie-detail').classList.remove('open')}
 
-function loadVal(){
-    const ld=document.getElementById('val-load'),out=document.getElementById('val-out');
-    ld.style.display='block';out.style.display='none';
-    fetch('/api/value/'+SID).then(r=>r.json()).then(d=>{
-        if(d.error){ld.style.display='none';return}
-        let h='<div style="display:flex;gap:1rem;margin-bottom:1rem">';
 ```
 
 And on each of the three card divs, change:
@@ -294,7 +287,6 @@ function loadSuggest(){
     }).catch(()=>{})}
 
 // Fire all requests immediately
-loadVal();
 loadSuggest();
 
 fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
