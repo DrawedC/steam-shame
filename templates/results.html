@@ -327,8 +327,8 @@ fetch('/api/friends/'+SID).then(r=>r.json()).then(data=>{
     if(!data.leaderboard||data.leaderboard.length<=1){show('lb','<p style="text-align:center;color:#444">No friends with public profiles found.</p>');return}
     let h='';
     if(data.user_rank===1)h+='<div class="callout"><div class="callout-emoji">&#x1F451;</div><div class="callout-text">Worst shame score among your friends</div></div>';
-    else if(data.user_rank<=3)h+='<div class="callout"><div class="callout-emoji">&#x1F62C;</div><div class="callout-text">#'+data.user_rank+' most shameful among friends</div></div>';
-    else if(data.user_rank===data.leaderboard.length)h+='<div class="callout win"><div class="callout-emoji">&#x1F3C6;</div><div class="callout-text">Least shameful among your friends</div></div>';
+    else if(data.user_rank<=3)h+='<div class="callout"><div class="callout-text">#'+data.user_rank+' most shameful among friends</div></div>';
+    else if(data.user_rank===data.leaderboard.length)h+='<div class="callout win"><div class="callout-text">Least shameful among your friends</div></div>';
     h+='<div class="lb"><div class="lb-head"><div></div><div>Name</div><div>Shame</div><div>Games</div><div>Unplayed</div></div>';
     data.leaderboard.forEach(e=>{
         const ri=e.rank===1?'&#x1F451;':e.rank===2?'&#x1F948;':e.rank===3?'&#x1F949;':e.rank;
