@@ -178,7 +178,7 @@
 </div></section>
 <section class="sec" id="dna-sec"><div class="sec-in">
     <div class="sec-title">Gamer DNA</div>
-    <div class="sec-sub">What kind of games do you own? What games do you actually play?**</div>
+    <div class="sec-sub">What kind of games do you actually play?*</div>
     <div id="dna-load" class="loading"><div class="spin"></div>Analyzing your genres...</div>
     <div id="dna-out" style="display:none"></div>
 </div></section>
@@ -268,7 +268,16 @@ function loadVal(){
     ld.style.display='block';out.style.display='none';
     fetch('/api/value/'+SID).then(r=>r.json()).then(d=>{
         if(d.error){ld.style.display='none';return}
-        let h='<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem">';
+        let h='<div style="display:flex;gap:1rem;margin-bottom:1rem">';
+```
+
+And on each of the three card divs, change:
+```
+flex:1;min-width:160px;max-width:240px;
+```
+to:
+```
+flex:1;min-width:0;
         h+='<div onclick="selectPie(0)" style="cursor:pointer;flex:1;min-width:160px;max-width:240px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background=\'rgba(255,255,255,.06)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'"><div style="font-size:2rem;font-weight:800;color:#00d26a">'+S[0].n+'</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Played</div></div>';
         h+='<div onclick="selectPie(1)" style="cursor:pointer;flex:1;min-width:160px;max-width:240px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background=\'rgba(255,255,255,.06)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'"><div style="font-size:2rem;font-weight:800;color:#ff6b35">'+S[1].n+'</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Abandoned</div></div>';
         h+='<div onclick="selectPie(2)" style="cursor:pointer;flex:1;min-width:160px;max-width:240px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem 1rem;text-align:center;transition:background .15s" onmouseenter="this.style.background=\'rgba(255,255,255,.06)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'"><div style="font-size:2rem;font-weight:800;color:#ff3366">'+S[2].n+'</div><div style="font-size:.85rem;color:#999;margin-top:.25rem">Games<br>Unplayed</div></div>';
@@ -320,7 +329,7 @@ fetch('/api/personality/'+SID).then(r=>r.json()).then(data=>{
     if(data.overall_majority)h+='<div class="dna-btn active" data-layer="owned">Library: '+data.overall_majority.emoji+' '+data.overall_majority.label+' '+data.overall_majority.pct+'%</div>';
     if(data.played_majority)h+='<div class="dna-btn" data-layer="played">Played: '+data.played_majority.emoji+' '+data.played_majority.label+' '+data.played_majority.pct+'%</div>';
     if(data.unplayed_majority)h+='<div class="dna-btn" data-layer="unplayed">Unplayed: '+data.unplayed_majority.emoji+' '+data.unplayed_majority.label+' '+data.unplayed_majority.pct+'%</div>';
-    h+='</div><div class="radar-disclaimer">**Based on a sample of your library</div>';
+    h+='</div><div class="radar-disclaimer">*Based on a sample of your library</div>';
     show('dna',h);
 
     const lb=fLabels.map(l=>l.emoji+' '+l.label);
