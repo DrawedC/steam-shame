@@ -161,11 +161,9 @@ def format_playtime(minutes):
     if hours < 24: return f"{hours:.1f}h"
     return f"{hours/24:.1f} days"
 
-def calculate_shame_score(never_played, abandoned, total):
+def calculate_shame_score(never_played, total):
     if total == 0: return 0.0
-    base = ((never_played + abandoned * 0.5) / total) * 100
-    vol = min(1.0, 0.65 + 0.35 * (math.log2(max(total, 2)) / math.log2(500)))
-    return round(min(base * vol, 99.9), 1)
+    return round((never_played / total) * 100, 1)
 
 def analyze_library(games):
     if not games: return None
@@ -185,7 +183,7 @@ def analyze_library(games):
     abandoned = sorted([g for g in raw_abandoned if not is_recent(g)], key=lambda x: x["playtime_forever"])
     unplayed = [g for g in raw_unplayed if not is_recent(g)]
 
-    shame = calculate_shame_score(len(raw_unplayed), len(raw_abandoned), total)
+    shame = calculate_shame_score(len(raw_unplayed), total)
     if shame > 55: verdict = "You have a problem. Stop buying games."
     elif shame > 40: verdict = "Steam sales have claimed another victim."
     elif shame > 25: verdict = "Not bad, but that backlog isn't clearing itself."
