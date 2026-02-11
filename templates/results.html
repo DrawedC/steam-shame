@@ -12,9 +12,9 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ player_name }}'s Steam Shame</title>
-    <meta property="og:title" content="{{ player_name }}'s Steam Shame: {{ stats.shame_score }}%">
-    <meta property="og:description" content="I own {{ stats.total_games }} games and have never touched {{ stats.never_played_count }} of them.">
+    <title>{{ player_name }}'s Unplayed %</title>
+    <meta property="og:title" content="{{ player_name }}'s Unplayed: {{ stats.shame_score }}%">
+<meta property="og:description" content="I own {{ stats.total_games }} games, and {{ stats.never_played_count }} are still unplayed ({{ stats.shame_score }}%).">
     <meta property="og:image" content="{{ request.url_root }}share/{{ steam_id }}.png">
     <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -148,7 +148,8 @@
 </div>
 <section class="hero" style="padding-top:4.5rem">
     <div class="player-header"><img src="{{ avatar_url }}" alt="" class="avatar"><div><div class="player-name">{{ player_name }}</div><div class="player-sub">Steam Shame Report</div></div></div>
-    <div class="shame-display"><div class="shame-num">{{ stats.shame_score }}</div><div class="shame-label">Shame Score</div></div>
+    <div class="shame-num">{{ stats.shame_score }}</div>
+    <div class="shame-label">Unplayed %</div>
     <div class="hero-stats">
         <div><div class="hero-stat-val">{{ stats.total_games }}</div><div class="hero-stat-lbl">Games Owned</div></div>
         <div><div class="hero-stat-val red">{{ stats.never_played_count }}</div><div class="hero-stat-lbl">Never Played</div></div>
