@@ -329,7 +329,7 @@ def lookup():
 
 @app.route("/results/<steam_id>")
 def results(steam_id):
-        if steam_id == 76561197960759668:
+    if steam_id == "76561197960759668":
         return redirect("https://plufl.com")
     try:
         pd = get_player_summary(steam_id)
