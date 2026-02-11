@@ -6,6 +6,7 @@ import requests, os, re, random, time, math, threading, io
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import logging
+import threading
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-this")
@@ -60,6 +61,17 @@ GENRE_GROUPS = {
     'survival': 'survival',
     'open world': 'open world',
 }
+
+@app.route('/health')
+def health():
+    return 'ok', 200
+
+def fetch_store_data():
+    # your batch fetch logic here
+    pass
+
+# Run batch fetch in background so the server starts immediately
+threading.Thread(target=fetch_store_data, daemon=True).start()
 
 # ============== Steam API ==============
 def get_owned_games(steam_id):
