@@ -129,9 +129,9 @@ def get_app_details(appid):
         # Force English to avoid localized genre names
         url = f"https://store.steampowered.com/api/appdetails?appids={appid}&l=english"
         r = requests.get(url, timeout=10)
-if r.status_code == 429:
-    log.warning(f"Store API rate limited on appid {appid}")
-    raise Exception("rate_limited")
+        if r.status_code == 429:
+            log.warning(f"Store API rate limited on appid {appid}")
+            raise Exception("rate_limited")
         if r.status_code == 200:
             ad = r.json().get(str(appid), {})
             if ad.get("success"):
@@ -427,8 +427,8 @@ def api_personality(steam_id):
 
         all_appids = list(set(g["appid"] for g in owned_sample + played_sample + unplayed_sample))
         sd, rate_limited = get_app_details_batch(all_appids, max_workers=5, delay=0.35)
-if rate_limited and not sd:
-    return jsonify({"error": "rate_limited"})
+        if rate_limited and not sd:
+            return jsonify({"error": "rate_limited"})
 
         def count_genres(game_list, weight_by_playtime=False):
             counts = {}
