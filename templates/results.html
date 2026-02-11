@@ -225,7 +225,7 @@ let PD=null,RC=null,RL='owned';
 // Page reveal — declared early so all callbacks can reference it
 let _loaded={dna:false};
 function checkReady(){
-    if(_loaded.dna){{
+    if(_loaded.dna){
         const loader=document.getElementById('page-loader');
         const content=document.getElementById('page-content');
         content.style.opacity='1';
